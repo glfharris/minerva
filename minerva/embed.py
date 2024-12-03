@@ -29,11 +29,14 @@ class DocumentManager:
         docs = loader.load()
 
         for doc in track(docs, description=f"Embedding: {path}"):
-            self.collection.add(
-                    documents = [doc.page_content],
-                    metadatas = [doc.metadata],
-                    ids = [":".join([doc.metadata['source'], str(doc.metadata['page'])])]
-                    )
+            if doc.page_content:
+                docid = ":".join([doc.metadata['source'], str(doc.metadata['page'])])
+                console.log(f"Adding {docid}")
+                self.collection.add(
+                        documents = [doc.page_content],
+                        metadatas = [doc.metadata],
+                        ids = [docid]
+                        )
 
     def add_dir(self, path, pattern=None):
         dir_path = Path(path)

@@ -1,4 +1,4 @@
-#! uv --env-file .env run
+#! uv run
 
 import typer
 
