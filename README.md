@@ -1,4 +1,4 @@
 # Minerva
-## LLM-based Single Best Answer Question Generation
+#### LLM-based Single Best Answer Question Generation
 
-![](example.svg)
+![](example.gif)
