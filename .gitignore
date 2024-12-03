@@ -14,3 +14,6 @@ wheels/
 
 # Chroma DB
 chromadb
+
+# Local docs
+docs/*
