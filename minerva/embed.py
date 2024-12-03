@@ -3,10 +3,13 @@ from pathlib import Path
 
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from rich.progress import track
 
 from .console import console
+
+load_dotenv()
 
 client = chromadb.PersistentClient(path=os.environ.get('CHROMA_DB_DIR', './chromadb'))
 

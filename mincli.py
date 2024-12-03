@@ -1,5 +1,4 @@
 #! uv run
-
 import typer
 
 from minerva.embed import DocumentManager
