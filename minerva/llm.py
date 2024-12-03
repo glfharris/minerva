@@ -19,7 +19,7 @@ system = """You write single-best answer questions on medical themes. You have t
 prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system),
-                ("human", "Please write 5 dissimilar single-best answer questions on {topic}"),
+                ("human", "Please write {count} dissimilar single-best answer question(s) on {topic}"),
             ]
         )
 

@@ -6,10 +6,10 @@ from minerva.embed import DocumentManager
 from minerva.llm import generator
 from minerva.models import Question, Questions
 
-def main(theme: str, save: bool = False):
+def main(theme: str, save: bool = False, count: int = 1):
     dm = DocumentManager()
     related_docs = dm.query(theme, n_results=50)['documents'][0]
-    response = generator.invoke({"topic": theme, "context": related_docs})
+    response = generator.invoke({"topic": theme, "count": str(count), "context": related_docs})
 
     if type(response) is Question:
         response.show()
