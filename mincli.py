@@ -4,18 +4,21 @@ import typer
 
 from minerva.embed import DocumentManager
 from minerva.llm import generator
-from minerva.models import Question
+from minerva.models import Question, Questions
 
-def main(theme: str):
+def main(theme: str, save: bool = False):
     dm = DocumentManager()
-    related_docs = dm.query(theme)['documents'][0]
+    related_docs = dm.query(theme, n_results=50)['documents'][0]
     response = generator.invoke({"topic": theme, "context": related_docs})
 
     if type(response) is Question:
         response.show()
-    elif type(response) is List[Question]:
-        for q in response:
+    elif type(response) is Questions:
+        for q in response.qs:
             q.show()
+        if save:
+            with open('questions.json', 'w') as f:
+                f.write(response.model_dump_json())
     else:
         print(response)
 

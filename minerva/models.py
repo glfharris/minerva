@@ -11,7 +11,7 @@ class Choice(BaseModel):
 
 
 class Question(BaseModel):
-    stem: str = Field(description="The stem of the single-best answer question")
+    stem: str = Field(description="The stem of the single-best answer question, which sets the scene for the lead, but doesn not contain a question itself")
     lead: str = Field(description="The lead-in question of the single-best answer question")
     choices: List[Choice] = Field(description="A list of 5 possible choice answers for the single-best answer question")
     answer: int = Field(description="The id of the choice that is correct")
@@ -28,8 +28,9 @@ class Question(BaseModel):
         console.print(f"\n[bold]Correct: [/bold]{[choice.text for choice in self.choices if self.answer == choice.id][0]}\n")
         console.print(self.explanation)
 
-        console.save_svg("test.svg")
 
+class Questions(BaseModel):
+    qs: List[Question] = Field(description="A list of questions")
 
 
 class Compentency(BaseModel):

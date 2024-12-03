@@ -17,3 +17,6 @@ chromadb
 
 # Local docs
 docs/*
+
+# Output
+output/*
