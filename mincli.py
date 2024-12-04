@@ -7,8 +7,13 @@ from minerva.models import Question, Questions
 
 def main(theme: str, save: bool = False, count: int = 1):
     dm = DocumentManager()
-    related_docs = dm.query(theme, n_results=50)['documents'][0]
-    response = generator.invoke({"topic": theme, "count": str(count), "context": related_docs})
+    related_docs = dm.query(theme, n_results=25)['documents'][0]
+
+    with open('examples/rcoa.md', 'r') as f:
+        examples = f.read()
+
+    response = generator.invoke({"topic": theme, "count": str(count), 
+                                 "context": related_docs, "examples": examples })
 
     if type(response) is Question:
         response.show()

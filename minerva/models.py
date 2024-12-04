@@ -28,6 +28,13 @@ class Question(BaseModel):
         console.print(f"\n[bold]Correct: [/bold]{[choice.text for choice in self.choices if self.answer == choice.id][0]}\n")
         console.print(self.explanation)
 
+    def to_md(self):
+        correct = [choice.text for choice in self.choices if self.answer == choice.id][0]
+        results=f"{self.stem}\n\n**{self.lead}**\n\n"
+        for c in self.choices:
+            results += f"{c.text}\n"
+        results += f"\n**Correct:** {correct} \n\n{self.explanation}"
+        return results
 
 class Questions(BaseModel):
     qs: List[Question] = Field(description="A list of questions")
