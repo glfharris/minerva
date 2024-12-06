@@ -5,11 +5,11 @@ A 60-year-old male patient is undergoing surgery and requires muscle relaxation.
 
 **Which of the following patterns of response is most indicative of a partial non-depolarising neuromuscular block?**
 
-Reduced but equal twitch height in single twitch stimulation
-Fade in tetanic stimulation
-Post-tetanic facilitation
-Train-of-four ratio greater than 0.7
-Increased twitch response after anticholinesterase administration
+* Reduced but equal twitch height in single twitch stimulation
+* Fade in tetanic stimulation
+* Post-tetanic facilitation
+* Train-of-four ratio greater than 0.7
+* Increased twitch response after anticholinesterase administration
 
 **Correct:** Fade in tetanic stimulation 
 
@@ -24,11 +24,11 @@ You are using isoflurane (vaporizer dial setting 2.0%, end-tidal concentration =
 
 **Which of the following is the quickest method of increasing the depth of anaesthesia to 1.5 MAC equivalent?**
 
-Change the vaporizer setting to isoflurane 1.5%
-Increase the FGF to 8 L min-1
-Increase the vaporizer setting by 50%
-Switch to a nitrous oxide/oxygen mix with FiO2 = 0.3
-Switch to a nitrous oxide/oxygen mix with FiO2 = 0.5
+* Change the vaporizer setting to isoflurane 1.5%
+* Increase the FGF to 8 L min-1
+* Increase the vaporizer setting by 50%
+* Switch to a nitrous oxide/oxygen mix with FiO2 = 0.3
+* Switch to a nitrous oxide/oxygen mix with FiO2 = 0.5
 
 **Correct:** Increase the FGF to 8 L min-1 
 
@@ -43,11 +43,11 @@ A patient receives a continuous intravenous infusion of a drug that follows firs
 
 **Which of the following factors primarily determines the time to reach steady-state concentration?**
 
-Drug's half-life
-Infusion rate
-Volume of distribution
-Bioavailability
-Loading dose
+* Drug's half-life
+* Infusion rate
+* Volume of distribution
+* Bioavailability
+* Loading dose
 
 **Correct:** Drug's half-life 
 
@@ -62,11 +62,11 @@ You are comparing pressure-volume curves in patients during an asthma attack com
 
 **Which of the following observed differences is the best indicator of the increased work of breathing in the patients with asthma?**
 
-Larger hysteresis loop
-Longer expiratory time
-Pressure-volume curve starts at a higher end-expiratory pressure
-Slope of the inspiratory limb is initially less steep
-Tidal volume is smaller
+* Larger hysteresis loop
+* Longer expiratory time
+* Pressure-volume curve starts at a higher end-expiratory pressure
+* Slope of the inspiratory limb is initially less steep
+* Tidal volume is smaller
 
 **Correct:** Larger hysteresis loop 
 
@@ -81,11 +81,11 @@ A pregnant woman is undergoing an ultrasound examination. The sonographer notes 
 
 **Which of the following best describes the role of the ductus venosus in foetal circulation?**
 
-It supplies oxygenated blood directly to the foetal brain.
-It allows oxygenated blood from the umbilical vein to bypass the liver and flow into the inferior vena cava.
-It is responsible for shunting deoxygenated blood from the right atrium to the left atrium.
-It connects the pulmonary artery to the descending aorta to bypass the lungs.
-It facilitates the exchange of nutrients between the maternal and foetal circulations.
+* It supplies oxygenated blood directly to the foetal brain.
+* It allows oxygenated blood from the umbilical vein to bypass the liver and flow into the inferior vena cava.
+* It is responsible for shunting deoxygenated blood from the right atrium to the left atrium.
+* It connects the pulmonary artery to the descending aorta to bypass the lungs.
+* It facilitates the exchange of nutrients between the maternal and foetal circulations.
 
 **Correct:** It allows oxygenated blood from the umbilical vein to bypass the liver and flow into the inferior vena cava. 
 
@@ -100,11 +100,11 @@ A 65-year-old man is being treated with a drug that follows a two-compartment ph
 
 **Which of the following best describes the initial rapid decline in plasma concentration after administration?**
 
-It is due to the drug being metabolised by the liver.
-It represents the drug being distributed into a peripheral compartment.
-It indicates immediate renal excretion of the drug.
-It shows the drug being absorbed from the site of administration.
-It is caused by the drug binding to plasma proteins.
+* It is due to the drug being metabolised by the liver.
+* It represents the drug being distributed into a peripheral compartment.
+* It indicates immediate renal excretion of the drug.
+* It shows the drug being absorbed from the site of administration.
+* It is caused by the drug binding to plasma proteins.
 
 **Correct:** It represents the drug being distributed into a peripheral compartment. 
 
@@ -119,11 +119,11 @@ During foetal development, the cardiovascular system undergoes significant adapt
 
 **Which of the following adaptations is primarily responsible for directing oxygen-rich blood towards the brain and heart in the foetus?**
 
-The presence of foetal haemoglobin with higher oxygen affinity.
-The ductus arteriosus, which diverts blood away from the non-functioning lungs.
-The ductus venosus, allowing oxygenated blood from the placenta to bypass the liver.
-The foramen ovale, facilitating blood flow from the right atrium to the left atrium.
-The high pulmonary vascular resistance due to hypoxic pulmonary vasoconstriction.
+* The presence of foetal haemoglobin with higher oxygen affinity.
+* The ductus arteriosus, which diverts blood away from the non-functioning lungs.
+* The ductus venosus, allowing oxygenated blood from the placenta to bypass the liver.
+* The foramen ovale, facilitating blood flow from the right atrium to the left atrium.
+* The high pulmonary vascular resistance due to hypoxic pulmonary vasoconstriction.
 
 **Correct:** The foramen ovale, facilitating blood flow from the right atrium to the left atrium. 
 
@@ -138,11 +138,11 @@ A patient with atypical pneumonia is prescribed clarithromycin.
 
 **Inhibition of which of the following mechanisms best explains the antibiotic action of clarithromycin?**
 
-Bacterial energy metabolism
-Cell wall synthesis
-DNA synthesis
-Protein synthesis
-RNA synthesis
+* Bacterial energy metabolism
+* Cell wall synthesis
+* DNA synthesis
+* Protein synthesis
+* RNA synthesis
 
 **Correct:** Protein synthesis 
 
@@ -157,11 +157,11 @@ A drug has an initial volume of distribution = 0.1 Litre Kg^-1 and a rate consta
 
 **Which of the following is the most likely plasma drug concentration after two minutes?**
 
-1.0 mcg mL^-1
-25.2 mcg mL^-1
-81.9 mcg mL^-1
-98.8 mcg mL^-1
-100.0 mcg mL^-1
+* 1.0 mcg mL^-1
+* 25.2 mcg mL^-1
+* 81.9 mcg mL^-1
+* 98.8 mcg mL^-1
+* 100.0 mcg mL^-1
 
 **Correct:** 81.9 mcg mL^-1 
 
@@ -180,11 +180,11 @@ A 65-year-old man presents with acute kidney injury following cardiac surgery. H
 
 **Which of the following is the most likely cause of his acute kidney injury?**
 
-Pre-renal azotemia due to hypovolaemia
-Acute tubular necrosis due to ischaemia
-Acute interstitial nephritis due to medication
-Post-renal obstruction due to catheter blockage
-Glomerulonephritis due to autoimmune disease
+* Pre-renal azotemia due to hypovolaemia
+* Acute tubular necrosis due to ischaemia
+* Acute interstitial nephritis due to medication
+* Post-renal obstruction due to catheter blockage
+* Glomerulonephritis due to autoimmune disease
 
 **Correct:** Acute tubular necrosis due to ischaemia 
 
@@ -199,11 +199,11 @@ A 30-year-old man is undergoing a laparoscopic appendectomy under general anaest
 
 **Which of the following is a characteristic feature of vecuronium compared to pancuronium?**
 
-Vecuronium is more likely to cause tachycardia
-Vecuronium is a depolarising muscle relaxant
-Vecuronium has a shorter duration of action
-Vecuronium causes histamine release
-Vecuronium is metabolised by plasma cholinesterase
+* Vecuronium is more likely to cause tachycardia
+* Vecuronium is a depolarising muscle relaxant
+* Vecuronium has a shorter duration of action
+* Vecuronium causes histamine release
+* Vecuronium is metabolised by plasma cholinesterase
 
 **Correct:** Vecuronium has a shorter duration of action 
 
@@ -218,11 +218,11 @@ The non-depolarising neuromuscular blocker rocuronium is sometimes used for its 
 
 **Which of the following is the most important reason for its more rapid onset compared with vecuronium?**
 
-Priming doses are not required for rocuronium
-Rocuronium has a lower volume of distribution
-Rocuronium has lower potency
-Rocuronium has pre-junctional action at the NMJ
-Rocuronium is an aminosteroid
+* Priming doses are not required for rocuronium
+* Rocuronium has a lower volume of distribution
+* Rocuronium has lower potency
+* Rocuronium has pre-junctional action at the NMJ
+* Rocuronium is an aminosteroid
 
 **Correct:** Rocuronium has lower potency 
 
@@ -237,11 +237,11 @@ A 59-year-old man with a history of chronic obstructive pulmonary disease (COPD)
 
 **Which of the following best explains the observed decrease in expiratory flow in this patient?**
 
-Increased airway resistance due to bronchoconstriction
-Dynamic airway compression during forced expiration
-Reduced lung compliance due to fibrosis
-Decreased inspiratory muscle strength
-Reduced alveolar surface area for gas exchange
+* Increased airway resistance due to bronchoconstriction
+* Dynamic airway compression during forced expiration
+* Reduced lung compliance due to fibrosis
+* Decreased inspiratory muscle strength
+* Reduced alveolar surface area for gas exchange
 
 **Correct:** Dynamic airway compression during forced expiration 
 
@@ -256,11 +256,11 @@ You are working in a hospital located at an altitude of 3500 meters above sea le
 
 **How does this affect the delivery of a volatile anaesthetic agent using a variable bypass vaporizer calibrated at sea level?**
 
-The partial pressure of the volatile agent delivered to the patient will be lower than intended.
-The concentration of the volatile agent delivered to the patient will be higher than intended.
-The vaporizer will automatically adjust to deliver the correct concentration of anaesthetic agent.
-The saturated vapour pressure of the agent will decrease, reducing its volatility.
-The vaporizer will not function at this altitude due to mechanical limitations.
+* The partial pressure of the volatile agent delivered to the patient will be lower than intended.
+* The concentration of the volatile agent delivered to the patient will be higher than intended.
+* The vaporizer will automatically adjust to deliver the correct concentration of anaesthetic agent.
+* The saturated vapour pressure of the agent will decrease, reducing its volatility.
+* The vaporizer will not function at this altitude due to mechanical limitations.
 
 **Correct:** The concentration of the volatile agent delivered to the patient will be higher than intended. 
 
@@ -275,11 +275,11 @@ A 30-year-old woman undergoes anaesthesia for a laparoscopic appendectomy. The a
 
 **What is a potential reason for the decreasing use of nitrous oxide in operating theatres?**
 
-High potency leading to prolonged recovery time
-Increased risk of cardiovascular instability
-Potential to cause post-operative nausea and vomiting
-Toxic metabolites causing liver damage
-High metabolic rate leading to rapid depletion
+* High potency leading to prolonged recovery time
+* Increased risk of cardiovascular instability
+* Potential to cause post-operative nausea and vomiting
+* Toxic metabolites causing liver damage
+* High metabolic rate leading to rapid depletion
 
 **Correct:** Potential to cause post-operative nausea and vomiting 
 
@@ -293,11 +293,11 @@ An odourless inhalational anaesthetic has the following properties: oil: gas par
 
 **Which of the following is most likely to be true of this agent?**
 
-More likely to produce hepatotoxicity than desflurane
-Less volatile than desflurane
-Potency greater than isoflurane
-Slower offset than sevoflurane
-Speed of onset faster than nitrous oxide
+* More likely to produce hepatotoxicity than desflurane
+* Less volatile than desflurane
+* Potency greater than isoflurane
+* Slower offset than sevoflurane
+* Speed of onset faster than nitrous oxide
 
 **Correct:** Speed of onset faster than nitrous oxide 
 
@@ -312,11 +312,11 @@ A patient is being monitored for blood pressure using an automated oscillometric
 
 **Which of the following is the most likely cause of these inaccurate readings?**
 
-Presence of arrhythmias such as atrial fibrillation
-Incorrect cuff size
-Patient's arm positioned above heart level
-Use of a mercury sphygmomanometer
-Leak in the cuff tubing
+* Presence of arrhythmias such as atrial fibrillation
+* Incorrect cuff size
+* Patient's arm positioned above heart level
+* Use of a mercury sphygmomanometer
+* Leak in the cuff tubing
 
 **Correct:** Presence of arrhythmias such as atrial fibrillation 
 
@@ -331,11 +331,11 @@ You are asked to assess the behaviour of a gas stored in a cylinder. The cylinde
 
 **Which of the following gas laws best explains this observation?**
 
-Boyle's Law
-Charles's Law
-Gay-Lussac's Law
-Avogadro's Law
-Ideal Gas Law
+* Boyle's Law
+* Charles's Law
+* Gay-Lussac's Law
+* Avogadro's Law
+* Ideal Gas Law
 
 **Correct:** Gay-Lussac's Law 
 
@@ -354,11 +354,11 @@ Osmolality 285 mosm Kg-1
 
 **From which of the following sites is the fluid most likely to have been obtained:**
 
-Ascending limb of loop of Henle
-Bowman's capsule
-Collecting duct
-Distal convoluted tubule
-End proximal convoluted tubule
+* Ascending limb of loop of Henle
+* Bowman's capsule
+* Collecting duct
+* Distal convoluted tubule
+* End proximal convoluted tubule
 
 **Correct:** Bowman's capsule 
 
@@ -372,11 +372,11 @@ A 34-year-old male presents with symptoms of muscle weakness and sensory disturb
 
 **Which of the following best explains the impact of demyelination on nerve conduction velocity?**
 
-Decreased axon diameter reduces conduction velocity.
-Increased membrane capacitance slows conduction velocity.
-Enhanced transmembrane resistance accelerates conduction velocity.
-Increased density of voltage-gated Na+ channels at the nodes of Ranvier enhances conduction velocity.
-Increased extracellular ion concentration speeds conduction velocity.
+* Decreased axon diameter reduces conduction velocity.
+* Increased membrane capacitance slows conduction velocity.
+* Enhanced transmembrane resistance accelerates conduction velocity.
+* Increased density of voltage-gated Na+ channels at the nodes of Ranvier enhances conduction velocity.
+* Increased extracellular ion concentration speeds conduction velocity.
 
 **Correct:** Increased membrane capacitance slows conduction velocity. 
 
@@ -391,11 +391,11 @@ A 65-year-old male patient with a history of chronic obstructive pulmonary disea
 
 **Which of the following antibiotics is most likely being used to treat this infection?**
 
-Amoxicillin
-Ceftriaxone
-Ciprofloxacin
-Azithromycin
-Metronidazole
+* Amoxicillin
+* Ceftriaxone
+* Ciprofloxacin
+* Azithromycin
+* Metronidazole
 
 **Correct:** Ciprofloxacin 
 
@@ -410,11 +410,11 @@ In an experimental situation, a giant squid axon is bathed in an electrolyte sol
 
 **Which of the following changes would have the greatest effect in making the resting membrane potential less negative?**
 
-Decreasing the extracellular concentration of potassium ions
-Decreasing the extracellular concentration of sodium ions
-Increasing the extracellular concentration of chloride ions
-Increasing the extracellular concentration of potassium ions
-Increasing the extracellular concentration of sodium ions
+* Decreasing the extracellular concentration of potassium ions
+* Decreasing the extracellular concentration of sodium ions
+* Increasing the extracellular concentration of chloride ions
+* Increasing the extracellular concentration of potassium ions
+* Increasing the extracellular concentration of sodium ions
 
 **Correct:** Increasing the extracellular concentration of potassium ions 
 
@@ -429,11 +429,11 @@ A 35-year-old male patient with a history of recurrent urinary tract infections 
 
 **Which of the following mechanisms of action is responsible for the antimicrobial effect of nitrofurantoin?**
 
-Inhibition of cell wall synthesis
-Inhibition of protein synthesis
-Disruption of cytoplasmic cellular membrane
-Inhibition of DNA/RNA replication
-Metabolic interference with bacterial enzymes
+* Inhibition of cell wall synthesis
+* Inhibition of protein synthesis
+* Disruption of cytoplasmic cellular membrane
+* Inhibition of DNA/RNA replication
+* Metabolic interference with bacterial enzymes
 
 **Correct:** Metabolic interference with bacterial enzymes 
 
@@ -448,11 +448,11 @@ During an anaesthetic procedure, a patient is observed to have a significant ven
 
 **Which of the following interventions is most likely to improve the patient's oxygenation?**
 
-Increase the inspired oxygen fraction (FiO2)
-Administer intravenous fluids to increase cardiac output
-Apply positive end-expiratory pressure (PEEP)
-Use bronchodilators to reduce airway resistance
-Perform a recruitment manoeuvre
+* Increase the inspired oxygen fraction (FiO2)
+* Administer intravenous fluids to increase cardiac output
+* Apply positive end-expiratory pressure (PEEP)
+* Use bronchodilators to reduce airway resistance
+* Perform a recruitment manoeuvre
 
 **Correct:** Apply positive end-expiratory pressure (PEEP) 
 
@@ -467,11 +467,11 @@ You are using a variable bypass vaporizer to deliver isoflurane during a routine
 
 **Which of the following mechanisms ensures a consistent delivery concentration of isoflurane despite the increased fresh gas flow?**
 
-Automatic adjustment of the splitting ratio
-Manual adjustment of the vaporizer setting
-Use of a direct injection vaporizer
-Elevating the temperature of the vaporizer chamber
-Increasing the surface area of evaporation using wicks
+* Automatic adjustment of the splitting ratio
+* Manual adjustment of the vaporizer setting
+* Use of a direct injection vaporizer
+* Elevating the temperature of the vaporizer chamber
+* Increasing the surface area of evaporation using wicks
 
 **Correct:** Automatic adjustment of the splitting ratio 
 
@@ -486,11 +486,11 @@ In the fetus, blood supplying the brain has a higher oxygen content than blood s
 
 **Which of the following statements is the best explanation for this?**
 
-Fetal haemoglobin has a higher oxygen affinity than adult haemoglobin, thereby maximising oxygen transfer in the placenta
-Metabolic autoregulation of the cerebral circulation
-The fetal circulation is so arranged that blood with a higher oxygen content flows preferentially across the foramen ovale and is ejected via the left ventricle into the carotid arteries
-The ductus arteriosus ensures that most of the blood ejected from the pulmonary artery bypasses the collapsed fetal lungs
-The ductus venosus ensures that a majority of oxygenated blood from the umbilical vein bypasses the portal hepatic circulation
+* Fetal haemoglobin has a higher oxygen affinity than adult haemoglobin, thereby maximising oxygen transfer in the placenta
+* Metabolic autoregulation of the cerebral circulation
+* The fetal circulation is so arranged that blood with a higher oxygen content flows preferentially across the foramen ovale and is ejected via the left ventricle into the carotid arteries
+* The ductus arteriosus ensures that most of the blood ejected from the pulmonary artery bypasses the collapsed fetal lungs
+* The ductus venosus ensures that a majority of oxygenated blood from the umbilical vein bypasses the portal hepatic circulation
 
 **Correct:** The fetal circulation is so arranged that blood with a higher oxygen content flows preferentially across the foramen ovale and is ejected via the left ventricle into the carotid arteries 
 
@@ -505,11 +505,11 @@ A 60-year-old male patient presents to the emergency department with signs of ac
 
 **Which of the following mechanisms is the most likely cause of his acute kidney injury?**
 
-Afferent arteriolar vasodilation
-Efferent arteriolar vasoconstriction
-Decreased glomerular filtration rate due to afferent arteriolar vasoconstriction
-Increased tubular reabsorption of sodium
-Inhibition of the renin-angiotensin-aldosterone system
+* Afferent arteriolar vasodilation
+* Efferent arteriolar vasoconstriction
+* Decreased glomerular filtration rate due to afferent arteriolar vasoconstriction
+* Increased tubular reabsorption of sodium
+* Inhibition of the renin-angiotensin-aldosterone system
 
 **Correct:** Decreased glomerular filtration rate due to afferent arteriolar vasoconstriction 
 
@@ -524,11 +524,11 @@ At atmospheric pressure, the column height of a mercury barometer is approximate
 
 **Which of the following statements best explains this?**
 
-A mercury barometer has a Torricellian vacuum above the meniscus
-A mercury barometer measures absolute pressure
-Mercury is denser than water
-Mercury is less viscous than water
-The SVP of mercury at a given temperature is less than that of water
+* A mercury barometer has a Torricellian vacuum above the meniscus
+* A mercury barometer measures absolute pressure
+* Mercury is denser than water
+* Mercury is less viscous than water
+* The SVP of mercury at a given temperature is less than that of water
 
 **Correct:** Mercury is denser than water 
 
@@ -542,11 +542,11 @@ A 35-year-old woman is undergoing a laparoscopic cholecystectomy under general a
 
 **Which of the following agents is most likely being used?**
 
-Sevoflurane
-Isoflurane
-Halothane
-Desflurane
-Nitrous Oxide
+* Sevoflurane
+* Isoflurane
+* Halothane
+* Desflurane
+* Nitrous Oxide
 
 **Correct:** Desflurane 
 
@@ -561,11 +561,11 @@ anaesthesia. The anaesthetist uses lidocaine to block nerve conduction.
 
 **Which of the following effects of lidocaine best explains its ability to block action potentials**
 
-Inhibition of sodium channel inactivation
-Increased potassium efflux during repolarisation
-Prolongation of the refractory period
-Reduction of sodium permeability during depolarisation
-Stabilisation of the resting membrane potential
+* Inhibition of sodium channel inactivation
+* Increased potassium efflux during repolarisation
+* Prolongation of the refractory period
+* Reduction of sodium permeability during depolarisation
+* Stabilisation of the resting membrane potential
 
 **Correct:** Reduction of sodium permeability during depolarisation
 
