@@ -3,22 +3,28 @@ from pathlib import Path
 
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from rich.progress import track
 
 from .console import console
 
-load_dotenv()
+class EmbedClient:
+    def __init__(self, api_key=os.environ['OPENAI_API_KEY'],
+                 chroma_db_dir=os.environ['CHROMA_DB_DIR'],
+                 embedding_model="text-embedding-3-small"):
+        self.chroma_client = chromadb.PersistentClient(path=chroma_db_dir)
 
-client = chromadb.PersistentClient(path=os.environ.get('CHROMA_DB_DIR', './chromadb'))
-
-em_fn = OpenAIEmbeddingFunction(
-        api_key=os.environ['OPENAI_API_KEY'],
-        model_name="text-embedding-3-small"
+        self.embedding_function = OpenAIEmbeddingFunction(
+        api_key=api_key,
+        model_name=embedding_model
         )
 
-doc_embed = client.get_or_create_collection(name="docs", embedding_function=em_fn)
+        self.documents = DocumentManager(client=self.chroma_client,
+                               embedding_function=self.embedding_function)
+
+    def reset(self):
+        self.documents.reset()
+
 
 class DocumentManager:
     def __init__(self, client=client, embedding_function=em_fn):
@@ -27,19 +33,18 @@ class DocumentManager:
         self.collection = self.client.get_or_create_collection(name=self.name, embedding_function=embedding_function)
         self.embedding_function = embedding_function
 
-    def add_document(self, path):
+    def add(self, path):
         loader = PyPDFLoader(path)
         docs = loader.load()
 
-        for doc in track(docs, description=f"Embedding: {path}"):
-            if doc.page_content:
-                docid = ":".join([doc.metadata['source'], str(doc.metadata['page'])])
-                console.log(f"Adding {docid}")
-                self.collection.add(
-                        documents = [doc.page_content],
-                        metadatas = [doc.metadata],
-                        ids = [docid]
-                        )
+        documents = [doc.page_content for doc in docs if doc.page_content]
+        metadatas = [doc.metadata for doc in docs if doc.page_content]
+        ids = [":".join([doc.metadata['source'],str(doc.metadata['page'])]) for doc in docs if doc.page_content]
+
+        self.collection.add(
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids)
 
     def add_dir(self, path, pattern=None):
         dir_path = Path(path)
@@ -49,11 +54,13 @@ class DocumentManager:
         else:
             file_paths = list(dir_path.glob("*"))
 
-        console.print(f"Adding: {file_paths}")
+        console.log(f"Found {len(file_paths)} file(s) - {[str(p) for p in file_paths]}")
 
-        for p in file_paths:
+        for i, p in enumerate(file_paths):
             if not self._in_collection(str(p)):
-                self.add_document(p)
+                with console.status(f"Embedding {p}"):
+                    self.add(p)
+                console.log(f"Embedded {p} - {i + 1}/{len(file_paths)}")
 
 
     def _in_collection(self, path):
