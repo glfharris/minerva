@@ -3,11 +3,14 @@ from pathlib import Path
 from typing import Optional
 from typing_extensions import Annotated
 
+from dotenv import load_dotenv
 import typer
 
 from minerva.console import console
 from minerva.embed import EmbedClient
 from minerva.llm import LLMClient
+
+load_dotenv()
 
 app = typer.Typer()
 context = {

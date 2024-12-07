@@ -9,8 +9,7 @@ from rich.progress import track
 from .console import console
 
 class EmbedClient:
-    def __init__(self, api_key=os.environ['OPENAI_API_KEY'],
-                 chroma_db_dir=os.environ['CHROMA_DB_DIR'],
+    def __init__(self, api_key,chroma_db_dir,
                  embedding_model="text-embedding-3-small"):
         self.chroma_client = chromadb.PersistentClient(path=chroma_db_dir)
 
@@ -27,7 +26,7 @@ class EmbedClient:
 
 
 class DocumentManager:
-    def __init__(self, client=client, embedding_function=em_fn):
+    def __init__(self, client, embedding_function):
         self.name = "documents"
         self.client = client
         self.collection = self.client.get_or_create_collection(name=self.name, embedding_function=embedding_function)

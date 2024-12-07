@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from .console import console
-from .embed import doc_embed, EmbedClient
+from .embed import EmbedClient
 from .models import Question, Questions
 
 role = """You write single-best answer questions for the Royal College of 
