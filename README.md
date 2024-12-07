@@ -1,7 +1,7 @@
 # Minerva
 #### LLM-based Single Best Answer Question Generation
 
-<video src="https://github.com/user-attachments/assets/513c38fd-46fd-4a18-b3aa-ada6381671a7" />
+<video src="https://github.com/user-attachments/assets/513c38fd-46fd-4a18-b3aa-ada6381671a7" /></video>
 
 ## Rationale
 
