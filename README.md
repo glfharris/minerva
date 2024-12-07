@@ -46,8 +46,4 @@ causing a barrel-shaped chest appearance.
 
 ## Application to other fields
 
-<<<<<<< HEAD
-Currently I have hardcoded a few variables specifically to target the primary FRCA anaesthetic examinations. However, by altering the role prompt in `minerva/llm.py`, and suppling embeddings relevant to your field.
-=======
-Currently I have hardcoded a few variables specifically to target the primary FRCA anaesthetic examinations. However, by altering the role prompt in `minerva/llm.py`, and suppling embeddings relevant to your field,
->>>>>>> 0e0bfc80982c05096aa4534517534fff06549206
+Currently I have hardcoded a few variables specifically to target the primary FRCA anaesthetic examinations. However, by altering the role prompt in `minerva/llm.py`, changing the examples used, and suppling embeddings relevant to your field.
