@@ -5,11 +5,22 @@
 
 ## Rationale
 
+I dislike exams, and I dislike having to fork out large sums of money for
+question banks to support my revision for said exams.
+
+The business model for these question banks is ridiculous, punishing people who
+need to retake exams, while delivering a poor quality experience.
+
+Given the tools available these days there is no need for them.
+
 ## Usage
 
-Minerva relies on `uv` as its package manager, so please install that in the normal fashion for your operating system first.
+Minerva relies on `uv` as its package manager, so please install that in the
+normal fashion for your operating system first.
 
-The environment variables `OPENAI_API_KEY` and `CHROMA_DB_DIR` must be set, the simplest way to do this is to create a `.env` file in the directory, which the cli will read.
+The environment variables `OPENAI_API_KEY` and `CHROMA_DB_DIR` must be set, the
+simplest way to do this is to create a `.env` file in the directory, which the 
+cli will read.
 
 Then initialise your embeddings, at present this needs to be a folder of pdfs:
 
@@ -44,6 +55,20 @@ in diminished elastic recoil and difficulty with passive exhalation, often
 causing a barrel-shaped chest appearance.
 ```
 
+From a cursory look the OpenAI API cost per question is about $0.03 using
+`gpt-4o` or $0.003 if using `gpt-4o-mini`.
+
+## What's Next?
+
+The code in this repository is pretty rough and ready so far, so needs a fair
+bit of cleaning up. I'm in the process of validating the generated questions to
+a similar standard as human-written questions. Longer term I'm planning on
+creating a website that's free as in libre and as in beer, that can serve
+questions to people who can make use of them.
+
 ## Application to other fields
 
-Currently I have hardcoded a few variables specifically to target the primary FRCA anaesthetic examinations. However, by altering the role prompt in `minerva/llm.py`, changing the examples used, and suppling embeddings relevant to your field.
+Currently I have hardcoded a few variables specifically to target the primary 
+FRCA anaesthetic examinations. However, by altering the role prompt in 
+`minerva/llm.py`, changing the examples used, and suppling embeddings relevant
+to your field, it's pretty trivial to apply these techniques to other fields.
