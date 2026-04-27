@@ -5,40 +5,33 @@
 
 ## Rationale
 
-I dislike exams, and I dislike having to fork out large sums of money for
-question banks to support my revision for said exams.
+High-quality question banks for postgraduate medical examinations are expensive, often charging significant sums for access — with little reduction in price for candidates who need to resit. Given the capabilities of modern LLMs, there is no good reason for this to remain the case.
 
-The business model for these question banks is ridiculous, punishing people who
-need to retake exams, while delivering a poor quality experience.
-
-Given the tools available these days there is no need for them.
+Minerva generates Single Best Answer (SBA) questions from your own reference material using retrieval-augmented generation, with the aim of producing questions that meet the standard of those written by human examiners.
 
 ## Usage
 
-Minerva relies on `uv` as its package manager, so please install that in the
-normal fashion for your operating system first.
+Minerva uses `uv` as its package manager. Install it for your operating system before proceeding.
 
-The environment variables `OPENAI_API_KEY` and `CHROMA_DB_DIR` must be set, the
-simplest way to do this is to create a `.env` file in the directory, which the 
-cli will read.
+Two environment variables are required: `OPENAI_API_KEY` and `CHROMA_DB_DIR`. The simplest way to set these is with a `.env` file in the project directory, which the CLI will read automatically.
 
-Then initialise your embeddings, at present this needs to be a folder of pdfs:
+First, embed your reference documents (a folder of PDFs):
 
 ```
-> ./mincli.py embed path/to/docs/folder
+./mincli.py embed path/to/docs/folder
 ```
 
-Then you're free to create questions as you see fit:
+Then generate questions on any topic:
 
 ```
 # ./mincli.py create "Lung Compliance"
 ──────────────────────────────── Question ────────────────────────────────
-A 68-year-old woman with a history of chronic obstructive pulmonary 
-disease (COPD) presents with increasing shortness of breath. On 
-examination, she has a barrel-shaped chest and uses accessory muscles for 
+A 68-year-old woman with a history of chronic obstructive pulmonary
+disease (COPD) presents with increasing shortness of breath. On
+examination, she has a barrel-shaped chest and uses accessory muscles for
 breathing.
 
-Which of the following changes in lung compliance is most likely present 
+Which of the following changes in lung compliance is most likely present
 in this patient?
 
         > Increased lung compliance due to loss of elastic tissue.
@@ -49,26 +42,18 @@ in this patient?
 
 Correct: Increased lung compliance due to loss of elastic tissue.
 
-In patients with COPD, particularly with emphysema, there is destruction 
-of lung elastic tissue leading to increased lung compliance. This results 
+In patients with COPD, particularly with emphysema, there is destruction
+of lung elastic tissue leading to increased lung compliance. This results
 in diminished elastic recoil and difficulty with passive exhalation, often
 causing a barrel-shaped chest appearance.
 ```
 
-From a cursory look the OpenAI API cost per question is about $0.03 using
-`gpt-4o` or $0.003 if using `gpt-4o-mini`.
+The `--count` (`-c`) flag generates multiple questions in a single call. Approximate API costs using OpenAI are around $0.03 per question with `gpt-4o`, or $0.003 with `gpt-4o-mini`.
 
-## What's Next?
+## Adapting to Other Fields
 
-The code in this repository is pretty rough and ready so far, so needs a fair
-bit of cleaning up. I'm in the process of validating the generated questions to
-a similar standard as human-written questions. Longer term I'm planning on
-creating a website that's free as in libre and as in beer, that can serve
-questions to people who can make use of them.
+The current defaults target the primary FRCA anaesthetic examinations. To use Minerva in another domain, update the role prompt in `minerva/llm.py`, replace the few-shot examples in `examples/`, and supply embeddings from relevant reference material.
 
-## Application to other fields
+## What's Next
 
-Currently I have hardcoded a few variables specifically to target the primary 
-FRCA anaesthetic examinations. However, by altering the role prompt in 
-`minerva/llm.py`, changing the examples used, and suppling embeddings relevant
-to your field, it's pretty trivial to apply these techniques to other fields.
+Question quality is currently being validated against a set of human-written questions. Longer term, the goal is to make a freely accessible web platform that serves generated questions to anyone preparing for postgraduate exams.

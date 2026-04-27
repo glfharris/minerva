@@ -20,3 +20,19 @@ docs/*
 
 # Output
 output/*
+
+# Jupyter
+.ipynb_checkpoints/
+.virtual_documents/
+Untitled.ipynb
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.pdf
+
+# Research data and generated figures
+data/
+figures/
