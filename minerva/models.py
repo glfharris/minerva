@@ -1,46 +1,65 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from .console import console
 
 
-class Choice(BaseModel):
-    id: int = Field(description="The id of the choice")
-    text: str = Field(description="The text of the choice")
+class CurriculumNode(BaseModel):
+    code: str
+    label: str
+    children: list[CurriculumNode] = []
+
+
+class QuestionOption(BaseModel):
+    letter: str = Field(description="Option letter A–E")
+    text: str = Field(description="Option text")
+    is_correct: bool = Field(description="Whether this is the correct answer")
 
 
 class Question(BaseModel):
-    stem: str = Field(description="The stem of the single-best answer question, which sets the scene for the lead, but doesn not contain a question itself")
-    lead: str = Field(description="The lead-in question of the single-best answer question")
-    choices: List[Choice] = Field(description="A list of 5 possible choice answers for the single-best answer question")
-    answer: int = Field(description="The id of the choice that is correct")
-    explanation: str = Field(description="An explanation for the correct answer for the question")
+    stem: str = Field(description="Scene-setting text that does not itself contain a question")
+    lead: str = Field(description="The lead-in question")
+    options: list[QuestionOption] = Field(description="Exactly 5 lettered options (A–E)")
+    explanation: str = Field(description="Explanation of the correct answer")
+    curriculum_node_code: str | None = None
 
-    def show(self):
-        console.rule(f"[bold red]Question")
+    @property
+    def correct_option(self) -> QuestionOption:
+        for opt in self.options:
+            if opt.is_correct:
+                return opt
+        return self.options[0]
+
+    def show(self) -> None:
+        console.rule("[bold red]Question")
         console.print(f"{self.stem}\n")
         console.print(f"[bold]{self.lead}\n")
-
-        for choice in self.choices:
-            console.print(f"\t> {choice.text}")
-
-        console.print(f"\n[bold]Correct: [/bold]{[choice.text for choice in self.choices if self.answer == choice.id][0]}\n")
+        for opt in self.options:
+            console.print(f"\t[cyan]{opt.letter}.[/cyan] {opt.text}")
+        console.print(f"\n[bold]Correct:[/bold] {self.correct_option.letter}. {self.correct_option.text}\n")
         console.print(self.explanation)
 
-    def to_md(self):
-        correct = [choice.text for choice in self.choices if self.answer == choice.id][0]
-        results=f"{self.stem}\n\n**{self.lead}**\n\n"
-        for c in self.choices:
-            results += f"{c.text}\n"
-        results += f"\n**Correct:** {correct} \n\n{self.explanation}"
-        return results
+    def to_md(self) -> str:
+        lines = [self.stem, "", f"**{self.lead}**", ""]
+        for opt in self.options:
+            lines.append(f"**{opt.letter}.** {opt.text}")
+        lines += [
+            "",
+            f"**Correct:** {self.correct_option.letter}. {self.correct_option.text}",
+            "",
+            self.explanation,
+        ]
+        return "\n".join(lines)
 
-class Questions(BaseModel):
-    qs: List[Question] = Field(description="A list of questions")
 
-
-class Compentency(BaseModel):
-    domain: Optional[str]
-    subdomain: Optional[str]
-    description: Optional[str]
+class QuestionSet(BaseModel):
+    topic: str
+    exam: str | None = None
+    curriculum_node_code: str | None = None
+    model: str
+    generated_at: datetime = Field(default_factory=datetime.now)
+    questions: list[Question]

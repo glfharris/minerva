@@ -1,74 +1,106 @@
-import os
+from __future__ import annotations
+
 from pathlib import Path
 
-import chromadb
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-from langchain_community.document_loaders import PyPDFLoader
+import lancedb
+from lancedb.embeddings import get_registry
+from lancedb.pydantic import LanceModel, Vector
+from pypdf import PdfReader
 from rich.progress import track
 
 from .console import console
 
+_TABLE_NAME = "documents"
+
+
+def _make_embedder(model_string: str):
+    """Parse 'provider:model_name' and return a LanceDB embedding function."""
+    provider, _, model_name = model_string.partition(":")
+    if not model_name:
+        raise ValueError(f"Invalid embedding model string: {model_string!r}. Use 'provider:model_name'.")
+    return get_registry().get(provider).create(name=model_name)
+
+
+def _make_chunk_model(embedder):
+    """Dynamically create a LanceModel class for the chosen embedder."""
+    ndims = embedder.ndims()
+
+    class DocumentChunk(LanceModel):
+        text: str = embedder.SourceField()
+        vector: Vector(ndims) = embedder.VectorField()
+        source: str
+        page: int
+
+    return DocumentChunk
+
+
 class EmbedClient:
-    def __init__(self, api_key,chroma_db_dir,
-                 embedding_model="text-embedding-3-small"):
-        self.chroma_client = chromadb.PersistentClient(path=chroma_db_dir)
+    def __init__(
+        self,
+        db_path: str | Path = "./lancedb",
+        embedding_model: str = "openai:text-embedding-3-small",
+    ) -> None:
+        self._db = lancedb.connect(str(db_path))
+        self._embedder = _make_embedder(embedding_model)
+        self._ChunkModel = _make_chunk_model(self._embedder)
 
-        self.embedding_function = OpenAIEmbeddingFunction(
-        api_key=api_key,
-        model_name=embedding_model
-        )
-
-        self.documents = DocumentManager(client=self.chroma_client,
-                               embedding_function=self.embedding_function)
-
-    def reset(self):
-        self.documents.reset()
-
-
-class DocumentManager:
-    def __init__(self, client, embedding_function):
-        self.name = "documents"
-        self.client = client
-        self.collection = self.client.get_or_create_collection(name=self.name, embedding_function=embedding_function)
-        self.embedding_function = embedding_function
-
-    def add(self, path):
-        loader = PyPDFLoader(path)
-        docs = loader.load()
-
-        documents = [doc.page_content for doc in docs if doc.page_content]
-        metadatas = [doc.metadata for doc in docs if doc.page_content]
-        ids = [":".join([doc.metadata['source'],str(doc.metadata['page'])]) for doc in docs if doc.page_content]
-
-        self.collection.add(
-                documents=documents,
-                metadatas=metadatas,
-                ids=ids)
-
-    def add_dir(self, path, pattern=None):
-        dir_path = Path(path)
-
-        if pattern:
-            file_paths = list(dir_path.glob(pattern))
+        if _TABLE_NAME in self._db.table_names():
+            self._table = self._db.open_table(_TABLE_NAME)
         else:
-            file_paths = list(dir_path.glob("*"))
+            self._table = self._db.create_table(_TABLE_NAME, schema=self._ChunkModel)
 
-        console.log(f"Found {len(file_paths)} file(s) - {[str(p) for p in file_paths]}")
+        self._embedded_sources: set[str] = self._load_sources()
 
-        for i, p in enumerate(file_paths):
-            if not self._in_collection(str(p)):
-                with console.status(f"Embedding {p}"):
-                    self.add(p)
-                console.log(f"Embedded {p} - {i + 1}/{len(file_paths)}")
+    def _load_sources(self) -> set[str]:
+        try:
+            df = self._table.to_pandas()
+            return set(df["source"].unique())
+        except Exception:
+            return set()
 
+    def add_pdf(self, path: Path) -> None:
+        source = str(path.resolve())
+        if source in self._embedded_sources:
+            console.log(f"Already embedded: {path.name} — skipping")
+            return
 
-    def _in_collection(self, path):
-        return path in set([src.split(':')[0] for src in self.collection.get(include=[])['ids']])
+        reader = PdfReader(str(path))
+        records = []
+        for page_num, page in enumerate(reader.pages):
+            text = page.extract_text() or ""
+            text = text.strip()
+            if text:
+                records.append({"text": text, "source": source, "page": page_num})
 
-    def query(self, text, **kwargs):
-        return self.collection.query(query_texts=[text], **kwargs)
+        if not records:
+            console.log(f"No text extracted from {path.name}")
+            return
 
-    def reset(self, recreate=True):
-        self.client.delete_collection(name=self.name)
-        if recreate:
-            self.collection = self.client.create_collection(name=self.name, embedding_function=self.embedding_function)
+        self._table.add(records)
+        self._embedded_sources.add(source)
+        console.log(f"Embedded {len(records)} page(s) from {path.name}")
+
+    def add_dir(self, path: Path) -> None:
+        pdfs = list(Path(path).glob("**/*.pdf"))
+        if not pdfs:
+            console.log(f"No PDFs found in {path}")
+            return
+        console.log(f"Found {len(pdfs)} PDF(s)")
+        for pdf in track(pdfs, description="Embedding PDFs"):
+            self.add_pdf(pdf)
+
+    def query(self, text: str, n: int = 5) -> str:
+        try:
+            results = self._table.search(text).limit(n).to_pandas()
+            if results.empty:
+                return ""
+            chunks = results["text"].tolist()
+            return "\n\n---\n\n".join(chunks)
+        except Exception:
+            return ""
+
+    def reset(self) -> None:
+        self._db.drop_table(_TABLE_NAME)
+        self._table = self._db.create_table(_TABLE_NAME, schema=self._ChunkModel)
+        self._embedded_sources.clear()
+        console.log("Embeddings reset")

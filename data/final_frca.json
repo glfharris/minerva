@@ -1,0 +1,2017 @@
+{
+  "code": "root",
+  "label": "root",
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "code": "2_PBC_A",
+          "label": "Guides and advises colleagues who are less experienced than themselves on professional matters"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PBC_B_1",
+              "label": "Risks and benefits of available anaesthetic techniques to patients in a manner they can understand."
+            },
+            {
+              "code": "2_PBC_B_2",
+              "label": "Formulates an individualised perioperative plan with the patient, using an evidence-based approach."
+            }
+          ],
+          "code": "2_PBC_B",
+          "label": "Formulates management plans for patients with complex needs, recognising the limits of their own experience and competence and seeks assistance where appropriate"
+        },
+        {
+          "children": [],
+          "code": "2_PBC_C",
+          "label": "Recognises and reflects on how the behaviour of themselves and others can affect the effective delivery of healthcare and patient safety"
+        },
+        {
+          "children": [],
+          "code": "2_PBC_D",
+          "label": "Acts as a good role model for more junior colleagues and other members of the multidisciplinary team"
+        },
+        {
+          "children": [],
+          "code": "2_PBC_E",
+          "label": "Acts and responds appropriately in difficult situations such as medical emergencies, whilst demonstrating professional behaviour and good judgement and maintains situational awareness"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PBC_F_1",
+              "label": "The use of 'do not resuscitate' procedures and appropriate limitations of care."
+            }
+          ],
+          "code": "2_PBC_F",
+          "label": "Communicates effectively and sensitively when breaking bad news to patients and their relatives, demonstrating awareness of cultural and social differences"
+        },
+        {
+          "children": [],
+          "code": "2_PBC_G",
+          "label": "Describes the effects of working patterns or lifestyle choices on physical and mental health and takes steps to minimise the impact"
+        }
+      ],
+      "code": "2_PBC",
+      "label": "Professional Behaviours and Communication"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_MPR_A_1",
+              "label": "Current local and national guidelines for provision of day surgical services"
+            }
+          ],
+          "code": "2_MPR_A",
+          "label": "Appreciates and participates in the organisation of anaesthetic services within the structure of local hospital management and links to regional tertiary level services"
+        },
+        {
+          "children": [
+            {
+              "code": "2_MPR_B_1",
+              "label": "Ethical considerations of cadaveric and live-related organ donation for donors, recipients, those close to them and society as a whole"
+            }
+          ],
+          "code": "2_MPR_B",
+          "label": "Applies legal and ethical guidelines to their medical practice, including the legal requirements of consent and shared decision making"
+        },
+        {
+          "children": [
+            {
+              "code": "2_MPR_C_1",
+              "label": "The key organisational issues surrounding day surgery including suitability of facilities and staffing"
+            }
+          ],
+          "code": "2_MPR_C",
+          "label": "Engages with the departmental management structure and processes required for the delivery of perioperative and anaesthetic services"
+        },
+        {
+          "children": [],
+          "code": "2_MPR_D",
+          "label": "Works effectively in the digital environment relating to patient care"
+        }
+      ],
+      "code": "2_MPR",
+      "label": "Management and Professional and Regulatory Requirements"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_SQI_A_1",
+              "label": "Demonstrates knowledge of audit and other quality assurance activities relevant to day surgery"
+            }
+          ],
+          "code": "2_SQI_A",
+          "label": "Knows when and how to apply quality improvement science with the aim of improving services while maintaining patient safety"
+        },
+        {
+          "children": [],
+          "code": "2_SQI_B",
+          "label": "Recognises the factors influencing reliable care"
+        },
+        {
+          "children": [],
+          "code": "2_SQI_C",
+          "label": "Demonstrates knowledge of variation with respect to interpreting measurement, understanding types of variation, and differentiating between expected and unwarranted variation"
+        },
+        {
+          "children": [],
+          "code": "2_SQI_D",
+          "label": "Utilises appropriate measurement techniques for improvement, and demonstrates whether a change has occurred and its impact"
+        },
+        {
+          "children": [],
+          "code": "2_SQI_E",
+          "label": "Contrasts 'data for assurance' and 'data for improvement' and uses both data appropriately"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SQI_F_1",
+              "label": "Awareness of safety procedures to prevent wrong sided nerve blocks"
+            }
+          ],
+          "code": "2_SQI_F",
+          "label": "Uses simple proactive safety techniques to prevent harm to patients, including the assessment of likelihood and severity of risks"
+        },
+        {
+          "children": [],
+          "code": "2_SQI_G",
+          "label": "Matches expertise and resources to the level of clinical risk posed to patients"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SQI_H_1",
+              "label": "The potential impact of anaesthetic technique on patient outcome"
+            },
+            {
+              "code": "2_SQI_H_2",
+              "label": "The effects of deviation from normal physiological parameters on short and long-term outcomes"
+            },
+            {
+              "code": "2_SQI_H_3",
+              "label": "Sustainability in healthcare and environmental effects of anaesthetic agents"
+            }
+          ],
+          "code": "2_SQI_H",
+          "label": "Describes the impact of anaesthetists' actions on patient safety more broadly in the hospital and wider healthcare system"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SQI_I_1",
+              "label": "Management of existing medications and pre-operative appropriate changes"
+            },
+            {
+              "code": "2_SQI_I_2",
+              "label": "Use of antibiotics and other measures to reduce the risk of infection"
+            }
+          ],
+          "code": "2_SQI_I",
+          "label": "Describes the principles of medication safety"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SQI_J_1",
+              "label": "Outline appropriate follow up of an unexpected difficult intubation"
+            },
+            {
+              "code": "2_SQI_J_2",
+              "label": "Communication with patients regarding adverse events and organises appropriate follow up (Duty of candour)"
+            }
+          ],
+          "code": "2_SQI_J",
+          "label": "Explains the process of critical incident follow-up"
+        }
+      ],
+      "code": "2_SQI",
+      "label": "Safety and Quality Improvement"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_SG_A_1",
+              "label": "The importance of a comprehensive knowledge of Child Protection and how to be responsible for taking appropriate action when non-accidental injury is suspected"
+            }
+          ],
+          "code": "2_SG_A",
+          "label": "Identifies, documents, and acts on child protection and vulnerable patient concerns"
+        },
+        {
+          "children": [],
+          "code": "2_SG_B",
+          "label": "Communicates effectively with appropriate teams, appreciating the issues of confidentiality, consent, information sharing and data protection"
+        },
+        {
+          "children": [],
+          "code": "2_SG_C",
+          "label": "Applies the principles of adult safeguarding: empowerment, prevention, proportionality, protection, accountability, partnership"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SG_D_1",
+              "label": "The place of the Mental Capacity Act in relation to the provision of ECT"
+            },
+            {
+              "code": "2_SG_D_2",
+              "label": "Problems associated with anaesthesia (including dental) distant to the theatre setting, including consent, the specific needs of patients with learning disabilities, Child Protection, and the Mental Capacity Act"
+            }
+          ],
+          "code": "2_SG_D",
+          "label": "Applies the mental capacity legislation in clinical practice to protect the safety of individuals and society, and to address appropriate consent to treatment"
+        },
+        {
+          "children": [
+            {
+              "code": "2_SG_E_1",
+              "label": "The physical and psychological needs of patients who present for ECT"
+            }
+          ],
+          "code": "2_SG_E",
+          "label": "Describes the needs and support required for people with learning disabilities, autism, acute confusion, dementia, and mental illness"
+        }
+      ],
+      "code": "2_SG",
+      "label": "Safeguarding"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "code": "2_RMD_A",
+          "label": "Assesses the quality of research and its place in the literature when considering changes to practice"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RMD_B_1",
+              "label": "Common causes of maternal morbidity and mortality, including national reports"
+            }
+          ],
+          "code": "2_RMD_B",
+          "label": "Can communicate to patients, the public and colleagues the strengths and limitations of evidence underlying anaesthetic and perioperative practice"
+        },
+        {
+          "children": [],
+          "code": "2_RMD_C",
+          "label": "Develops the ability to critically appraise published literature"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RMD_D_1",
+              "label": "The simple aspects of study design defining the outcome measures and the uncertainty of measuring them"
+            }
+          ],
+          "code": "2_RMD_D",
+          "label": "Describes key approaches to improving patient outcomes through research including: clinical trials, stratified medicine, genomics, informatics, qualitative techniques, systematic review and meta-analysis, health services research"
+        },
+        {
+          "children": [],
+          "code": "2_RMD_E",
+          "label": "Explains the details of data protection in research"
+        },
+        {
+          "children": [],
+          "code": "2_RMD_F",
+          "label": "Describes the key components of research and its governance with emphasis on ethical considerations and ethics committees, translation into practice and the roles of Trust and University research and development departments"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RMD_G_1",
+              "label": "The difference between statistical and clinical significance"
+            },
+            {
+              "code": "2_RMD_G_2",
+              "label": "The limits of clinical trials"
+            },
+            {
+              "code": "2_RMD_G_3",
+              "label": "The basics of systematic review and its pitfalls"
+            },
+            {
+              "code": "2_RMD_G_4",
+              "label": "How to define a clinical research question"
+            },
+            {
+              "code": "2_RMD_G_5",
+              "label": "The effects of bias"
+            },
+            {
+              "code": "2_RMD_G_6",
+              "label": "The use of controls, placebos, randomisation, and blinding exclusion criteria"
+            },
+            {
+              "code": "2_RMD_G_7",
+              "label": "Statistical issues including sample size and ethical issues"
+            }
+          ],
+          "code": "2_RMD_G",
+          "label": "Applies a variety of statistical techniques used in research and understands their strengths and limitations"
+        }
+      ],
+      "code": "2_RMD",
+      "label": "Research and Managing Data"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_POM_A_1",
+              "label": "The identification and assessment of pathology in or around the airway, including but not limited to: History and examination; Anaesthetic chart review; Interpretation of investigations such as lateral C-spine X-ray, cross-sectional imaging of the upper airway (MRI/CT), flow volume loops, nasendoscopy; Discussion with surgeons"
+            },
+            {
+              "code": "2_POM_A_2",
+              "label": "The preoperative assessment of patients with particular reference to associated co-morbidities and complex planned surgery. Including those for cardiothoracic, neuro, general, airway and plastic procedures."
+            },
+            {
+              "code": "2_POM_A_3",
+              "label": "The effects of ethnicity and patient diversity on preoperative assessment"
+            }
+          ],
+          "code": "2_POM_A",
+          "label": "Delivers high quality, individualised perioperative care to ASA 1-4 patients for elective surgery and ASA 1-3 emergency patients, focusing on optimising patient experience and outcome"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_B_1",
+              "label": "Balances the need for early surgery against the need for further investigation, prehabilitation and pre-optimisation"
+            },
+            {
+              "code": "2_POM_B_2",
+              "label": "Contributes to discharge planning"
+            }
+          ],
+          "code": "2_POM_B",
+          "label": "Liaises appropriately with other healthcare professionals to optimise patient care"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_C_1",
+              "label": "Shared decision making in the context of planning perioperative care"
+            },
+            {
+              "code": "2_POM_C_2",
+              "label": "How a multidisciplinary team approach improves patient recovery and outcomes"
+            }
+          ],
+          "code": "2_POM_C",
+          "label": "Explains the principles of shared decision making"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_D_1",
+              "label": "Understanding of the principles of anaesthesia for patients with neurological disease including but not limited to: Guillain-Barr\u00e9; Myasthenia gravis; Myasthenic syndrome; Dystrophia myotonica; Muscular dystrophy; Paraplegia and long-term spinal cord damage"
+            },
+            {
+              "code": "2_POM_D_2",
+              "label": "The abnormalities found in the adult patient with congenital heart disease [including corrected or partially corrected], and the implications for anaesthesia in these patients"
+            },
+            {
+              "code": "2_POM_D_3",
+              "label": "The effects of chemotherapy/radiotherapy and the implications for anaesthesia"
+            },
+            {
+              "code": "2_POM_D_4",
+              "label": "The perioperative management of patients undergoing transplant surgery"
+            },
+            {
+              "code": "2_POM_D_5",
+              "label": "The perioperative management of patients with transplanted organs for non-transplant surgery"
+            },
+            {
+              "code": "2_POM_D_6",
+              "label": "Appropriate preoperative strategies for minimising the use of blood products"
+            },
+            {
+              "code": "2_POM_D_7",
+              "label": "Assessment of the patient with complex comorbidities taking account of their individual needs and requirements including those with cardiac, respiratory, and renal disease"
+            },
+            {
+              "code": "2_POM_D_8",
+              "label": "Endocrine abnormalities of significance to anaesthesia \u2013 e.g., Cushing's, Addison's, diabetes mellitus, thyroid/pituitary disease, phaeochromocytoma and the stress response"
+            }
+          ],
+          "code": "2_POM_D",
+          "label": "Makes appropriate plans to mitigate co-morbidities and their treatment in the perioperative period, with particular reference to less common cardiovascular, neurological, respiratory, endocrine, haematological and rheumatological diseases"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_E_1",
+              "label": "The principles of enhanced recovery programmes"
+            },
+            {
+              "code": "2_POM_E_2",
+              "label": "The strategies for prehabilitation and patient optimisation and the limits of such strategies"
+            }
+          ],
+          "code": "2_POM_E",
+          "label": "Appreciates how integrated care pathways influence patient outcomes"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_F_1",
+              "label": "Peri-operative risk assessment in patients with cardiac/respiratory disease or other co-morbidities, using common scoring systems including but not exclusively Lee's RCRI, SORT, PPOSSUM, ACS NSQIP etc"
+            },
+            {
+              "code": "2_POM_F_2",
+              "label": "The uses and limitations of common risk scoring systems"
+            }
+          ],
+          "code": "2_POM_F",
+          "label": "Describes the use and limitations of common risk-scoring systems"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_G_1",
+              "label": "Assessment of cardiac function including; Coronary angiography, ECHO, CT, MRI, nuclear imaging, and cardiopulmonary exercise testing both formal (CPET) and informal (six-minute shuttle tests)"
+            },
+            {
+              "code": "2_POM_G_2",
+              "label": "Assessment of respiratory function: blood gases, pulmonary function tests and diffusion capacity"
+            },
+            {
+              "code": "2_POM_G_3",
+              "label": "The use of specialised imaging techniques (e.g., CT, MRI) in planning anaesthesia and surgery for head and neck surgery"
+            },
+            {
+              "code": "2_POM_G_4",
+              "label": "The principles of preoperative evaluation of patients at risk of post-operative morbidity, including risk stratification tools e.g., Scoring systems; Measures of functional capacity (including cardiopulmonary exercise testing); Echocardiography"
+            },
+            {
+              "code": "2_POM_G_5",
+              "label": "Responds appropriately to investigation results when planning perioperative care"
+            },
+            {
+              "code": "2_POM_G_6",
+              "label": "Sleep studies - principles"
+            },
+            {
+              "code": "2_POM_G_7",
+              "label": "Interpretation of biochemical data"
+            },
+            {
+              "code": "2_POM_G_8",
+              "label": "Interpretation of haematological data"
+            },
+            {
+              "code": "2_POM_G_9",
+              "label": "Measurement of coagulation of the blood and interpretation of data including use of point of care tests e.g. TEG/ROTEM"
+            }
+          ],
+          "code": "2_POM_G",
+          "label": "Recognises when advanced physiological testing is indicated, interpreting the data to help stratify risk"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_H_1",
+              "label": "The pathophysiological changes and organ dysfunction associated with cardiac disease, and implications in the perioperative period"
+            },
+            {
+              "code": "2_POM_H_2",
+              "label": "The causes, pathophysiology and management of obstructive sleep apnoea and the surgical procedures used to treat"
+            },
+            {
+              "code": "2_POM_H_3",
+              "label": "The anaesthetic complications related to disturbance of fluid balance, oedema, and dehydration"
+            },
+            {
+              "code": "2_POM_H_4",
+              "label": "The rationale for and principles of perioperative haemodynamic management and optimisation, including management of phaeochromocytoma."
+            },
+            {
+              "code": "2_POM_H_5",
+              "label": "Recognises that a relatively large proportion of patients requiring ophthalmic surgery are elderly and understands their particular needs including, but not exclusively, the effects of physiological changes associated with ageing and altered pharmacological responses"
+            }
+          ],
+          "code": "2_POM_H",
+          "label": "Applies basic sciences to perioperative care"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_I_1",
+              "label": "The effects of smoking, excessive alcohol/drugs, and obesity on health"
+            }
+          ],
+          "code": "2_POM_I",
+          "label": "Applies the principles of public health interventions such as smoking cessation, reducing obesity and alcohol intake"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_J_1",
+              "label": "Adverse effects of medications in the peri-operative period e.g. antihypertensives, anticoagulants, hypoglycaemic agents, and anti-platelet medications"
+            }
+          ],
+          "code": "2_POM_J",
+          "label": "Recognises the potential harms of health care interventions"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_K_1",
+              "label": "The particular sensitivity of patient choice even when this is not in line with accepted evidence based best practice e.g., choice of birth plan, and refusal of blood products"
+            },
+            {
+              "code": "2_POM_K_2",
+              "label": "How ethnicity and patient diversity may influence conduct of anaesthesia"
+            }
+          ],
+          "code": "2_POM_K",
+          "label": "Explains how religious, cultural, and lifestyle factors may influence healthcare choices, such as blood transfusions, implants, and use of animal-derived products"
+        },
+        {
+          "children": [],
+          "code": "2_POM_L",
+          "label": "Describes the needs and roles of carers and those providing support in the perioperative period and applies this to practice"
+        },
+        {
+          "children": [],
+          "code": "2_POM_M",
+          "label": "Describes the requirement for postoperative organ support and its limitations"
+        },
+        {
+          "children": [],
+          "code": "2_POM_N",
+          "label": "Applies end of life care as part of a multidisciplinary team"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_O_1",
+              "label": "Management of concurrent use of anticoagulant/antiplatelet therapy"
+            },
+            {
+              "code": "2_POM_O_2",
+              "label": "Management of perioperative anaemia"
+            }
+          ],
+          "code": "2_POM_O",
+          "label": "Explains and acts on the importance of perioperative management of haematological conditions including anaemia and coagulopathy"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_P_1",
+              "label": "Nutritional assessment techniques including laboratory tests"
+            },
+            {
+              "code": "2_POM_P_2",
+              "label": "Clinical consequences of poor nutritional status: including wound healing, infection, cardiovascular stability, thermoregulation, respiratory control"
+            }
+          ],
+          "code": "2_POM_P",
+          "label": "Recognises the factors associated with abnormal perioperative nutritional states and applies strategies to mitigate risks where appropriate"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_Q_1",
+              "label": "Perioperative implications of bariatric surgery"
+            },
+            {
+              "code": "2_POM_Q_2",
+              "label": "Recognition and management of patient with frailty including use of clinical frailty scoring system"
+            }
+          ],
+          "code": "2_POM_Q",
+          "label": "Applies adjustments required that co-existing disease and surgical complexity have on the conduct of anaesthesia and perioperative care, including frailty, cognitive impairment and the impact of substance abuse or obesity"
+        },
+        {
+          "children": [],
+          "code": "2_POM_R",
+          "label": "Demonstrates adjustments in perioperative care for children with co-morbidity"
+        },
+        {
+          "children": [],
+          "code": "2_POM_S",
+          "label": "Plans appropriate obstetric anaesthetic care for all parturients collaboratively with the wider multi-disciplinary team"
+        },
+        {
+          "children": [
+            {
+              "code": "2_POM_T_1",
+              "label": "Recognition and management of amniotic fluid embolus"
+            }
+          ],
+          "code": "2_POM_T",
+          "label": "Recognises and manages critical illness in patients, including immediate resuscitation, and leads the care of acute obstetric emergencies"
+        }
+      ],
+      "code": "2_POM",
+      "label": "Perioperative Medicine and Health Promotion"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_GA_A_1",
+              "label": "Knowledge of applied basic sciences to all age groups including neonates and the elderly"
+            },
+            {
+              "code": "2_GA_A_2",
+              "label": "Influence of age on drug pharmacokinetics and pharmacodynamics"
+            },
+            {
+              "code": "2_GA_A_3",
+              "label": "Use strategies to minimise post-operative cognitive dysfunction"
+            },
+            {
+              "code": "2_GA_A_4",
+              "label": "Chooses appropriate choice of anaesthetic technique for patients with complex comorbidities"
+            }
+          ],
+          "code": "2_GA_A",
+          "label": "Explains the specific factors in providing safe anaesthetic care for patients at extremes of age, including neonates, children, and older people with frailty, and implements these in practice"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_B_1",
+              "label": "Demonstrates knowledge of advances and controversies in anaesthesia for day surgery"
+            }
+          ],
+          "code": "2_GA_B",
+          "label": "Provides appropriate anaesthesia care for patients undergoing day case surgery in all settings"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_C_1",
+              "label": "Principles of management of intra-operative haemostasis"
+            },
+            {
+              "code": "2_GA_C_2",
+              "label": "Management of massive blood loss including the use of rapid infusion devices"
+            },
+            {
+              "code": "2_GA_C_3",
+              "label": "Use of blood conservation strategies in orthopaedic surgery including the use of cell salvage when major haemorrhage is predicted"
+            },
+            {
+              "code": "2_GA_C_4",
+              "label": "Management of haemorrhage within trauma including use of permissive hypotension, tranexamic acid, and knowledge of relevant studies"
+            },
+            {
+              "code": "2_GA_C_5",
+              "label": "Resuscitation and management of patients who have suffered major vascular accidents including ruptured aortic aneurysms"
+            }
+          ],
+          "code": "2_GA_C",
+          "label": "Describes the principles of intra-operative haemostasis and manages major haemorrhage"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_D_1",
+              "label": "Perioperative anaesthetic management of patients with multiple injuries including head, facial, neck/spinal, thoracic, abdominal, pelvic, and peripheral trauma"
+            },
+            {
+              "code": "2_GA_D_2",
+              "label": "Implications, prevention and management of coagulopathy, hypothermia, and acidosis in multiply injured patients"
+            }
+          ],
+          "code": "2_GA_D",
+          "label": "Provides safe care for ASA 1-3 adult patients with multiple injuries from arrival in hospital to post-operative care and seeks help appropriately"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_E_1",
+              "label": "Management of acute poisoning: including but not limited to, aspirin, paracetamol, opioids, aminophylline, digoxin, ecstasy and other social drugs, antidepressants, alcohol"
+            },
+            {
+              "code": "2_GA_E_2",
+              "label": "Initial assessment, management, and resuscitation of patients with: Severe burns; Electrical injuries; Drowning and near drowning; Crush injuries; Hypothermia"
+            },
+            {
+              "code": "2_GA_E_3",
+              "label": "Explains the principles of anaesthetic management of burns patients for surgery including dressing changes, grafting and related procedures"
+            },
+            {
+              "code": "2_GA_E_4",
+              "label": "Pathophysiology of burn injury including thermal airway injury, smoke inhalation and fluid loss"
+            }
+          ],
+          "code": "2_GA_E",
+          "label": "Describes the anaesthetic-related problems associated with trauma including burns, poisoning, electrical injuries, and drowning"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_F_1",
+              "label": "Strategies for minimising secondary brain injury in patients with multiple injuries"
+            }
+          ],
+          "code": "2_GA_F",
+          "label": "Applies physiological & pharmacological principles to reduce the risk of secondary brain injury in patients presenting with a severe head injury"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_G_1",
+              "label": "Anatomy relevant to the avoidance of injury to patients due to posture and positioning during anaesthesia- including prone, lateral, park bench, and sitting positions"
+            }
+          ],
+          "code": "2_GA_G",
+          "label": "Recognises, mitigates against risks and manages complications relating to patient positioning during surgery, including reference to the obese patient"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_H_1",
+              "label": "Relevant anatomy for anaesthetic procedures and understanding of surgical operations"
+            },
+            {
+              "code": "2_GA_H_2",
+              "label": "Drug toxicity - causes and avoidance. Management of malignant hyperthermia. Potential risks of drug additives"
+            },
+            {
+              "code": "2_GA_H_3",
+              "label": "Therapeutics in pathologic states: problems associated with organ transplantation, anaesthetic relevance of drugs used in malignancy, therapy in acute and chronic respiratory diseases"
+            },
+            {
+              "code": "2_GA_H_4",
+              "label": "Problems of drug dependency and addiction"
+            },
+            {
+              "code": "2_GA_H_5",
+              "label": "Assessment of cognitive dysfunction issues such as delirium, POCD and dementia, and implications"
+            }
+          ],
+          "code": "2_GA_H",
+          "label": "Applies a sound understanding of anatomy, physiology, biochemistry, pharmacology, physics and clinical measurement to anaesthetic practice (may be incorporated into other sections)"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_I_1",
+              "label": "Anatomy of the airway including anatomical knowledge relevant to the performance of fibre-optic intubation"
+            },
+            {
+              "code": "2_GA_I_2",
+              "label": "Risks associated with fibreoptic endotracheal intubation and the process of obtaining consent for this procedure"
+            },
+            {
+              "code": "2_GA_I_3",
+              "label": "The anaesthetic management of potential threats to the airway, including: External compression; Foreign body, blood clots, masses; Inhalational injury, inflammation; Blunt and penetrating trauma; Use of video laryngoscopes, fibreoptic scopes, tracheostomy"
+            },
+            {
+              "code": "2_GA_I_4",
+              "label": "Indications for tracheostomy"
+            },
+            {
+              "code": "2_GA_I_5",
+              "label": "The principles of anaesthesia for tracheostomy"
+            },
+            {
+              "code": "2_GA_I_6",
+              "label": "Principles of tracheostomy care and management of complications including obstructed/misplaced tracheostomy (including in children)"
+            },
+            {
+              "code": "2_GA_I_7",
+              "label": "The specialised airway techniques used for laser surgery in, or near the airway and hazards associated with the use of laser"
+            },
+            {
+              "code": "2_GA_I_8",
+              "label": "The principles of anaesthesia for major head and neck surgery and the pathophysiological changes and co-morbidities associated with head and neck cancer"
+            },
+            {
+              "code": "2_GA_I_9",
+              "label": "Commonly used methods of local and general anaesthesia for patients having surgery on or below the vocal cords including techniques of ventilation"
+            },
+            {
+              "code": "2_GA_I_10",
+              "label": "The principles of the recognition and appropriate management of acute ENT emergencies, including bleeding tonsils, epiglottitis, croup, and inhaled foreign body"
+            },
+            {
+              "code": "2_GA_I_11",
+              "label": "The emergency management of fractures of the face and other maxillo-facial emergencies such as intra-oral abscesses, and other causes of upper airway obstruction"
+            },
+            {
+              "code": "2_GA_I_12",
+              "label": "Recognition of supra-glottic airway obstruction and the indications/contra-indications of different airway devices to bypass such obstruction"
+            },
+            {
+              "code": "2_GA_I_13",
+              "label": "Management of failed intubation protocols including front of neck access techniques"
+            },
+            {
+              "code": "2_GA_I_14",
+              "label": "The principles of shared decision making when managing complex airways and the benefits and limitations of flexible nasendoscopy"
+            },
+            {
+              "code": "2_GA_I_15",
+              "label": "The benefits of advanced imaging techniques when assessing complex airways such as CT and 3D reconstruction of the airway and virtual endoscopy"
+            }
+          ],
+          "code": "2_GA_I",
+          "label": "Safely manages patients with complex airways including the ability to perform video laryngoscopy with local supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_J_1",
+              "label": "Discuss the risks and benefits of using various supraglottic airways for IPPV or SV"
+            },
+            {
+              "code": "2_GA_J_2",
+              "label": "The use of high flow nasal oxygen"
+            },
+            {
+              "code": "2_GA_J_3",
+              "label": "Management of patients undergoing nasal and middle ear surgery"
+            }
+          ],
+          "code": "2_GA_J",
+          "label": "Manages non-complex shared airway surgery with distant supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_K_1",
+              "label": "The principles of peri-operative management including positioning, physiological consequences and analgesia for the commoner complex cases including, but not exclusively: Pancreatic and liver resection; Oesophagectomy (including one lung ventilation); Resection of neuroendocrine tumours e.g. Carcinoid and phaeochromocytoma; Splenectomy; Resection of retroperitoneal masses; Robotic procedures (e.g. cystoprostatectomy and nephrectomy)"
+            },
+            {
+              "code": "2_GA_K_2",
+              "label": "The principles of perioperative anaesthetic care for primary and revision pelvic bone and joint surgery and postoperative pain management"
+            },
+            {
+              "code": "2_GA_K_3",
+              "label": "Management of anaesthetic techniques appropriate for plastic surgical procedures including major reconstructive cases and free flap surgery"
+            },
+            {
+              "code": "2_GA_K_4",
+              "label": "Management of blood flow and surgical field during surgery, including free-flap surgery"
+            },
+            {
+              "code": "2_GA_K_5",
+              "label": "The concept of Goal-Directed Therapy"
+            },
+            {
+              "code": "2_GA_K_6",
+              "label": "The principles and interpretation of depth of anaesthesia monitoring"
+            },
+            {
+              "code": "2_GA_K_7",
+              "label": "Perioperative management of the patient for open major vascular surgery eg abdominal aneurysm repair"
+            },
+            {
+              "code": "2_GA_K_8",
+              "label": "Perioperative management of the patient for endovascular surgery eg EVAR"
+            },
+            {
+              "code": "2_GA_K_9",
+              "label": "Management of elective carotid artery surgery with general or regional anaesthesia."
+            },
+            {
+              "code": "2_GA_K_10",
+              "label": "Pathophysiology of aortic cross-clamping and renal protection strategies"
+            },
+            {
+              "code": "2_GA_K_11",
+              "label": "Morbidity and mortality associated with vascular surgery"
+            }
+          ],
+          "code": "2_GA_K",
+          "label": "Explains the problems associated with laparoscopic, endoscopic and open procedures, including those with major blood loss, and provides safe general anaesthesia for these procedures with distant supervision for ASA 1 to 3 adult patients"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_L_1",
+              "label": "The different techniques of anaesthesia either diagnostic or therapeutic for both elective and emergency procedures in the non-theatre environment e.g. radiology (X-Ray, CT and MRI), angiography, radiotherapy, ECT, endoscopy and the emergency department."
+            },
+            {
+              "code": "2_GA_L_2",
+              "label": "Explains the problems of providing of safe post-anaesthetic care for patients in the non-theatre environment"
+            },
+            {
+              "code": "2_GA_L_3",
+              "label": "The unique safety precautions required in each of the environments, particularly MRI"
+            },
+            {
+              "code": "2_GA_L_4",
+              "label": "Explains the rationale for the choice of anaesthetic technique for ECT and the physiological effects of this treatment"
+            }
+          ],
+          "code": "2_GA_L",
+          "label": "Provides safe general anaesthesia for diagnostic and therapeutic procedures in the non-theatre environment but within the hospital setting for ASA 1-3 adult patients independently, recognising when this is inappropriate"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_M_1",
+              "label": "Relevance of anatomy of the skull, skull base, vertebral column, CSF circulation and cerebral blood flow and central nervous system related to neuroanaesthetic practice"
+            },
+            {
+              "code": "2_GA_M_2",
+              "label": "Relevance of applied physiology and pathophysiology of the central nervous system related to neuroanaesthetic practice including interventional procedures"
+            },
+            {
+              "code": "2_GA_M_3",
+              "label": "Consciousness and sleep"
+            },
+            {
+              "code": "2_GA_M_4",
+              "label": "Depth of anaesthesia \u2013 effects of anaesthetics on neurotransmission"
+            },
+            {
+              "code": "2_GA_M_5",
+              "label": "Techniques for measuring and decreasing the intra-cranial pressure"
+            },
+            {
+              "code": "2_GA_M_6",
+              "label": "How drugs can impact on neurophysiological monitoring"
+            },
+            {
+              "code": "2_GA_M_7",
+              "label": "The specific risks of venous thromboembolic disease in neurosurgical patients and how these are managed"
+            },
+            {
+              "code": "2_GA_M_8",
+              "label": "The principles of CSF drainage, including its use in complex endovascular aneurysm cases and the management of spinal cord ischaemia post thoracic aneurysm/ complex EVAR"
+            }
+          ],
+          "code": "2_GA_M",
+          "label": "Applies relevant anatomical, physiological and pharmacological principles to neurosurgical patients"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_N_1",
+              "label": "Perioperative anaesthetic management of patients for neurosurgery and neuroradiology. This includes: Preoperative assessment and optimisation of patients with neurological disease; Induction, maintenance, and reversal of anaesthesia; Early postoperative care including the specific areas of fluid management, control of pain and neurological monitoring"
+            },
+            {
+              "code": "2_GA_N_2",
+              "label": "Understanding of anaesthesia for neurosurgical and neuroradiological procedures including but not exclusively: Shunt surgery; Evacuation of intracranial haematoma; Interventional radiology procedures for cerebral aneurysms and stroke thrombectomy; Trans-sphenoidal surgery; Supratentorial and posterior fossa surgery; Emergency surgery for traumatic brain injury including decompressive craniectomy; Spinal column surgery; Awake craniotomy including neurophysiological monitoring; Stereotactic surgery"
+            },
+            {
+              "code": "2_GA_N_3",
+              "label": "The principles of perioperative anaesthetic care for elective and emergency spinal surgery including but not exclusively: Scoliosis surgery including neurophysiological monitoring; Spinal trauma and the associated complications of spinal cord trauma; Postoperative pain management"
+            },
+            {
+              "code": "2_GA_N_4",
+              "label": "The anaesthesia for trigeminal neuralgia including thermocoagulation"
+            },
+            {
+              "code": "2_GA_N_5",
+              "label": "Operative spinal cord monitoring and nerve conduction"
+            },
+            {
+              "code": "2_GA_N_6",
+              "label": "Peripheral nerve stimulators: assessment of neuromuscular function. Identification of nerves with needle electrode."
+            },
+            {
+              "code": "2_GA_N_7",
+              "label": "Indications for using neurophysiological monitoring including but not limited to EEG, evoked potentials and ICP measurement, to benefit patients requiring neurosurgery/neuro-critical care"
+            },
+            {
+              "code": "2_GA_N_8",
+              "label": "The techniques used for recognition and management of air embolism"
+            },
+            {
+              "code": "2_GA_N_9",
+              "label": "The special risk associated with prion diseases during neurosurgery"
+            }
+          ],
+          "code": "2_GA_N",
+          "label": "Provides safe anaesthetic care to ASA 1-3 adults for simple elective and emergency intracranial, spinal and neuroradiology procedures under local supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_O_1",
+              "label": "Invasive and non-invasive cardiovascular monitoring, and basic interpretation including use of: PiCCO; LiDCO\u2122; Contour analysis; ECHO; TOE; Oesophageal doppler"
+            },
+            {
+              "code": "2_GA_O_2",
+              "label": "Interprets information from commonly used modalities for advanced haemodynamic monitoring"
+            },
+            {
+              "code": "2_GA_O_3",
+              "label": "Principles of action, and the use of, intra-aortic balloon counter-pulsation and other assist devices eg LVAD, BiVAD"
+            },
+            {
+              "code": "2_GA_O_4",
+              "label": "Indications for temporary and permanent cardiac pacing including different modes and advanced functions"
+            },
+            {
+              "code": "2_GA_O_5",
+              "label": "Principles of antibiotic prophylaxis in patients with cardiac disease"
+            },
+            {
+              "code": "2_GA_O_6",
+              "label": "Cardiovascular physiology and pharmacology relevant to perioperative management of patients presenting for cardiac surgery"
+            },
+            {
+              "code": "2_GA_O_7",
+              "label": "Cardiovascular physiology and pharmacology relevant to perioperative management of patients presenting for less invasive procedures eg TAVI"
+            },
+            {
+              "code": "2_GA_O_8",
+              "label": "Cardiovascular physiology and pharmacology relevant to perioperative management of patients presenting for electrophysiology procedures eg AF/VT ablations, ICD insertion"
+            }
+          ],
+          "code": "2_GA_O",
+          "label": "Applies basic science and clinical anaesthetic principles to patients undergoing cardiac and thoracic surgery"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_P_1",
+              "label": "Principles of perioperative anaesthetic management of patients for cardiac surgery including post-operative pain management and respiratory support"
+            },
+            {
+              "code": "2_GA_P_2",
+              "label": "Problems associated with post-cardiac surgery including bleeding and the clinical signs and symptoms of cardiac tamponade, and its management"
+            },
+            {
+              "code": "2_GA_P_3",
+              "label": "Methods used to cool and re-warm patients during cardiac surgery, and potential complications"
+            },
+            {
+              "code": "2_GA_P_4",
+              "label": "Principles of cardiopulmonary bypass: Cardioplegia; Use of vasodilators/vasoconstrictors and inotropes; Management of arrhythmias; Anticoagulation during bypass; Effects on drug pharmacology; Clinical effects on organs eg lung, brain"
+            },
+            {
+              "code": "2_GA_P_5",
+              "label": "Anaesthetic and surgical problems associated with \"off pump\" cardiac surgery"
+            }
+          ],
+          "code": "2_GA_P",
+          "label": "Describes the principles of anaesthesia for on and off bypass cardiac and thoracic surgery"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_Q_1",
+              "label": "Perioperative anaesthetic management of patients undergoing less invasive procedures eg TAVI"
+            },
+            {
+              "code": "2_GA_Q_2",
+              "label": "Management of complications of less invasive procedures eg TAVI"
+            },
+            {
+              "code": "2_GA_Q_3",
+              "label": "Perioperative management of patients presenting for electrophysiology procedures eg AF/VT ablations, ICD insertion"
+            },
+            {
+              "code": "2_GA_Q_4",
+              "label": "Management of complications of electrophysiological cardiac procedures"
+            }
+          ],
+          "code": "2_GA_Q",
+          "label": "Provides safe anaesthetic care to ASA 1\u20133 adults undergoing elective cardiac revascularisation, valvular surgery and cardiology procedures under direct supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_R_1",
+              "label": "Specific risks associated with anaesthesia in patients requiring thoracic surgery and precautions to be taken to minimise them including pre-operative optimisation"
+            },
+            {
+              "code": "2_GA_R_2",
+              "label": "Commonly performed thoracic surgical procedures and the relevant anaesthetic problems associated with these"
+            },
+            {
+              "code": "2_GA_R_3",
+              "label": "Airway management of a patient undergoing one-lung ventilation and anaesthesia including placement of double lumen endobronchial tubes and bronchial blockers"
+            },
+            {
+              "code": "2_GA_R_4",
+              "label": "The changes that occur during one lung ventilation and the strategies to manage these"
+            },
+            {
+              "code": "2_GA_R_5",
+              "label": "The common problems associated with the postoperative care of a patient who has had thoracic surgery and the methods that can be used to minimise these"
+            }
+          ],
+          "code": "2_GA_R",
+          "label": "Demonstrates safe anaesthetic care for adults requiring non-complex thoracic procedures under direct supervision, including one lung ventilation"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_S_1",
+              "label": "The precautions required for revision surgery in patients who have had a previous injection of intraocular gas"
+            },
+            {
+              "code": "2_GA_S_2",
+              "label": "The choice of techniques of anaesthesia for patients with penetrating eye injury"
+            },
+            {
+              "code": "2_GA_S_3",
+              "label": "The operating conditions required for successful outcomes in ophthalmic surgery and how these can be achieved"
+            },
+            {
+              "code": "2_GA_S_4",
+              "label": "The specific factors in the postoperative care of patients who have had ophthalmic surgery"
+            }
+          ],
+          "code": "2_GA_S",
+          "label": "Explains the anaesthetic implications of ophthalmic surgery, in particular the penetrating eye injury and the presence of intraocular gas"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_T_1",
+              "label": "The influence of concurrent medical diseases on pregnancy and the management of these patients"
+            },
+            {
+              "code": "2_GA_T_2",
+              "label": "Analgesia for the labouring parturient"
+            },
+            {
+              "code": "2_GA_T_3",
+              "label": "Risk factors, recognition and management of massive obstetric haemorrhage including but not limited to: use of a massive haemorrhage alert system; the use of blood products and cell salvage; the use of uterotonics and point of care coagulation tests; how the physiological changes of pregnancy affect coagulation and their relevance in this setting; particular causes such as genital tract trauma, uterine atony etc."
+            },
+            {
+              "code": "2_GA_T_4",
+              "label": "Management of venous thromboembolism in pregnancy"
+            },
+            {
+              "code": "2_GA_T_5",
+              "label": "Risk factors and management of a patient with abnormal placentation"
+            },
+            {
+              "code": "2_GA_T_6",
+              "label": "Risk factors, recognition and management of a patient with pre-eclampsia and eclampsia"
+            },
+            {
+              "code": "2_GA_T_7",
+              "label": "Risk factors, recognition and management of amniotic fluid embolus"
+            },
+            {
+              "code": "2_GA_T_8",
+              "label": "Risk factors, recognition and management of uterine inversion and uterine rupture"
+            },
+            {
+              "code": "2_GA_T_9",
+              "label": "Risk factors, recognition and management of sepsis in pregnancy"
+            },
+            {
+              "code": "2_GA_T_10",
+              "label": "Management of pregnant patient presenting for non-obstetric surgery"
+            },
+            {
+              "code": "2_GA_T_11",
+              "label": "Obstetric and anaesthetic management of multiple pregnancy"
+            },
+            {
+              "code": "2_GA_T_12",
+              "label": "Management of intrauterine death"
+            },
+            {
+              "code": "2_GA_T_13",
+              "label": "Management of the complications of central neuraxial blockade in obstetrics"
+            },
+            {
+              "code": "2_GA_T_14",
+              "label": "Recognition and management of Post Dural Puncture Headache, including differential diagnoses, complications and treatment options."
+            },
+            {
+              "code": "2_GA_T_15",
+              "label": "Recognition and understanding of the importance of ongoing national audit of maternal and foetal morbidity and mortality"
+            }
+          ],
+          "code": "2_GA_T",
+          "label": "Provides safe anaesthetic care for elective and emergency obstetric patients including those with co-morbidities and obstetric complications with distant supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_U_1",
+              "label": "Anatomical and physiological changes that occur during development from neonate to older child in relation to the conduct of anaesthesia"
+            },
+            {
+              "code": "2_GA_U_2",
+              "label": "Management of analgesic requirements in children undergoing common surgical procedures"
+            },
+            {
+              "code": "2_GA_U_3",
+              "label": "Management of children undergoing day case surgery"
+            },
+            {
+              "code": "2_GA_U_4",
+              "label": "Paediatric management of fluid balance in the peri-operative period including pre-operative dehydration, 3rd space loss, requirement for a laparotomy and post-operative maintenance"
+            },
+            {
+              "code": "2_GA_U_5",
+              "label": "Peri-operative management of blood products in children"
+            },
+            {
+              "code": "2_GA_U_6",
+              "label": "Explains the law as it relates to children in respect of Consent, Restraint and Research and the concept of 'Gillick competence'"
+            }
+          ],
+          "code": "2_GA_U",
+          "label": "Provides safe general anaesthesia for ASA 1-3 children undergoing non-complex elective and emergency surgery aged 1-5 years with direct supervision, and 5 years and above with distant supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_V_1",
+              "label": "The implications for anaesthesia of paediatric medical and surgical problems including major congenital abnormalities (e.g. tracheoesophageal fistula, diaphragmatic hernia, congenital heart disease and syndromes such as Trisomy 21)"
+            },
+            {
+              "code": "2_GA_V_2",
+              "label": "Perioperative management of children with learning disability and neurodiversity"
+            }
+          ],
+          "code": "2_GA_V",
+          "label": "Explains the principles of anaesthetic care for children of all ages with complex medical problems and/or requiring complex surgical procedures"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_W_1",
+              "label": "The specific factors in preoperative assessment and preparation of neonates for surgery"
+            },
+            {
+              "code": "2_GA_W_2",
+              "label": "Anaesthetic techniques for neonates"
+            },
+            {
+              "code": "2_GA_W_3",
+              "label": "Issues with thermoregulation in the newborn and the measures required to prevent hypothermia"
+            },
+            {
+              "code": "2_GA_W_4",
+              "label": "The anaesthetic management of neonates and infants for minor operations, major elective and emergency surgery"
+            },
+            {
+              "code": "2_GA_W_5",
+              "label": "The specific anaesthetic and monitoring equipment required for neonates"
+            },
+            {
+              "code": "2_GA_W_6",
+              "label": "Common problems in the neonatal period requiring anaesthesia and their perioperative management (e.g. inguinal hernia, intestinal obstruction, pyloric stenosis)"
+            },
+            {
+              "code": "2_GA_W_7",
+              "label": "The problems of the premature and ex-premature neonate"
+            },
+            {
+              "code": "2_GA_W_8",
+              "label": "The adverse effects of starvation, dehydration and hypoglycaemia in neonates and children"
+            }
+          ],
+          "code": "2_GA_W",
+          "label": "Explains the principles of the general anaesthetic care of neonates"
+        },
+        {
+          "children": [
+            {
+              "code": "2_GA_X_1",
+              "label": "Pharmacokinetic principles and models for Total Intravenous Anaesthesia (TIVA)"
+            },
+            {
+              "code": "2_GA_X_2",
+              "label": "Implications of concurrent disease and obesity on use of TIVA"
+            },
+            {
+              "code": "2_GA_X_3",
+              "label": "Practical aspects of the safe use of TIVA including monitoring and the avoidance of accidental awareness"
+            },
+            {
+              "code": "2_GA_X_4",
+              "label": "The principles of anaesthesia for middle ear surgery, including but not limited to, use of TIVA and hypotensive techniques"
+            },
+            {
+              "code": "2_GA_X_5",
+              "label": "Use of TIVA in children"
+            }
+          ],
+          "code": "2_GA_X",
+          "label": "Uses total intravenous anaesthesia safely in all areas of clinical anaesthetic practice"
+        }
+      ],
+      "code": "2_GA",
+      "label": "General Anaesthesia"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_RA_A_1",
+              "label": "Anatomy and sonoanatomy of the brachial plexus"
+            },
+            {
+              "code": "2_RA_A_2",
+              "label": "Use and complications of upper limb blocks"
+            },
+            {
+              "code": "2_RA_A_3",
+              "label": "Pharmacology of local anaesthetic drugs and adjuvants and their clinical applications"
+            }
+          ],
+          "code": "2_RA_A",
+          "label": "Performs ultrasound-guided brachial plexus blocks"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RA_B_1",
+              "label": "Chest wall fascial plane block techniques including relevant sonoanatomy, indications and complications"
+            },
+            {
+              "code": "2_RA_B_2",
+              "label": "Analgesia for rib fractures including anatomy and sonoanatomy of erector spinae, paravertebral and serratus anterior blocks and use of thoracic epidural"
+            },
+            {
+              "code": "2_RA_B_3",
+              "label": "Abdominal wall fascial plane block techniques including relevant sonoanatomy, indications and complications e.g. rectus sheath, TAP and quadratus lumborum"
+            },
+            {
+              "code": "2_RA_B_4",
+              "label": "Blocks for lower abdominal/urological surgery including inguinal, penile, caudal and pudendal nerve blocks"
+            }
+          ],
+          "code": "2_RA_B",
+          "label": "Performs ultrasound-guided fascial plane blocks for the chest or abdominal wall"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RA_C_1",
+              "label": "Basic principles of ultrasound and its application"
+            },
+            {
+              "code": "2_RA_C_2",
+              "label": "Advantages of ultrasound-guided blocks"
+            }
+          ],
+          "code": "2_RA_C",
+          "label": "Demonstrates how to achieve an optimal ultrasound image and recognises common ultrasound artefacts"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RA_D_1",
+              "label": "Applied anatomy required for insertion of local anaesthetic blocks for ophthalmic surgery"
+            },
+            {
+              "code": "2_RA_D_2",
+              "label": "Techniques of local anaesthesia available for ophthalmic surgery including their advantages, disadvantages and indications with particular reference to: Topical anaesthesia: local anaesthesia drops; Sub-tenon's block; Principles of needle blocks: extraconal [peribulbar] and intraconal [retrobulbar] injections"
+            },
+            {
+              "code": "2_RA_D_3",
+              "label": "The oculo-cardiac reflex, its treatment and prevention"
+            },
+            {
+              "code": "2_RA_D_4",
+              "label": "The physiological mechanisms which control intraocular pressure"
+            },
+            {
+              "code": "2_RA_D_5",
+              "label": "The pharmacology of drugs used to reduce intraocular pressure"
+            }
+          ],
+          "code": "2_RA_D",
+          "label": "Describes ophthalmic blocks for patients undergoing awake ophthalmic surgery"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RA_E_1",
+              "label": "The indications and contraindications for regional anaesthesia and peripheral nerve blocks in multiply injured patients for analgesia, both initially and perioperatively"
+            },
+            {
+              "code": "2_RA_E_2",
+              "label": "Anatomy and sonoanatomy of lower limb blocks. Use and complications of these blocks including but not exclusively fascia-iliaca, and peri-capsular nerve groups (PENG)"
+            },
+            {
+              "code": "2_RA_E_3",
+              "label": "Advantages and disadvantages, techniques and complications (including their management) of a wide variety of blocks including, but not exclusively: peripheral blocks of the limbs; some cranial nerve blocks; blocks used to treat chronic pain conditions; central neuraxial blockade"
+            },
+            {
+              "code": "2_RA_E_4",
+              "label": "Anatomy and sonoanatomy for awake carotid endarterectomy, including superficial, intermediate and deep cervical plexus blocks. Contraindications and complications of these procedures."
+            },
+            {
+              "code": "2_RA_E_5",
+              "label": "The choice of local anaesthetic agents, opioids, and other additives and techniques of administration including but not limited to: hydrodissection; spread of local anaesthetic along fascial planes; regular aspiration to avoid intravascular placement"
+            },
+            {
+              "code": "2_RA_E_6",
+              "label": "Management of regional blocks in children including but not exclusively caudal, epidural, spinal, penile, ilioinguinal and TAP blocks"
+            },
+            {
+              "code": "2_RA_E_7",
+              "label": "Best practices for safety and quality in regional anaesthesia"
+            }
+          ],
+          "code": "2_RA_E",
+          "label": "Involves the patient in planning and understanding potential complications of regional anaesthesia"
+        }
+      ],
+      "code": "2_RA",
+      "label": "Regional Anaesthesia"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_RT_A_1",
+              "label": "Recognition and management of a patient with an unstable cervical spine"
+            },
+            {
+              "code": "2_RT_A_2",
+              "label": "Recognises the deteriorating perioperative patient"
+            }
+          ],
+          "code": "2_RT_A",
+          "label": "Leads a multidisciplinary resuscitation team from the initial assessment and management of a critically ill patient, through to handover to Critical Care or another specialist team"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_B_1",
+              "label": "Interpretation of arrhythmias seen in the peri-arrest period, including but not limited to: Narrow complex tachycardias; Broad complex tachycardias; Atrial fibrillation; SVT; Bradycardia; 1st 2nd and 3rd degree heart block"
+            },
+            {
+              "code": "2_RT_B_2",
+              "label": "The pharmacology of drugs used to treat common arrhythmias, including but not limited to: Adenosine; Digoxin; Magnesium; Beta-blockers; Amiodarone; Atropine"
+            },
+            {
+              "code": "2_RT_B_3",
+              "label": "Indications/management of cardioversion and defibrillation"
+            },
+            {
+              "code": "2_RT_B_4",
+              "label": "The indication for, and principles of, pacing including percussion, external and transvenous"
+            },
+            {
+              "code": "2_RT_B_5",
+              "label": "Indications/management of thrombolysis"
+            },
+            {
+              "code": "2_RT_B_6",
+              "label": "Recognition/management of anaphylaxis and allergy"
+            },
+            {
+              "code": "2_RT_B_7",
+              "label": "Indications/management of therapeutic hypothermia after cardiac arrest"
+            },
+            {
+              "code": "2_RT_B_8",
+              "label": "Indications/management of: Open chest cardiac compressions; Resuscitative thoracotomy"
+            },
+            {
+              "code": "2_RT_B_9",
+              "label": "The principles of managing cardiac arrest in the prone position"
+            },
+            {
+              "code": "2_RT_B_10",
+              "label": "Institutes appropriate measures to stabilise the deteriorating patient"
+            }
+          ],
+          "code": "2_RT_B",
+          "label": "Maintains contemporary knowledge and skills required for the delivery of successful resuscitation"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_C_1",
+              "label": "Management of children with multiple injuries, comparing and contrasting with that of adults"
+            },
+            {
+              "code": "2_RT_C_2",
+              "label": "The differences in aetiology of cardiac arrest between adults and children"
+            },
+            {
+              "code": "2_RT_C_3",
+              "label": "Indications for, and use of, cuffed and uncuffed tubes in the critically ill child requiring tracheal intubation"
+            },
+            {
+              "code": "2_RT_C_4",
+              "label": "Obstetric and anaesthetic management of a premature delivery"
+            }
+          ],
+          "code": "2_RT_C",
+          "label": "Demonstrates resuscitation skills in neonates and children"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_D_1",
+              "label": "The specific ethical and ethnic issues associated with managing the multiply injured patient, including issues that relate to brain stem death and organ donation"
+            },
+            {
+              "code": "2_RT_D_2",
+              "label": "The ethical issues related to patient transfer, including the need to brief patients and their relatives"
+            }
+          ],
+          "code": "2_RT_D",
+          "label": "Undertakes discussions with patients, families and colleagues to aid decision making on resuscitation, including DNACPR 'do not attempt cardiopulmonary resuscitation' orders"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_E_1",
+              "label": "Role of the anaesthetist within the multi-disciplinary trauma team and structured approach to care"
+            },
+            {
+              "code": "2_RT_E_2",
+              "label": "Assessment and management of chest trauma"
+            },
+            {
+              "code": "2_RT_E_3",
+              "label": "Assessment and management of abdominal trauma"
+            },
+            {
+              "code": "2_RT_E_4",
+              "label": "Assessment and management of head and neck trauma"
+            },
+            {
+              "code": "2_RT_E_5",
+              "label": "Assessment and management of spinal cord injury"
+            },
+            {
+              "code": "2_RT_E_6",
+              "label": "Assessment and management of major limb and pelvic trauma"
+            },
+            {
+              "code": "2_RT_E_7",
+              "label": "The reasons for, and benefits of, the hospital triage of trauma patients, and scoring systems used"
+            },
+            {
+              "code": "2_RT_E_8",
+              "label": "Hormonal and metabolic response to trauma"
+            },
+            {
+              "code": "2_RT_E_9",
+              "label": "The complex pathophysiological changes that occur in all patients (including children) with multiple injuries"
+            }
+          ],
+          "code": "2_RT_E",
+          "label": "Demonstrates knowledge and skills in resuscitation of the patient with major trauma"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_F_1",
+              "label": "Organisation/management of safe transfer of patients with a brain injury"
+            },
+            {
+              "code": "2_RT_F_2",
+              "label": "Organisation/management of safe transfer of patients to minimise risk, including but not limited to: Stabilisation; Pre-emptive intervention; Sedation; Monitoring; Packaging; Choice of mode of transfer"
+            },
+            {
+              "code": "2_RT_F_3",
+              "label": "Outlines the hazards associated with interhospital transfer, including the causes/management of patient instability: Effects of acceleration/deceleration on patient physiology; Effects of high ambient noise on the patient/alarms; Increased risk of interventions during transfer"
+            },
+            {
+              "code": "2_RT_F_4",
+              "label": "Explains how critical illness affects the risk of transfer"
+            },
+            {
+              "code": "2_RT_F_5",
+              "label": "Explains how time-critical elements may influence risks to the patient and transfer personnel and how these should be managed to reduce them"
+            },
+            {
+              "code": "2_RT_F_6",
+              "label": "Explains the critical care equipment used during transfer including but not exclusively: Ventilators; Infusion pumps; Monitoring"
+            },
+            {
+              "code": "2_RT_F_7",
+              "label": "Understands the safety implications of electrical and hydraulic equipment that may be used during patient transfer"
+            },
+            {
+              "code": "2_RT_F_8",
+              "label": "The management of patients who develop sudden airway difficulties whilst in transit (both in the intubated and un-intubated patient)"
+            },
+            {
+              "code": "2_RT_F_9",
+              "label": "Awareness of the laws relating to deaths in transit"
+            },
+            {
+              "code": "2_RT_F_10",
+              "label": "Outlines the regional protocols for organising transfers between units"
+            },
+            {
+              "code": "2_RT_F_11",
+              "label": "Outlines the roles and responsibilities of all staff accompanying the patient during transfer including ambulance technicians and paramedics"
+            },
+            {
+              "code": "2_RT_F_12",
+              "label": "Discusses the importance of audit, critical incident reporting and appropriate research"
+            },
+            {
+              "code": "2_RT_F_13",
+              "label": "Outlines the specific considerations for transfer of patients with specific clinical conditions, including but not limited to: Head, spinal, thoracic, and pelvic injuries; Critically ill medical patients; Burns patients; Children; Pregnant women"
+            }
+          ],
+          "code": "2_RT_F",
+          "label": "Manages inter-hospital transfers of adults and children by land, including time-critical transfers, in line with local and regional policy"
+        },
+        {
+          "children": [
+            {
+              "code": "2_RT_G_1",
+              "label": "Principles of management of acute spinal cord injury"
+            },
+            {
+              "code": "2_RT_G_2",
+              "label": "The anaesthetic implications of previous spinal cord trauma"
+            },
+            {
+              "code": "2_RT_G_3",
+              "label": "Demonstrates understanding of the neurocritical care management of traumatic brain injury including: Indications for ventilation; Recognition and management of raised ICP; Cerebral protection strategies; Fluid and electrolyte balance in the head injured patient; Systemic effects of traumatic brain injury; CNS monitoring including ICP, jugular bulb saturation"
+            },
+            {
+              "code": "2_RT_G_4",
+              "label": "Describes the control of status epilepticus"
+            }
+          ],
+          "code": "2_RT_G",
+          "label": "Manages the resuscitation, stabilisation, and transfer of patients with acute neurological deterioration"
+        }
+      ],
+      "code": "2_RT",
+      "label": "Resuscitation and Transfer"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_PS_A_1",
+              "label": "Identification of different levels of sedation (minimal/conscious/deep)"
+            },
+            {
+              "code": "2_PS_A_2",
+              "label": "Indications/management of deep sedation and the associated risks"
+            },
+            {
+              "code": "2_PS_A_3",
+              "label": "Pharmacology of drugs used for sedation, including those given as infusions and multiple drug boluses"
+            },
+            {
+              "code": "2_PS_A_4",
+              "label": "Describes the advantages and disadvantages of sedation techniques for specific subspecialty procedures e.g. ophthalmic, neuro and dental procedures"
+            },
+            {
+              "code": "2_PS_A_5",
+              "label": "Options for alternative routes of delivery of drugs used for conscious sedation including intra-nasal and rectal"
+            }
+          ],
+          "code": "2_PS_A",
+          "label": "Utilises appropriate sedation techniques by a variety of routes of administration and multiple drug combinations, including target-controlled infusions"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PS_B_1",
+              "label": "Sedation scoring systems used in adult, paediatric and special needs settings"
+            },
+            {
+              "code": "2_PS_B_2",
+              "label": "Current standards and guidelines relating to equipment, staffing and monitoring (including limitations) required for delivery of safe procedural sedation"
+            },
+            {
+              "code": "2_PS_B_3",
+              "label": "Awareness of appropriate discharge criteria following procedural sedation"
+            }
+          ],
+          "code": "2_PS_B",
+          "label": "Utilises sedation protocols and scoring systems"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PS_C_1",
+              "label": "Awareness of the unpredictable nature of sedation techniques in the extremes of life and strategies for safe delivery"
+            },
+            {
+              "code": "2_PS_C_2",
+              "label": "Indications/contraindications and risks of sedation for patients in the non-theatre environment"
+            }
+          ],
+          "code": "2_PS_C",
+          "label": "Explains the risks of delivering sedation outside the operating theatre and acts to mitigate these risks"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PS_D_1",
+              "label": "Knowledge of clinical and procedural specific factors which may prevent delivery of safe sedation"
+            },
+            {
+              "code": "2_PS_D_2",
+              "label": "Knowledge of alternative options when sedation cannot be delivered appropriately"
+            }
+          ],
+          "code": "2_PS_D",
+          "label": "Recognises when the use of sedation is inappropriate and formulates an alternative safe plan"
+        }
+      ],
+      "code": "2_PS",
+      "label": "Procedural Sedation"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_PA_A_1",
+              "label": "Assessment and management of acute non-surgical pain"
+            },
+            {
+              "code": "2_PA_A_2",
+              "label": "Organisation of multi-disciplinary management approach of chronic pain"
+            },
+            {
+              "code": "2_PA_A_3",
+              "label": "Effect of genetics and cultural differences as well as mental health and adverse childhood experiences on clinical pain perception and management"
+            }
+          ],
+          "code": "2_PA_A",
+          "label": "Utilises a multi-disciplinary approach to the management of complex pain within a biopsychosocial model of care"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PA_B_1",
+              "label": "Assessment of pain including use of pain assessment tools"
+            },
+            {
+              "code": "2_PA_B_2",
+              "label": "Management of postoperative pain including management of those patients with complex analgesic needs"
+            },
+            {
+              "code": "2_PA_B_3",
+              "label": "Use of adjuvant analgesics, regional anaesthesia, and wound infiltration techniques"
+            },
+            {
+              "code": "2_PA_B_4",
+              "label": "Assessment and management of acute pain in special groups including, but not limited to: children and infants; the older person; the cognitively impaired; those with communication difficulties; the unconscious and critically ill patients; concurrent disease e.g. hepatic/renal; long term opiate users and substance misuse"
+            }
+          ],
+          "code": "2_PA_B",
+          "label": "Can confidently manage acute pain in the whole perioperative pathway in a timely manner"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PA_C_1",
+              "label": "Mechanisms of pain; nociceptive (somatic and visceral), neuropathic, and nociplastic pain"
+            },
+            {
+              "code": "2_PA_C_2",
+              "label": "Assessment/management of chronic pain in adults including both chronic primary pain and chronic secondary pain"
+            },
+            {
+              "code": "2_PA_C_3",
+              "label": "Assessment/management of cancer pain in adults"
+            },
+            {
+              "code": "2_PA_C_4",
+              "label": "Anatomy of ascending and descending pain pathways and their relevance to the pharmacological management of pain"
+            },
+            {
+              "code": "2_PA_C_5",
+              "label": "Anatomy relevant to acute and chronic pain management, including neural blockade techniques"
+            },
+            {
+              "code": "2_PA_C_6",
+              "label": "Mechanisms of peripheral and central sensitisation"
+            },
+            {
+              "code": "2_PA_C_7",
+              "label": "The role of interventional procedures for pain relief, TENS, and other alternative treatments"
+            }
+          ],
+          "code": "2_PA_C",
+          "label": "Is able to assess patients, interpret investigations and initiate management of chronic malignant and non-malignant pain in a timely manner under distant supervision"
+        },
+        {
+          "children": [
+            {
+              "code": "2_PA_D_1",
+              "label": "Advanced pharmacology of drugs used to manage pain including neuropathic pain. Use of: opioids; antidepressants; anticonvulsants; antiarrhythmics"
+            },
+            {
+              "code": "2_PA_D_2",
+              "label": "Assessment and management of patients with known chronic pain undergoing acute surgical procedures"
+            }
+          ],
+          "code": "2_PA_D",
+          "label": "Can assess and manage acute on chronic and chronic inpatient pain in adults and recognise when referral to specialist pain services is appropriate"
+        },
+        {
+          "children": [],
+          "code": "2_PA_E",
+          "label": "Identifies barriers to effective pain management including those related to patient beliefs, society, culture, and healthcare provision"
+        },
+        {
+          "children": [],
+          "code": "2_PA_F",
+          "label": "Explains the risk factors for persistent post-surgical pain including measures to minimise its occurrence"
+        }
+      ],
+      "code": "2_PA",
+      "label": "Pain"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "code": "2_IC_A_1",
+              "label": "Discusses requirements for organ support and its limitations"
+            }
+          ],
+          "code": "2_IC_A",
+          "label": "Recognises the limitations of intensive care; employs appropriate admission criteria"
+        },
+        {
+          "children": [],
+          "code": "2_IC_B",
+          "label": "Performs safely and effectively the clinical invasive procedures required to maintain respiratory, cardiovascular, and renal, support"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_C_1",
+              "label": "Anatomy relevant to the range of practical procedures required in intensive care medicine"
+            },
+            {
+              "code": "2_IC_C_2",
+              "label": "Indications for postoperative ventilation"
+            },
+            {
+              "code": "2_IC_C_3",
+              "label": "Management of the patient with respiratory failure including: Severe asthma; Disorders of respiratory mechanics, gas exchange and gas transport; Disorders of the pulmonary circulation- arterial and venous; Respiratory failure and ventilatory support, consequences of positive pressure ventilation; Choices of modes ventilation eg asthma/COPD/restrictive defects; Effect of prone ventilation; Effect of changes in ambient pressure; Use of gases: helium and nitric oxide; Use of ECMO"
+            },
+            {
+              "code": "2_IC_C_4",
+              "label": "Management of the patient with cardiac dysfunction including: Cardiomyopathy and abnormal ventricular function \u2013 congenital and acquired; High and low cardiac output states; Valvular disease; Hypertension- pulmonary and systemic; Ischaemic heart disease; Uses of vasopressors and inotropes; Assessment of cardiac function"
+            },
+            {
+              "code": "2_IC_C_5",
+              "label": "Management of the patient with neurological deterioration including: Seizures; Delirium; Reduced conscious level, including infection and drug toxicity; Spinal cord injury; Raised intracranial pressure; Control of cerebral circulation; Myasthenia; Guillain-Barr\u00e9; Disorders of the autonomic nervous system; Hypoxic brain injury and brain stem death; Traumatic brain injury"
+            },
+            {
+              "code": "2_IC_C_6",
+              "label": "Management of the patient with renal dysfunction including: Disturbances of fluid balance, oedema, and dehydration; Acid-base abnormalities; Plasma electrolyte disturbances; Renal tubular acidosis; Assessment of renal function; Diuretics and their action; Principles of haemofiltration and other renal support; Influence of renal replacement therapies on commonly used drugs"
+            },
+            {
+              "code": "2_IC_C_7",
+              "label": "Management of the patient with liver dysfunction: Jaundice; Acute liver failure; Chronic liver failure; Porphyria"
+            },
+            {
+              "code": "2_IC_C_8",
+              "label": "Management of the patient with gastro-intestinal dysfunction including: Nausea and vomiting; Oesophageal reflux; Bowel obstruction and gastric stasis; Pancreatitis; Swallowing disorders; The mucosal barrier; Starvation and obesity; Malnutrition"
+            },
+            {
+              "code": "2_IC_C_9",
+              "label": "Management of the patient with an endocrine emergency: Diabetes mellitus/insipidus; Thyroid; Adrenal"
+            },
+            {
+              "code": "2_IC_C_10",
+              "label": "Management of the patient with a haematological issue including: Haematological malignancies; Congenital and acquired blood disorders; Anaemia; Thrombocytopenia; Abnormalities of coagulation; Blood-borne viruses including hepatitides and HIV"
+            },
+            {
+              "code": "2_IC_C_11",
+              "label": "Knowledge of enteral and parenteral nutritional formulas in intensive care: principles; risks; pre- and post-pyloric feeding; consequences of overfeeding (CO2, uraemia, hypermetabolism, hypertriglyceridaemia, hepatic steatosis); changes in intestinal blood flow with injury/sepsis/critical illness"
+            }
+          ],
+          "code": "2_IC_C",
+          "label": "Recognises, assesses, and initiates management for acutely ill adults across the spectrum of single or multiple organ failure"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_D_1",
+              "label": "Recognition/initial management of the sick/deteriorating child"
+            },
+            {
+              "code": "2_IC_D_2",
+              "label": "Recognition of the specific conditions likely to deteriorate to respiratory or cardiac arrest in children [e.g. meningococcal sepsis] and describe their initial management"
+            },
+            {
+              "code": "2_IC_D_3",
+              "label": "Recognition/management of the critically ill child with e.g. sepsis, trauma, convulsions, dehydration, respiratory and diabetic emergencies and describes their timely management"
+            }
+          ],
+          "code": "2_IC_D",
+          "label": "Recognises the acutely ill child and initiates management of paediatric emergencies"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_E_1",
+              "label": "Recognition and management of the patient with sepsis"
+            },
+            {
+              "code": "2_IC_E_2",
+              "label": "Antimicrobials, antivirals, and antifungals: principles of action; choice of drug."
+            },
+            {
+              "code": "2_IC_E_3",
+              "label": "Antibiotic resistance and stewardship"
+            },
+            {
+              "code": "2_IC_E_4",
+              "label": "Antibiotic prophylaxis against surgical infection including prevention of surgical site infection"
+            }
+          ],
+          "code": "2_IC_E",
+          "label": "Recognises and manages the patient with sepsis and employs local infection control policies"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_F_1",
+              "label": "Interpretation of investigations and monitoring techniques to aid the diagnosis and management of the critically ill patient"
+            }
+          ],
+          "code": "2_IC_F",
+          "label": "Undertakes and evaluates laboratory and clinical imaging investigations to manage patients while critically ill during their intensive care stay"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_G_1",
+              "label": "Management of the continuing needs of patients in critical care including organ support and holistic care of patients and relatives."
+            }
+          ],
+          "code": "2_IC_G",
+          "label": "Manages the medical/surgical needs and organ support of patients during their critical illness, including the holistic care of patients and relatives"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_H_1",
+              "label": "Ability to plan and communicate decisions for care of critically unwell patients with relatives and other healthcare workers, including discharge, escalation, and ceilings of care."
+            }
+          ],
+          "code": "2_IC_H",
+          "label": "Plans and communicates the appropriate discharge of patients from intensive care to healthcare professionals, patients, and relatives"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_I_1",
+              "label": "To facilitate sensitive discussions, considering the views of patients and relatives, about the process of withholding or withdrawing life-sustaining treatment and the provision for palliative care."
+            },
+            {
+              "code": "2_IC_I_2",
+              "label": "Manages the palliative care of those with end-stage disease"
+            }
+          ],
+          "code": "2_IC_I",
+          "label": "Manages end of life care within the intensive care environment with patients, relatives, and the multi-professional team"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_J_1",
+              "label": "Management of organ donation in critical care"
+            }
+          ],
+          "code": "2_IC_J",
+          "label": "Liaises with transplant services when appropriate, can perform brain stem death testing and provides the physiological support of the donor"
+        },
+        {
+          "children": [
+            {
+              "code": "2_IC_K_1",
+              "label": "Understands risk scoring systems in the context of the deteriorating patient"
+            }
+          ],
+          "code": "2_IC_K",
+          "label": "Supports clinical staff outside the ICU to enable the early detection of the deteriorating patient"
+        }
+      ],
+      "code": "2_IC",
+      "label": "Intensive Care Medicine"
+    }
+  ]
+}

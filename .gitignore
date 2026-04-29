@@ -9,11 +9,18 @@ wheels/
 # Virtual environments
 .venv
 
+# AI agent files
+.claude/
+.codex/
+CLAUDE.md
+.codex
+
 # Environment Variables
 .env
 
-# Chroma DB
-chromadb
+# Vector stores
+chromadb/
+lancedb/
 
 # Local docs
 docs/*
@@ -34,5 +41,4 @@ Untitled.ipynb
 *.pdf
 
 # Research data and generated figures
-data/
 figures/

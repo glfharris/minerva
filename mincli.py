@@ -1,83 +1,194 @@
 #! uv run
+from __future__ import annotations
+
+import asyncio
+import json
+import os
 from pathlib import Path
 from typing import Optional
+
+import typer
+from dotenv import load_dotenv
+from rich.prompt import Prompt
+from rich.table import Table
 from typing_extensions import Annotated
 
-from dotenv import load_dotenv
-import typer
-
+from minerva.agent import Deps, load_examples, make_agent
 from minerva.console import console
+from minerva.curriculum import flatten, load, search
 from minerva.embed import EmbedClient
-from minerva.llm import LLMClient
+from minerva.models import CurriculumNode, QuestionSet
+from minerva.output import save_json, save_markdown
+from minerva.quiz import run_quiz
 
 load_dotenv()
 
-app = typer.Typer()
-context = {
-        "API_KEY": None,
-        "CHROMA_DB_DIR": None,
-        "EMBEDDING_MODEL": "text-embedding-3-small",
-        "QUESTION_MODEL": "gpt-4o"
-        }
+app = typer.Typer(no_args_is_help=True)
 
-@app.callback()
-def main(openai_api_key: Annotated[str,
-                typer.Option(envvar="OPENAI_API_KEY")] = "",
-         chroma_db_dir: Annotated[Path,
-                typer.Option(envvar="CHROMA_DB_DIR")] = Path("./chromadb")
-         ):
-    if not openai_api_key:
-        print("$OPENAI_API_KEY not set")
-        typer.Exit(1)
-    else:
-        context['API_KEY'] = openai_api_key
+_DEFAULT_MODEL = os.environ.get("MINERVA_MODEL", "openai:gpt-4o")
+_DEFAULT_EMBED = "openai:text-embedding-3-small"
+_DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
-    context['CHROMA_DB_DIR'] = str(chroma_db_dir)
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _resolve_node(exam: str | None, node_query: str | None) -> CurriculumNode | None:
+    if not exam:
+        return None
+    root = load(exam)  # type: ignore[arg-type]
+    nodes = flatten(root)
+    if not node_query:
+        return None
+    matches = search(nodes, node_query)
+    if not matches:
+        console.print(f"[yellow]No curriculum nodes matched '{node_query}'[/yellow]")
+        return None
+    if len(matches) == 1:
+        return matches[0]
+    # Interactive picker
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("#", width=4)
+    table.add_column("Code")
+    table.add_column("Label")
+    for i, n in enumerate(matches, 1):
+        table.add_row(str(i), n.code, n.label)
+    console.print(table)
+    choice = Prompt.ask("Select node", choices=[str(i) for i in range(1, len(matches) + 1)])
+    return matches[int(choice) - 1]
+
+
+async def _generate(
+    topic: str,
+    count: int,
+    model: str,
+    exam: str | None,
+    node: CurriculumNode | None,
+    db: Path,
+    embed_model: str,
+) -> QuestionSet:
+    retriever = EmbedClient(db_path=db, embedding_model=embed_model)
+    examples = load_examples()
+    deps = Deps(retriever=retriever, curriculum_node=node, examples=examples)
+
+    prompt = (
+        f"Write {count} dissimilar single-best answer question(s) on the topic: {topic!r}. "
+        "Return the result as a QuestionSet."
+    )
+
+    ag = make_agent(model)
+    result = await ag.run(prompt, deps=deps)
+    qs = result.data
+    # Ensure metadata is populated
+    qs.topic = topic
+    qs.exam = exam
+    qs.model = model
+    if node:
+        qs.curriculum_node_code = node.code
+    return qs
+
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
 
 @app.command()
-def create(topic: Annotated[str, 
-                typer.Argument(help="Question topic")],
-           count: Annotated[int,
-                typer.Option("-c", "--count",
-                             help="Number of questions to generate")] = 1,
-           temperature: Annotated[float,
-                typer.Option("-t", "--temperature",
-                             help="Temperature of the LLM")] = 0.7
-           ):
-    minerva_client = LLMClient(api_key=context['API_KEY'],
-                               chroma_db_dir=context['CHROMA_DB_DIR'],
-                               embedding_model=context['EMBEDDING_MODEL'],
-                               question_model=context['QUESTION_MODEL'],
-                               temperature=temperature)
-    with open('examples/rcoa.md', 'r') as f:
-        examples = f.read()
-    with console.status(f"Creating {count} question(s) on {topic}"):
-        results = minerva_client.generate(topic,count,examples=examples.split('---'))
-    for q in results.qs:
+def create(
+    topic: Annotated[str, typer.Argument(help="Question topic")],
+    count: Annotated[int, typer.Option("-c", "--count", help="Number of questions")] = 1,
+    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
+    exam: Annotated[Optional[str], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
+    output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = None,
+    db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+    embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
+) -> None:
+    """Generate SBA questions on a topic."""
+    curriculum_node = _resolve_node(exam, node)
+
+    with console.status(f"Generating {count} question(s) on '{topic}'…"):
+        qs = asyncio.run(
+            _generate(
+                topic=topic,
+                count=count,
+                model=model,
+                exam=exam,
+                node=curriculum_node,
+                db=db,
+                embed_model=embed_model,
+            )
+        )
+
+    for q in qs.questions:
         q.show()
 
+    if output:
+        j = save_json(qs, output)
+        m = save_markdown(qs, output)
+        console.print(f"\n[green]Saved:[/green] {j}\n[green]Saved:[/green] {m}")
+
+
 @app.command()
-def embed(path: Annotated[Optional[Path],
-            typer.Argument(help="Path of document(s) to embed")] = None,
-        reset: Annotated[bool, 
-            typer.Option(help="Resets existing embeddings")] = False):
+def embed(
+    path: Annotated[Path, typer.Argument(help="PDF file or directory to embed")],
+    reset: Annotated[bool, typer.Option(help="Drop existing embeddings first")] = False,
+    model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
+    db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+) -> None:
+    """Embed PDF documents into the vector store."""
+    client = EmbedClient(db_path=db, embedding_model=model)
 
-    embed = EmbedClient(api_key=context['API_KEY'],
-                        chroma_db_dir=context['CHROMA_DB_DIR'],
-                        embedding_model=context['EMBEDDING_MODEL'])
     if reset:
-        console.log("Resetting embeddings")
-        embed.reset()
+        client.reset()
 
-    if path:
-        if path.is_dir():
-            embed.documents.add_dir(path)
-        elif path.is_file():
-            embed.documents.add_document(path)
-        else:
-            console.log(f"Unable to process {path}. Quitting")
-            typer.Exit(1)
+    if path.is_dir():
+        client.add_dir(path)
+    elif path.is_file():
+        client.add_pdf(path)
+    else:
+        console.print(f"[red]Path not found: {path}[/red]")
+        raise typer.Exit(1)
 
-if __name__ == '__main__':
+
+@app.command()
+def quiz(
+    file: Annotated[Optional[Path], typer.Argument(help="JSON QuestionSet file to quiz from")] = None,
+    topic: Annotated[Optional[str], typer.Option(help="Topic: generate questions then quiz")] = None,
+    count: Annotated[int, typer.Option("-c", "--count", help="Questions to generate")] = 3,
+    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string")] = _DEFAULT_MODEL,
+    exam: Annotated[Optional[str], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
+    output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Where to save generated JSON")] = None,
+    db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+    embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
+) -> None:
+    """Run an interactive terminal quiz."""
+    if file:
+        qs = QuestionSet.model_validate_json(file.read_text())
+    elif topic:
+        curriculum_node = _resolve_node(exam, node)
+        with console.status(f"Generating {count} question(s) on '{topic}'…"):
+            qs = asyncio.run(
+                _generate(
+                    topic=topic,
+                    count=count,
+                    model=model,
+                    exam=exam,
+                    node=curriculum_node,
+                    db=db,
+                    embed_model=embed_model,
+                )
+            )
+        save_dir = output or Path("./output")
+        saved = save_json(qs, save_dir)
+        console.print(f"[green]Saved:[/green] {saved}")
+    else:
+        console.print("[red]Provide a JSON file or use --topic to generate questions.[/red]")
+        raise typer.Exit(1)
+
+    run_quiz(qs.questions)
+
+
+if __name__ == "__main__":
     app()
