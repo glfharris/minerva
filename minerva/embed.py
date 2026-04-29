@@ -1,20 +1,20 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 
-import lancedb
-from lancedb.embeddings import get_registry
-from lancedb.pydantic import LanceModel, Vector
-from pypdf import PdfReader
-from rich.progress import track
-
 from .console import console
+from .curriculum import l2_to_cosine
 
 _TABLE_NAME = "documents"
 
 
+@lru_cache(maxsize=None)
 def _make_embedder(model_string: str):
-    """Parse 'provider:model_name' and return a LanceDB embedding function."""
+    """Parse 'provider:model_name' and return a LanceDB embedding function. Cached per model string."""
+    import transformers
+    transformers.logging.set_verbosity_error()
+    from lancedb.embeddings import get_registry
     provider, _, model_name = model_string.partition(":")
     if not model_name:
         raise ValueError(f"Invalid embedding model string: {model_string!r}. Use 'provider:model_name'.")
@@ -23,6 +23,7 @@ def _make_embedder(model_string: str):
 
 def _make_chunk_model(embedder):
     """Dynamically create a LanceModel class for the chosen embedder."""
+    from lancedb.pydantic import LanceModel, Vector
     ndims = embedder.ndims()
 
     class DocumentChunk(LanceModel):
@@ -40,6 +41,7 @@ class EmbedClient:
         db_path: str | Path = "./lancedb",
         embedding_model: str = "sentence-transformers:NeuML/pubmedbert-base-embeddings",
     ) -> None:
+        import lancedb
         self._db = lancedb.connect(str(db_path))
         self._embedder = _make_embedder(embedding_model)
         self._ChunkModel = _make_chunk_model(self._embedder)
@@ -53,12 +55,13 @@ class EmbedClient:
 
     def _load_sources(self) -> set[str]:
         try:
-            df = self._table.to_pandas()
+            df = self._table.to_pandas(columns=["source"])
             return set(df["source"].unique())
         except Exception:
             return set()
 
     def add_pdf(self, path: Path) -> None:
+        from pypdf import PdfReader
         source = str(path.resolve())
         if source in self._embedded_sources:
             console.log(f"Already embedded: {path.name} — skipping")
@@ -81,6 +84,7 @@ class EmbedClient:
         console.log(f"Embedded {len(records)} page(s) from {path.name}")
 
     def add_dir(self, path: Path) -> None:
+        from rich.progress import track
         pdfs = list(Path(path).glob("**/*.pdf"))
         if not pdfs:
             console.log(f"No PDFs found in {path}")
@@ -95,15 +99,15 @@ class EmbedClient:
             if results.empty:
                 return ""
             if threshold > 0.0:
-                # L2 distance on normalised vectors: cosine_similarity = 1 - (d² / 2)
                 results = results[results["_distance"].apply(
-                    lambda d: 1 - (d ** 2 / 2) >= threshold
+                    lambda d: l2_to_cosine(d) >= threshold
                 )]
             if results.empty:
                 return ""
             chunks = results["text"].tolist()
             return "\n\n---\n\n".join(chunks)
-        except Exception:
+        except Exception as e:
+            console.log(f"[yellow]RAG query failed: {e}[/yellow]")
             return ""
 
     def reset(self) -> None:

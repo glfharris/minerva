@@ -34,14 +34,16 @@ def run_quiz(questions: list[Question]) -> None:
         score += int(is_correct)
         results.append((question.lead[:60], is_correct))
 
-        # Re-display options with colour coding
+        # Re-display options with colour coding and per-option explanations
         reveal = ""
         for opt in question.options:
             letter = opt.letter.upper()
             if letter == correct_letter:
                 reveal += f"  [bold green]{opt.letter}.[/bold green] [green]{opt.text}[/green]\n"
+                reveal += f"    [dim]{opt.explanation}[/dim]\n"
             elif letter == answer:
                 reveal += f"  [bold red]{opt.letter}.[/bold red] [red]{opt.text}[/red]\n"
+                reveal += f"    [dim]{opt.explanation}[/dim]\n"
             else:
                 reveal += f"  [dim]{opt.letter}. {opt.text}[/dim]\n"
 

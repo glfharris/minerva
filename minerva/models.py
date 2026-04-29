@@ -18,13 +18,14 @@ class QuestionOption(BaseModel):
     letter: str = Field(description="Option letter A–E")
     text: str = Field(description="Option text")
     is_correct: bool = Field(description="Whether this is the correct answer")
+    explanation: str = Field(description="Why this option is correct (if is_correct) or why it is wrong (if a distractor)")
 
 
 class Question(BaseModel):
     stem: str = Field(description="Scene-setting text that does not itself contain a question")
     lead: str = Field(description="The lead-in question")
-    options: list[QuestionOption] = Field(description="Exactly 5 lettered options (A–E)")
-    explanation: str = Field(description="Explanation of the correct answer")
+    options: list[QuestionOption] = Field(description="Exactly 5 lettered options (A–E), each with its own explanation")
+    explanation: str = Field(description="Overall explanation providing educational context for the question — the key concept being tested and any important related points")
     curriculum_node_code: str | None = None
 
     @property
@@ -32,7 +33,7 @@ class Question(BaseModel):
         for opt in self.options:
             if opt.is_correct:
                 return opt
-        return self.options[0]
+        raise ValueError(f"No correct option marked in question: {self.lead!r}")
 
     def show(self) -> None:
         console.rule("[bold red]Question")
@@ -41,18 +42,20 @@ class Question(BaseModel):
         for opt in self.options:
             console.print(f"\t[cyan]{opt.letter}.[/cyan] {opt.text}")
         console.print(f"\n[bold]Correct:[/bold] {self.correct_option.letter}. {self.correct_option.text}\n")
-        console.print(self.explanation)
+        for opt in self.options:
+            prefix = "[green]✓[/green]" if opt.is_correct else "[red]✗[/red]"
+            console.print(f"  {prefix} [bold]{opt.letter}.[/bold] {opt.explanation}")
+        console.print(f"\n{self.explanation}")
 
     def to_md(self) -> str:
         lines = [self.stem, "", f"**{self.lead}**", ""]
         for opt in self.options:
             lines.append(f"**{opt.letter}.** {opt.text}")
-        lines += [
-            "",
-            f"**Correct:** {self.correct_option.letter}. {self.correct_option.text}",
-            "",
-            self.explanation,
-        ]
+        lines += ["", f"**Correct:** {self.correct_option.letter}. {self.correct_option.text}", ""]
+        for opt in self.options:
+            mark = "✓" if opt.is_correct else "✗"
+            lines.append(f"**{mark} {opt.letter}.** {opt.explanation}")
+        lines += ["", self.explanation]
         return "\n".join(lines)
 
 

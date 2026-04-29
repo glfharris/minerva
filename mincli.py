@@ -2,20 +2,29 @@
 from __future__ import annotations
 
 import asyncio
-import json
+from enum import StrEnum
+import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
+import warnings
+
+# Suppress noisy third-party output before any imports trigger them
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.WARNING)
+logging.getLogger("statsmodels").setLevel(logging.WARNING)
+warnings.filterwarnings("ignore", module="statsmodels")
 
 import typer
 from dotenv import load_dotenv
 from rich.prompt import Prompt
 from rich.table import Table
-from typing_extensions import Annotated
 
 from minerva.agent import Deps, load_examples, make_agent
 from minerva.console import console
-from minerva.curriculum import flatten, load, match_topic, node_path, search, search_table
+from minerva.curriculum import EMBED_MODEL, flatten, l2_to_cosine, load, match_topic, node_path, search, search_table
 from minerva.embed import EmbedClient
 from minerva.models import CurriculumNode, QuestionSet
 from minerva.output import save_json, save_markdown
@@ -25,8 +34,18 @@ load_dotenv()
 
 app = typer.Typer(no_args_is_help=True)
 
+
+class Exam(StrEnum):
+    primary = "primary"
+    final = "final"
+
+
+class Source(StrEnum):
+    curriculum = "curriculum"
+    docs = "docs"
+
 _DEFAULT_MODEL = os.environ.get("MINERVA_MODEL", "openai:gpt-4o")
-_DEFAULT_EMBED = "sentence-transformers:NeuML/pubmedbert-base-embeddings"
+_DEFAULT_EMBED = f"sentence-transformers:{EMBED_MODEL}"
 _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
 
@@ -35,12 +54,10 @@ _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 # ---------------------------------------------------------------------------
 
 def _resolve_node(exam: str | None, node_query: str | None) -> CurriculumNode | None:
-    if not exam:
+    if not exam or not node_query:
         return None
     root = load(exam)  # type: ignore[arg-type]
     nodes = flatten(root)
-    if not node_query:
-        return None
     matches = search(nodes, node_query)
     if not matches:
         console.print(f"[yellow]No curriculum nodes matched '{node_query}'[/yellow]")
@@ -67,37 +84,24 @@ async def _generate(
     node: CurriculumNode | None,
     db: Path,
     embed_model: str,
+    verbose: bool = False,
 ) -> QuestionSet:
-    # Auto-match curriculum node from topic if exam is set but node wasn't explicitly given
-    if exam and node is None:
-        matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
-        if matched:
-            console.print(
-                f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}"
-            )
-            node = matched
-        else:
-            console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
-
-    # Build full ancestor path for the matched/selected node
-    path: list[CurriculumNode] = []
-    if node and exam:
-        root = load(exam)  # type: ignore[arg-type]
-        path = node_path(root, node.code)
-
     retriever = EmbedClient(db_path=db, embedding_model=embed_model)
     examples = load_examples()
-    deps = Deps(retriever=retriever, curriculum_node=node, curriculum_path=path, examples=examples)
+    curriculum_path = node_path(load(exam), node.code) if (node and exam) else []  # type: ignore[arg-type]
+    deps = Deps(retriever=retriever, curriculum_path=curriculum_path, examples=examples, verbose=verbose)
 
     prompt = (
-        f"Write {count} dissimilar single-best answer question(s) on the topic: {topic!r}. "
+        f"Write {count} dissimilar SBA question(s) on: {topic!r}.\n\n"
+        "Each question should test application of knowledge, not simple recall — "
+        "a candidate should need to reason from principles rather than just retrieve a fact. "
+        "Use the retrieve tool to find relevant reference material before writing. "
         "Return the result as a QuestionSet."
     )
 
     ag = make_agent(model)
     result = await ag.run(prompt, deps=deps)
     qs = result.output
-    # Ensure metadata is populated
     qs.topic = topic
     qs.exam = exam
     qs.model = model
@@ -113,15 +117,13 @@ async def _generate(
 @app.command()
 def match(
     topic: Annotated[str, typer.Argument(help="Topic to search for")],
-    source: Annotated[str, typer.Option(help="What to search: 'curriculum' or 'docs'")] = "curriculum",
-    exam: Annotated[str, typer.Option(help="Curriculum exam: 'primary' or 'final' (curriculum only)")] = "primary",
+    source: Annotated[Source, typer.Option(help="What to search")] = Source.curriculum,
+    exam: Annotated[Exam, typer.Option(help="Curriculum exam (curriculum only)")] = Exam.primary,
     top: Annotated[int, typer.Option(help="Number of top matches to show")] = 5,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
 ) -> None:
     """Search curriculum nodes or embedded documents for a topic."""
-    from rich.table import Table
-
-    if source == "curriculum":
+    if source == Source.curriculum:
         with console.status("Searching curriculum…"):
             matches = search_table(topic, exam, db_path=db, n=top)  # type: ignore[arg-type]
 
@@ -136,7 +138,7 @@ def match(
 
         console.print(table)
 
-    elif source == "docs":
+    elif source == Source.docs:
         with console.status("Searching documents…"):
             client = EmbedClient(db_path=db)
             results = client._table.search(topic).limit(top).to_pandas()
@@ -153,7 +155,7 @@ def match(
 
         for _, row in results.iterrows():
             d = float(row["_distance"])
-            score = 1 - (d ** 2 / 2)
+            score = l2_to_cosine(d)
             source_name = Path(row["source"]).name
             snippet = row["text"][:120].replace("\n", " ")
             colour = "green" if score >= 0.4 else "yellow"
@@ -161,24 +163,35 @@ def match(
 
         console.print(table)
 
-    else:
-        console.print(f"[red]Unknown source '{source}'. Use 'curriculum' or 'docs'.[/red]")
-        raise typer.Exit(1)
-
 
 @app.command()
 def create(
     topic: Annotated[str, typer.Argument(help="Question topic")],
     count: Annotated[int, typer.Option("-c", "--count", help="Number of questions")] = 1,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
-    exam: Annotated[Optional[str], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
     node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
     output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = None,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval details")] = False,
 ) -> None:
     """Generate SBA questions on a topic."""
     curriculum_node = _resolve_node(exam, node)
+
+    # Auto-match from topic if exam set but no explicit node given
+    if exam and curriculum_node is None:
+        with console.status("Matching curriculum node…"):
+            matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
+        if matched:
+            console.print(f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}")
+            curriculum_node = matched
+        else:
+            console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
+
+    if verbose:
+        console.print(f"[dim]LLM model:       {model}[/dim]")
+        console.print(f"[dim]Embedding model: {embed_model}[/dim]")
 
     with console.status(f"Generating {count} question(s) on '{topic}'…"):
         qs = asyncio.run(
@@ -190,6 +203,7 @@ def create(
                 node=curriculum_node,
                 db=db,
                 embed_model=embed_model,
+                verbose=verbose,
             )
         )
 
@@ -230,17 +244,41 @@ def quiz(
     topic: Annotated[Optional[str], typer.Option(help="Topic: generate questions then quiz")] = None,
     count: Annotated[int, typer.Option("-c", "--count", help="Questions to generate")] = 3,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string")] = _DEFAULT_MODEL,
-    exam: Annotated[Optional[str], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
     node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
     output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Where to save generated JSON")] = None,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval details")] = False,
 ) -> None:
     """Run an interactive terminal quiz."""
     if file:
-        qs = QuestionSet.model_validate_json(file.read_text())
+        try:
+            qs = QuestionSet.model_validate_json(file.read_text())
+        except Exception as e:
+            console.print(f"[red]Could not load '{file}': {e}[/red]")
+            raise typer.Exit(1)
+        console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
     elif topic:
         curriculum_node = _resolve_node(exam, node)
+
+        # Auto-match from topic if exam set but no explicit node given
+        if exam and curriculum_node is None:
+            with console.status("Matching curriculum node…"):
+                matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
+            if matched:
+                console.print(f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}")
+                curriculum_node = matched
+            else:
+                console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
+
+        save_dir = output or Path("./output")
+        console.print(f"[dim]Questions will be saved to:[/dim] {save_dir}")
+
+        if verbose:
+            console.print(f"[dim]LLM model:       {model}[/dim]")
+            console.print(f"[dim]Embedding model: {embed_model}[/dim]")
+
         with console.status(f"Generating {count} question(s) on '{topic}'…"):
             qs = asyncio.run(
                 _generate(
@@ -251,9 +289,9 @@ def quiz(
                     node=curriculum_node,
                     db=db,
                     embed_model=embed_model,
+                    verbose=verbose,
                 )
             )
-        save_dir = output or Path("./output")
         saved = save_json(qs, save_dir)
         console.print(f"[green]Saved:[/green] {saved}")
     else:

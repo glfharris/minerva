@@ -4,15 +4,16 @@ import json
 from pathlib import Path
 from typing import Literal
 
-import lancedb
-from lancedb.embeddings import get_registry
-from lancedb.pydantic import LanceModel, Vector
-
 from .models import CurriculumNode
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
-_EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
+EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
 _MATCH_THRESHOLD = 0.4  # cosine similarity; below this = no confident match
+
+
+def l2_to_cosine(d: float) -> float:
+    """Convert LanceDB L2 distance to cosine similarity for normalised vectors."""
+    return 1 - (d ** 2 / 2)
 
 
 def load(exam: Literal["primary", "final"]) -> CurriculumNode:
@@ -98,10 +99,13 @@ def _build_text(code: str, node_map: dict[str, CurriculumNode], parent_map: dict
 
 
 def _make_embedder():
-    return get_registry().get("sentence-transformers").create(name=_EMBED_MODEL)
+    from .embed import _make_embedder as _make_embedder_cached
+    return _make_embedder_cached(f"sentence-transformers:{EMBED_MODEL}")
 
 
 def _make_node_model(embedder):
+    from lancedb.pydantic import LanceModel, Vector
+
     class CurriculumNodeRecord(LanceModel):
         code: str
         label: str
@@ -111,7 +115,7 @@ def _make_node_model(embedder):
     return CurriculumNodeRecord
 
 
-def _get_table(db: lancedb.DBConnection, exam: str):
+def _get_table(db, exam: str):
     """Return the curriculum LanceDB table, building it if it doesn't exist."""
     from .console import console
 
@@ -151,6 +155,7 @@ def match_topic(
     threshold: float = _MATCH_THRESHOLD,
 ) -> CurriculumNode | None:
     """Embed topic and return the best-matching curriculum node, or None if below threshold."""
+    import lancedb
     db = lancedb.connect(str(db_path))
     table, _ = _get_table(db, exam)
 
@@ -160,8 +165,7 @@ def match_topic(
         return None
 
     best = results.iloc[0]
-    d = float(best["_distance"])
-    similarity = 1 - (d ** 2 / 2)
+    similarity = l2_to_cosine(float(best["_distance"]))
 
     if similarity < threshold:
         return None
@@ -178,6 +182,7 @@ def search_table(
     n: int = 5,
 ):
     """Return top-n matches as (similarity, CurriculumNode) pairs."""
+    import lancedb
     db = lancedb.connect(str(db_path))
     table, _ = _get_table(db, exam)
 
@@ -186,7 +191,7 @@ def search_table(
     node_map = _build_node_map(root)
 
     return [
-        (1 - (float(row["_distance"]) ** 2 / 2), node_map[row["code"]])
+        (l2_to_cosine(float(row["_distance"])), node_map[row["code"]])
         for _, row in results.iterrows()
         if row["code"] in node_map
     ]

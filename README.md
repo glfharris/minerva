@@ -9,50 +9,92 @@ High-quality question banks for postgraduate medical examinations are expensive,
 
 Minerva generates Single Best Answer (SBA) questions from your own reference material using retrieval-augmented generation, with the aim of producing questions that meet the standard of those written by human examiners.
 
+## Setup
+
+Minerva uses `uv` as its package manager. Install it for your operating system before proceeding, then install dependencies:
+
+```bash
+uv sync
+```
+
+Copy `.env.example` to `.env` and fill in your API keys:
+
+```
+OPENAI_API_KEY=        # required if using OpenAI models
+ANTHROPIC_API_KEY=     # required if using Anthropic/Claude models
+MINERVA_MODEL=openai:gpt-4o
+LANCEDB_DIR=./lancedb
+```
+
+Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key required for embedding.
+
 ## Usage
 
-Minerva uses `uv` as its package manager. Install it for your operating system before proceeding.
+**1. Embed your reference documents** (a folder of PDFs):
 
-Two environment variables are required: `OPENAI_API_KEY` and `CHROMA_DB_DIR`. The simplest way to set these is with a `.env` file in the project directory, which the CLI will read automatically.
-
-First, embed your reference documents (a folder of PDFs):
-
-```
-./mincli.py embed path/to/docs/folder
+```bash
+./mincli.py embed path/to/docs/
 ```
 
-Then generate questions on any topic:
+**2. Generate questions:**
 
-```
-# ./mincli.py create "Lung Compliance"
-──────────────────────────────── Question ────────────────────────────────
-A 68-year-old woman with a history of chronic obstructive pulmonary
-disease (COPD) presents with increasing shortness of breath. On
-examination, she has a barrel-shaped chest and uses accessory muscles for
-breathing.
+```bash
+# Single question
+./mincli.py create "Lung Compliance"
 
-Which of the following changes in lung compliance is most likely present
-in this patient?
+# Multiple questions, saved to disk
+./mincli.py create "Cardiac Output" --count 3 --output ./output
 
-        > Increased lung compliance due to loss of elastic tissue.
-        > Decreased lung compliance due to pulmonary fibrosis.
-        > Normal lung compliance with increased airway resistance.
-        > Decreased lung compliance due to fluid in the alveoli.
-        > Increased lung compliance due to increased surface tension.
+# With curriculum context (auto-matches the best curriculum node)
+./mincli.py create "Rocuronium" --exam primary
 
-Correct: Increased lung compliance due to loss of elastic tissue.
-
-In patients with COPD, particularly with emphysema, there is destruction
-of lung elastic tissue leading to increased lung compliance. This results
-in diminished elastic recoil and difficulty with passive exhalation, often
-causing a barrel-shaped chest appearance.
+# Using Anthropic Claude
+./mincli.py create "Pharmacokinetics" --model anthropic:claude-opus-4-6
 ```
 
-The `--count` (`-c`) flag generates multiple questions in a single call. Approximate API costs using OpenAI are around $0.03 per question with `gpt-4o`, or $0.003 with `gpt-4o-mini`.
+**3. Interactive quiz:**
+
+```bash
+# Quiz from a saved file
+./mincli.py quiz output/cardiac_output_2026-04-29.json
+
+# Generate then quiz in one step
+./mincli.py quiz --topic "Lung Compliance" --exam primary --count 5
+```
+
+**4. Test retrieval** (useful for debugging):
+
+```bash
+# Check curriculum node matching for a topic
+./mincli.py match "Rocuronium"
+./mincli.py match "Rocuronium" --exam final
+
+# Check what reference material would be retrieved
+./mincli.py match "Rocuronium" --source docs
+```
+
+## Curriculum-aware generation
+
+Minerva includes the full RCoA Primary and Final FRCA curriculum trees. When `--exam` is provided, it automatically matches the topic to the most relevant curriculum node using embedding similarity and includes the full curriculum breadcrumb in the prompt — helping the LLM target the right scope and depth for the exam standard.
+
+## Models
+
+Model strings use `provider:name` format:
+
+| Provider | Example |
+|---|---|
+| OpenAI | `openai:gpt-4o` |
+| Anthropic | `anthropic:claude-opus-4-6` |
+
+Set the default via `MINERVA_MODEL` in `.env`, or override per-run with `--model`.
 
 ## Adapting to Other Fields
 
-The current defaults target the primary FRCA anaesthetic examinations. To use Minerva in another domain, update the role prompt in `minerva/llm.py`, replace the few-shot examples in `examples/`, and supply embeddings from relevant reference material.
+To use Minerva in another domain:
+- Update the role prompt in `minerva/agent.py`
+- Replace the few-shot examples in `examples/`
+- Supply embeddings from relevant reference material
+- Replace the curriculum JSON in `data/` with your own structure
 
 ## What's Next
 
