@@ -5,7 +5,7 @@ description = "LLM-based Single Best Answer Question Generation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pydantic-ai[openai,anthropic]>=0.0.14",
+    "pydantic-ai>=0.0.14",
     "lancedb>=0.20.0",
     "sentence-transformers>=3.0",
     "pypdf>=5.1.0",
@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "rich>=13.0",
     "pydantic>=2.10.2",
+    "pandas>=3.0.2",
 ]
 
 [dependency-groups]

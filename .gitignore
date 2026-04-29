@@ -26,7 +26,8 @@ lancedb/
 docs/*
 
 # Output
-output/*
+output/
+output
 
 # Jupyter
 .ipynb_checkpoints/

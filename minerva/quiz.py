@@ -34,14 +34,22 @@ def run_quiz(questions: list[Question]) -> None:
         score += int(is_correct)
         results.append((question.lead[:60], is_correct))
 
-        if is_correct:
-            console.print(f"[bold green]Correct![/bold green] {correct.letter}. {correct.text}")
-        else:
-            console.print(
-                f"[bold red]Incorrect.[/bold red] "
-                f"You chose {answer}. Correct answer: {correct_letter}. {correct.text}"
-            )
-        console.print(f"\n[dim]{question.explanation}[/dim]")
+        # Re-display options with colour coding
+        reveal = ""
+        for opt in question.options:
+            letter = opt.letter.upper()
+            if letter == correct_letter:
+                reveal += f"  [bold green]{opt.letter}.[/bold green] [green]{opt.text}[/green]\n"
+            elif letter == answer:
+                reveal += f"  [bold red]{opt.letter}.[/bold red] [red]{opt.text}[/red]\n"
+            else:
+                reveal += f"  [dim]{opt.letter}. {opt.text}[/dim]\n"
+
+        verdict = "[bold green]Correct![/bold green]" if is_correct else "[bold red]Incorrect.[/bold red]"
+        console.print(Panel(
+            f"{verdict}\n\n{reveal.rstrip()}\n\n[dim]{question.explanation}[/dim]",
+            expand=False,
+        ))
 
     # Summary table
     console.print()

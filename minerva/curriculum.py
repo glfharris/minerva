@@ -4,9 +4,15 @@ import json
 from pathlib import Path
 from typing import Literal
 
+import lancedb
+from lancedb.embeddings import get_registry
+from lancedb.pydantic import LanceModel, Vector
+
 from .models import CurriculumNode
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
+_EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
+_MATCH_THRESHOLD = 0.4  # cosine similarity; below this = no confident match
 
 
 def load(exam: Literal["primary", "final"]) -> CurriculumNode:
@@ -35,3 +41,152 @@ def search(nodes: list[CurriculumNode], query: str) -> list[CurriculumNode]:
     """Case-insensitive substring match on code or label."""
     q = query.lower()
     return [n for n in nodes if q in n.code.lower() or q in n.label.lower()]
+
+
+def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
+    """Return the list of nodes from root to the node with the given code (root excluded)."""
+    def _find(node: CurriculumNode, path: list[CurriculumNode]) -> list[CurriculumNode] | None:
+        current_path = path + ([node] if node.code != "root" else [])
+        if node.code == code:
+            return current_path
+        for child in node.children:
+            result = _find(child, current_path)
+            if result is not None:
+                return result
+        return None
+
+    return _find(root, []) or []
+
+
+def _build_parent_map(root: CurriculumNode) -> dict[str, str]:
+    """Returns child_code -> parent_code mapping."""
+    parent_map: dict[str, str] = {}
+
+    def _walk(node: CurriculumNode) -> None:
+        for child in node.children:
+            parent_map[child.code] = node.code
+            _walk(child)
+
+    _walk(root)
+    return parent_map
+
+
+def _build_node_map(root: CurriculumNode) -> dict[str, CurriculumNode]:
+    """Returns code -> CurriculumNode mapping."""
+    node_map: dict[str, CurriculumNode] = {}
+
+    def _walk(node: CurriculumNode) -> None:
+        node_map[node.code] = node
+        for child in node.children:
+            _walk(child)
+
+    _walk(root)
+    return node_map
+
+
+def _build_text(code: str, node_map: dict[str, CurriculumNode], parent_map: dict[str, str]) -> str:
+    """Walk up the parent chain to build a rich label, mirroring minerva-server."""
+    parts = []
+    current_code = code
+    while current_code and current_code != "root":
+        node = node_map.get(current_code)
+        if node:
+            parts.append(node.label)
+        current_code = parent_map.get(current_code, "")
+    parts.reverse()
+    return ". ".join(parts)
+
+
+def _make_embedder():
+    return get_registry().get("sentence-transformers").create(name=_EMBED_MODEL)
+
+
+def _make_node_model(embedder):
+    class CurriculumNodeRecord(LanceModel):
+        code: str
+        label: str
+        text: str = embedder.SourceField()
+        vector: Vector(embedder.ndims()) = embedder.VectorField()
+
+    return CurriculumNodeRecord
+
+
+def _get_table(db: lancedb.DBConnection, exam: str):
+    """Return the curriculum LanceDB table, building it if it doesn't exist."""
+    from .console import console
+
+    table_name = f"curriculum_{exam}"
+    embedder = _make_embedder()
+    Model = _make_node_model(embedder)
+
+    if table_name in db.table_names():
+        return db.open_table(table_name), Model
+
+    root = load(exam)  # type: ignore[arg-type]
+    nodes = flatten(root)
+    node_map = _build_node_map(root)
+    parent_map = _build_parent_map(root)
+
+    console.log(f"Building curriculum embeddings for {exam} FRCA (one-time)…")
+    records = [
+        {
+            "code": n.code,
+            "label": n.label,
+            "text": _build_text(n.code, node_map, parent_map),
+        }
+        for n in nodes
+    ]
+
+    table = db.create_table(table_name, schema=Model)
+    table.add(records)
+    console.log(f"Embedded {len(records)} curriculum nodes into '{table_name}'")
+
+    return table, Model
+
+
+def match_topic(
+    topic: str,
+    exam: Literal["primary", "final"],
+    db_path: str | Path = "./lancedb",
+    threshold: float = _MATCH_THRESHOLD,
+) -> CurriculumNode | None:
+    """Embed topic and return the best-matching curriculum node, or None if below threshold."""
+    db = lancedb.connect(str(db_path))
+    table, _ = _get_table(db, exam)
+
+    # LanceDB uses L2 distance on normalised vectors; cosine similarity = 1 - (d² / 2)
+    results = table.search(topic).limit(1).to_pandas()
+    if results.empty:
+        return None
+
+    best = results.iloc[0]
+    d = float(best["_distance"])
+    similarity = 1 - (d ** 2 / 2)
+
+    if similarity < threshold:
+        return None
+
+    root = load(exam)
+    node_map = _build_node_map(root)
+    return node_map.get(best["code"])
+
+
+def search_table(
+    topic: str,
+    exam: Literal["primary", "final"],
+    db_path: str | Path = "./lancedb",
+    n: int = 5,
+):
+    """Return top-n matches as (similarity, CurriculumNode) pairs."""
+    db = lancedb.connect(str(db_path))
+    table, _ = _get_table(db, exam)
+
+    results = table.search(topic).limit(n).to_pandas()
+    root = load(exam)
+    node_map = _build_node_map(root)
+
+    return [
+        (1 - (float(row["_distance"]) ** 2 / 2), node_map[row["code"]])
+        for _, row in results.iterrows()
+        if row["code"] in node_map
+    ]

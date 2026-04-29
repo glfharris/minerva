@@ -38,7 +38,7 @@ class EmbedClient:
     def __init__(
         self,
         db_path: str | Path = "./lancedb",
-        embedding_model: str = "openai:text-embedding-3-small",
+        embedding_model: str = "sentence-transformers:NeuML/pubmedbert-base-embeddings",
     ) -> None:
         self._db = lancedb.connect(str(db_path))
         self._embedder = _make_embedder(embedding_model)
@@ -89,9 +89,16 @@ class EmbedClient:
         for pdf in track(pdfs, description="Embedding PDFs"):
             self.add_pdf(pdf)
 
-    def query(self, text: str, n: int = 5) -> str:
+    def query(self, text: str, n: int = 5, threshold: float = 0.0) -> str:
         try:
             results = self._table.search(text).limit(n).to_pandas()
+            if results.empty:
+                return ""
+            if threshold > 0.0:
+                # L2 distance on normalised vectors: cosine_similarity = 1 - (d² / 2)
+                results = results[results["_distance"].apply(
+                    lambda d: 1 - (d ** 2 / 2) >= threshold
+                )]
             if results.empty:
                 return ""
             chunks = results["text"].tolist()

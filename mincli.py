@@ -15,7 +15,7 @@ from typing_extensions import Annotated
 
 from minerva.agent import Deps, load_examples, make_agent
 from minerva.console import console
-from minerva.curriculum import flatten, load, search
+from minerva.curriculum import flatten, load, match_topic, node_path, search, search_table
 from minerva.embed import EmbedClient
 from minerva.models import CurriculumNode, QuestionSet
 from minerva.output import save_json, save_markdown
@@ -26,7 +26,7 @@ load_dotenv()
 app = typer.Typer(no_args_is_help=True)
 
 _DEFAULT_MODEL = os.environ.get("MINERVA_MODEL", "openai:gpt-4o")
-_DEFAULT_EMBED = "openai:text-embedding-3-small"
+_DEFAULT_EMBED = "sentence-transformers:NeuML/pubmedbert-base-embeddings"
 _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
 
@@ -68,9 +68,26 @@ async def _generate(
     db: Path,
     embed_model: str,
 ) -> QuestionSet:
+    # Auto-match curriculum node from topic if exam is set but node wasn't explicitly given
+    if exam and node is None:
+        matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
+        if matched:
+            console.print(
+                f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}"
+            )
+            node = matched
+        else:
+            console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
+
+    # Build full ancestor path for the matched/selected node
+    path: list[CurriculumNode] = []
+    if node and exam:
+        root = load(exam)  # type: ignore[arg-type]
+        path = node_path(root, node.code)
+
     retriever = EmbedClient(db_path=db, embedding_model=embed_model)
     examples = load_examples()
-    deps = Deps(retriever=retriever, curriculum_node=node, examples=examples)
+    deps = Deps(retriever=retriever, curriculum_node=node, curriculum_path=path, examples=examples)
 
     prompt = (
         f"Write {count} dissimilar single-best answer question(s) on the topic: {topic!r}. "
@@ -79,7 +96,7 @@ async def _generate(
 
     ag = make_agent(model)
     result = await ag.run(prompt, deps=deps)
-    qs = result.data
+    qs = result.output
     # Ensure metadata is populated
     qs.topic = topic
     qs.exam = exam
@@ -92,6 +109,62 @@ async def _generate(
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
+
+@app.command()
+def match(
+    topic: Annotated[str, typer.Argument(help="Topic to search for")],
+    source: Annotated[str, typer.Option(help="What to search: 'curriculum' or 'docs'")] = "curriculum",
+    exam: Annotated[str, typer.Option(help="Curriculum exam: 'primary' or 'final' (curriculum only)")] = "primary",
+    top: Annotated[int, typer.Option(help="Number of top matches to show")] = 5,
+    db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+) -> None:
+    """Search curriculum nodes or embedded documents for a topic."""
+    from rich.table import Table
+
+    if source == "curriculum":
+        with console.status("Searching curriculum…"):
+            matches = search_table(topic, exam, db_path=db, n=top)  # type: ignore[arg-type]
+
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Score", width=7)
+        table.add_column("Code", width=16)
+        table.add_column("Label")
+
+        for score, node in matches:
+            colour = "green" if score >= 0.4 else "yellow"
+            table.add_row(f"[{colour}]{score:.2f}[/{colour}]", node.code, node.label)
+
+        console.print(table)
+
+    elif source == "docs":
+        with console.status("Searching documents…"):
+            client = EmbedClient(db_path=db)
+            results = client._table.search(topic).limit(top).to_pandas()
+
+        if results.empty:
+            console.print("[yellow]No results found — have you embedded any documents?[/yellow]")
+            return
+
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Score", width=7)
+        table.add_column("Source")
+        table.add_column("Page", width=6)
+        table.add_column("Text")
+
+        for _, row in results.iterrows():
+            d = float(row["_distance"])
+            score = 1 - (d ** 2 / 2)
+            source_name = Path(row["source"]).name
+            snippet = row["text"][:120].replace("\n", " ")
+            colour = "green" if score >= 0.4 else "yellow"
+            table.add_row(f"[{colour}]{score:.2f}[/{colour}]", source_name, str(int(row["page"])), snippet)
+
+        console.print(table)
+
+    else:
+        console.print(f"[red]Unknown source '{source}'. Use 'curriculum' or 'docs'.[/red]")
+        raise typer.Exit(1)
+
 
 @app.command()
 def create(
