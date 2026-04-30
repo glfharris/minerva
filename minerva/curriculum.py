@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -16,6 +17,7 @@ def l2_to_cosine(d: float) -> float:
     return 1 - (d ** 2 / 2)
 
 
+@lru_cache(maxsize=None)
 def load(exam: Literal["primary", "final"]) -> CurriculumNode:
     """Load a curriculum tree from JSON. Returns the root node."""
     path = _DATA_DIR / f"{exam}_frca.json"
@@ -59,30 +61,19 @@ def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
     return _find(root, []) or []
 
 
-def _build_parent_map(root: CurriculumNode) -> dict[str, str]:
-    """Returns child_code -> parent_code mapping."""
+def _build_maps(root: CurriculumNode) -> tuple[dict[str, CurriculumNode], dict[str, str]]:
+    """Single-pass tree walk returning (code→node, child_code→parent_code)."""
+    node_map: dict[str, CurriculumNode] = {}
     parent_map: dict[str, str] = {}
 
     def _walk(node: CurriculumNode) -> None:
+        node_map[node.code] = node
         for child in node.children:
             parent_map[child.code] = node.code
             _walk(child)
 
     _walk(root)
-    return parent_map
-
-
-def _build_node_map(root: CurriculumNode) -> dict[str, CurriculumNode]:
-    """Returns code -> CurriculumNode mapping."""
-    node_map: dict[str, CurriculumNode] = {}
-
-    def _walk(node: CurriculumNode) -> None:
-        node_map[node.code] = node
-        for child in node.children:
-            _walk(child)
-
-    _walk(root)
-    return node_map
+    return node_map, parent_map
 
 
 def _build_text(code: str, node_map: dict[str, CurriculumNode], parent_map: dict[str, str]) -> str:
@@ -128,8 +119,7 @@ def _get_table(db, exam: str):
 
     root = load(exam)  # type: ignore[arg-type]
     nodes = flatten(root)
-    node_map = _build_node_map(root)
-    parent_map = _build_parent_map(root)
+    node_map, parent_map = _build_maps(root)
 
     console.log(f"Building curriculum embeddings for {exam} FRCA (one-time)…")
     records = [
@@ -171,7 +161,7 @@ def match_topic(
         return None
 
     root = load(exam)
-    node_map = _build_node_map(root)
+    node_map, _ = _build_maps(root)
     return node_map.get(best["code"])
 
 
@@ -188,7 +178,7 @@ def search_table(
 
     results = table.search(topic).limit(n).to_pandas()
     root = load(exam)
-    node_map = _build_node_map(root)
+    node_map, _ = _build_maps(root)
 
     return [
         (l2_to_cosine(float(row["_distance"])), node_map[row["code"]])

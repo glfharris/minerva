@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .console import console
 
@@ -27,6 +27,15 @@ class Question(BaseModel):
     options: list[QuestionOption] = Field(description="Exactly 5 lettered options (A–E), each with its own explanation")
     explanation: str = Field(description="Overall explanation providing educational context for the question — the key concept being tested and any important related points")
     curriculum_node_code: str | None = None
+
+    @model_validator(mode="after")
+    def validate_options(self) -> Question:
+        if len(self.options) != 5:
+            raise ValueError(f"Question must have exactly 5 options, got {len(self.options)}")
+        correct = [o for o in self.options if o.is_correct]
+        if len(correct) != 1:
+            raise ValueError(f"Question must have exactly 1 correct option, got {len(correct)}")
+        return self
 
     @property
     def correct_option(self) -> QuestionOption:
@@ -66,3 +75,19 @@ class QuestionSet(BaseModel):
     model: str
     generated_at: datetime = Field(default_factory=datetime.now)
     questions: list[Question]
+
+
+class CritiquedQuestion(BaseModel):
+    feedback: str = Field(
+        description=(
+            "Brief explanation of what was changed and why. "
+            "Write 'No changes needed.' if the question was already satisfactory."
+        )
+    )
+    question: Question = Field(description="The revised question, identical to input if no changes were needed")
+
+
+class CritiqueResult(BaseModel):
+    critiqued: list[CritiquedQuestion] = Field(
+        description="One entry per question, in the same order as the input"
+    )

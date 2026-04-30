@@ -35,17 +35,18 @@ def run_quiz(questions: list[Question]) -> None:
         results.append((question.lead[:60], is_correct))
 
         # Re-display options with colour coding and per-option explanations
-        reveal = ""
+        lines = []
         for opt in question.options:
             letter = opt.letter.upper()
             if letter == correct_letter:
-                reveal += f"  [bold green]{opt.letter}.[/bold green] [green]{opt.text}[/green]\n"
-                reveal += f"    [dim]{opt.explanation}[/dim]\n"
+                lines.append(f"  [bold green]{opt.letter}.[/bold green] [green]{opt.text}[/green]")
+                lines.append(f"    [dim]{opt.explanation}[/dim]")
             elif letter == answer:
-                reveal += f"  [bold red]{opt.letter}.[/bold red] [red]{opt.text}[/red]\n"
-                reveal += f"    [dim]{opt.explanation}[/dim]\n"
+                lines.append(f"  [bold red]{opt.letter}.[/bold red] [red]{opt.text}[/red]")
+                lines.append(f"    [dim]{opt.explanation}[/dim]")
             else:
-                reveal += f"  [dim]{opt.letter}. {opt.text}[/dim]\n"
+                lines.append(f"  [dim]{opt.letter}. {opt.text}[/dim]")
+        reveal = "\n".join(lines)
 
         verdict = "[bold green]Correct![/bold green]" if is_correct else "[bold red]Incorrect.[/bold red]"
         console.print(Panel(

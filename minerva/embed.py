@@ -42,6 +42,7 @@ class EmbedClient:
         embedding_model: str = "sentence-transformers:NeuML/pubmedbert-base-embeddings",
     ) -> None:
         import lancedb
+        self.db_path = Path(db_path)
         self._db = lancedb.connect(str(db_path))
         self._embedder = _make_embedder(embedding_model)
         self._ChunkModel = _make_chunk_model(self._embedder)

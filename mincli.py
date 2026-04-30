@@ -19,12 +19,11 @@ warnings.filterwarnings("ignore", module="statsmodels")
 
 import typer
 from dotenv import load_dotenv
-from rich.prompt import Prompt
 from rich.table import Table
 
-from minerva.agent import Deps, load_examples, make_agent
+from minerva.agent import Deps, critique_questions, load_example_messages, load_examples, make_agent
 from minerva.console import console
-from minerva.curriculum import EMBED_MODEL, flatten, l2_to_cosine, load, match_topic, node_path, search, search_table
+from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, node_path, search_table
 from minerva.embed import EmbedClient
 from minerva.models import CurriculumNode, QuestionSet
 from minerva.output import save_json, save_markdown
@@ -53,27 +52,45 @@ _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _resolve_node(exam: str | None, node_query: str | None) -> CurriculumNode | None:
-    if not exam or not node_query:
-        return None
+def _show_critique(critique_result, original_questions: list, show_feedback: bool, show_diff: bool) -> list:
+    """Display critique feedback and/or diff, then return the revised questions."""
+    from difflib import unified_diff
+    from minerva.models import Question
+
+    revised: list[Question] = []
+    if show_feedback:
+        console.rule("[bold]Critique feedback")
+
+    for i, (cq, original) in enumerate(zip(critique_result.critiqued, original_questions), 1):
+        revised.append(cq.question)
+
+        if show_feedback:
+            console.print(f"[bold]Q{i}:[/bold] [dim]{cq.feedback}[/dim]")
+
+        if show_diff:
+            orig_lines = original.to_md().splitlines(keepends=True)
+            new_lines = cq.question.to_md().splitlines(keepends=True)
+            diff = list(unified_diff(orig_lines, new_lines, lineterm=""))
+            if diff:
+                for line in diff[2:]:  # skip --- +++ header
+                    if line.startswith("+"):
+                        console.print(f"[green]{line.rstrip()}[/green]", highlight=False)
+                    elif line.startswith("-"):
+                        console.print(f"[red]{line.rstrip()}[/red]", highlight=False)
+                    elif line.startswith("@"):
+                        console.print(f"[dim]{line.rstrip()}[/dim]", highlight=False)
+
+    return revised
+
+
+def _lookup_node(exam: Exam, code: str) -> CurriculumNode | None:
+    """Look up a curriculum node by exact code."""
     root = load(exam)  # type: ignore[arg-type]
-    nodes = flatten(root)
-    matches = search(nodes, node_query)
-    if not matches:
-        console.print(f"[yellow]No curriculum nodes matched '{node_query}'[/yellow]")
+    path = node_path(root, code)
+    if not path:
+        console.print(f"[red]No curriculum node found with code '{code}'[/red]")
         return None
-    if len(matches) == 1:
-        return matches[0]
-    # Interactive picker
-    table = Table(show_header=True, header_style="bold")
-    table.add_column("#", width=4)
-    table.add_column("Code")
-    table.add_column("Label")
-    for i, n in enumerate(matches, 1):
-        table.add_row(str(i), n.code, n.label)
-    console.print(table)
-    choice = Prompt.ask("Select node", choices=[str(i) for i in range(1, len(matches) + 1)])
-    return matches[int(choice) - 1]
+    return path[-1]
 
 
 async def _generate(
@@ -82,14 +99,19 @@ async def _generate(
     model: str,
     exam: str | None,
     node: CurriculumNode | None,
-    db: Path,
-    embed_model: str,
+    retriever: EmbedClient,
     verbose: bool = False,
-) -> QuestionSet:
-    retriever = EmbedClient(db_path=db, embedding_model=embed_model)
+) -> tuple[QuestionSet, list]:
     examples = load_examples()
     curriculum_path = node_path(load(exam), node.code) if (node and exam) else []  # type: ignore[arg-type]
-    deps = Deps(retriever=retriever, curriculum_path=curriculum_path, examples=examples, verbose=verbose)
+    deps = Deps(
+        retriever=retriever,
+        curriculum_path=curriculum_path,
+        examples=examples,
+        verbose=verbose,
+        exam=None if node else exam,  # only enable match_curriculum tool when no explicit node
+        db_path=retriever.db_path,
+    )
 
     prompt = (
         f"Write {count} dissimilar SBA question(s) on: {topic!r}.\n\n"
@@ -100,14 +122,15 @@ async def _generate(
     )
 
     ag = make_agent(model)
-    result = await ag.run(prompt, deps=deps)
+    example_messages = load_example_messages()
+    result = await ag.run(prompt, deps=deps, message_history=example_messages)
     qs = result.output
     qs.topic = topic
     qs.exam = exam
     qs.model = model
     if node:
         qs.curriculum_node_code = node.code
-    return qs
+    return qs, result.all_messages()
 
 
 # ---------------------------------------------------------------------------
@@ -166,54 +189,71 @@ def match(
 
 @app.command()
 def create(
-    topic: Annotated[str, typer.Argument(help="Question topic")],
+    topic: Annotated[Optional[str], typer.Argument(help="Question topic (omit to derive from --node label)")] = None,
     count: Annotated[int, typer.Option("-c", "--count", help="Number of questions")] = 1,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
     exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
-    node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
-    output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = None,
+    node: Annotated[Optional[str], typer.Option(help="Exact curriculum node code e.g. 1_GA_P_6")] = None,
+    output: Annotated[Path, typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = Path("./output"),
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval details")] = False,
+    markdown: Annotated[bool, typer.Option(help="Also save a markdown file alongside the JSON")] = False,
+    save_example: Annotated[bool, typer.Option(help="Save this run as a few-shot example")] = False,
+    critique: Annotated[bool, typer.Option("--critique", help="Run a self-critique pass to improve questions")] = False,
 ) -> None:
     """Generate SBA questions on a topic."""
-    curriculum_node = _resolve_node(exam, node)
+    curriculum_node = _lookup_node(exam, node) if (exam and node) else None
 
-    # Auto-match from topic if exam set but no explicit node given
-    if exam and curriculum_node is None:
-        with console.status("Matching curriculum node…"):
-            matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
-        if matched:
-            console.print(f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}")
-            curriculum_node = matched
+    if not topic:
+        if curriculum_node:
+            topic = curriculum_node.label
         else:
-            console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
+            console.print("[red]Provide a topic or use --exam and --node together.[/red]")
+            raise typer.Exit(1)
 
     if verbose:
         console.print(f"[dim]LLM model:       {model}[/dim]")
         console.print(f"[dim]Embedding model: {embed_model}[/dim]")
 
+    with console.status("Loading embedding model…"):
+        retriever = EmbedClient(db_path=db, embedding_model=embed_model)
+
     with console.status(f"Generating {count} question(s) on '{topic}'…"):
-        qs = asyncio.run(
+        qs, messages = asyncio.run(
             _generate(
                 topic=topic,
                 count=count,
                 model=model,
                 exam=exam,
                 node=curriculum_node,
-                db=db,
-                embed_model=embed_model,
+                retriever=retriever,
                 verbose=verbose,
             )
         )
 
+    if critique:
+        with console.status("Critiquing questions…"):
+            critique_result = asyncio.run(critique_questions(qs, model))
+        qs.questions = _show_critique(critique_result, qs.questions, show_feedback=verbose, show_diff=verbose)
+
     for q in qs.questions:
         q.show()
 
-    if output:
-        j = save_json(qs, output)
+    j = save_json(qs, output)
+    console.print(f"\n[green]Saved:[/green] {j}")
+    if markdown:
         m = save_markdown(qs, output)
-        console.print(f"\n[green]Saved:[/green] {j}\n[green]Saved:[/green] {m}")
+        console.print(f"[green]Saved:[/green] {m}")
+
+    if save_example:
+        from pydantic_ai.messages import ModelMessagesTypeAdapter
+        history_dir = Path("examples/histories")
+        history_dir.mkdir(parents=True, exist_ok=True)
+        slug = topic.lower().replace(" ", "_")
+        dest = history_dir / f"{slug}.json"
+        dest.write_bytes(ModelMessagesTypeAdapter.dump_json(messages))
+        console.print(f"[green]Saved example:[/green] {dest}")
 
 
 @app.command()
@@ -245,7 +285,7 @@ def quiz(
     count: Annotated[int, typer.Option("-c", "--count", help="Questions to generate")] = 3,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string")] = _DEFAULT_MODEL,
     exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
-    node: Annotated[Optional[str], typer.Option(help="Curriculum node code or search term")] = None,
+    node: Annotated[Optional[str], typer.Option(help="Exact curriculum node code e.g. 1_GA_P_6")] = None,
     output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Where to save generated JSON")] = None,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
@@ -260,17 +300,7 @@ def quiz(
             raise typer.Exit(1)
         console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
     elif topic:
-        curriculum_node = _resolve_node(exam, node)
-
-        # Auto-match from topic if exam set but no explicit node given
-        if exam and curriculum_node is None:
-            with console.status("Matching curriculum node…"):
-                matched = match_topic(topic, exam, db_path=db)  # type: ignore[arg-type]
-            if matched:
-                console.print(f"[dim]Matched curriculum node:[/dim] [cyan]{matched.code}[/cyan] {matched.label}")
-                curriculum_node = matched
-            else:
-                console.print(f"[dim yellow]No confident curriculum match found for '{topic}'[/dim yellow]")
+        curriculum_node = _lookup_node(exam, node) if (exam and node) else None
 
         save_dir = output or Path("./output")
         console.print(f"[dim]Questions will be saved to:[/dim] {save_dir}")
@@ -279,16 +309,18 @@ def quiz(
             console.print(f"[dim]LLM model:       {model}[/dim]")
             console.print(f"[dim]Embedding model: {embed_model}[/dim]")
 
+        with console.status("Loading embedding model…"):
+            retriever = EmbedClient(db_path=db, embedding_model=embed_model)
+
         with console.status(f"Generating {count} question(s) on '{topic}'…"):
-            qs = asyncio.run(
+            qs, _ = asyncio.run(
                 _generate(
                     topic=topic,
                     count=count,
                     model=model,
                     exam=exam,
                     node=curriculum_node,
-                    db=db,
-                    embed_model=embed_model,
+                    retriever=retriever,
                     verbose=verbose,
                 )
             )
@@ -299,6 +331,32 @@ def quiz(
         raise typer.Exit(1)
 
     run_quiz(qs.questions)
+
+
+@app.command()
+def critique(
+    file: Annotated[Path, typer.Argument(help="JSON QuestionSet file to critique")],
+    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
+    output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Output path or directory")] = None,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show diff alongside feedback")] = False,
+) -> None:
+    """Run a critique pass on a saved QuestionSet JSON file."""
+    try:
+        qs = QuestionSet.model_validate_json(file.read_text())
+    except Exception as e:
+        console.print(f"[red]Could not load '{file}': {e}[/red]")
+        raise typer.Exit(1)
+
+    console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
+
+    with console.status("Critiquing questions…"):
+        critique_result = asyncio.run(critique_questions(qs, model))
+
+    qs.questions = _show_critique(critique_result, qs.questions, show_feedback=True, show_diff=verbose)
+
+    save_path = output or file.with_stem(file.stem + "_critiqued")
+    j = save_json(qs, save_path)
+    console.print(f"\n[green]Saved:[/green] {j}")
 
 
 if __name__ == "__main__":
