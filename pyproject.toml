@@ -19,4 +19,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ipython>=8.30.0",
+    "pytest>=8.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

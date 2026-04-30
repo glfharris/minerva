@@ -129,9 +129,10 @@ class EmbedClient:
 
     def _load_sources(self) -> set[str]:
         try:
-            df = self._table.to_pandas(columns=["source"])
+            df = self._table.to_pandas()
             return set(df["source"].unique())
-        except Exception:
+        except Exception as e:
+            console.log(f"[yellow]Warning: could not read existing sources from table ({e}). Idempotency check disabled.[/yellow]")
             return set()
 
     def add_pdf(self, path: Path) -> int:
@@ -206,24 +207,20 @@ class EmbedClient:
         console.log(f"[green]Done[/green] — {total_chunks} chunk(s) added across {len(pdfs)} file(s)")
 
     def query(self, text: str, n: int = 5, threshold: float = 0.0) -> str:
-        try:
-            results = self._table.search(text).limit(n).to_pandas()
-            if results.empty:
-                return ""
-            if threshold > 0.0:
-                results = results[results["_distance"].apply(
-                    lambda d: l2_to_cosine(d) >= threshold
-                )]
-            if results.empty:
-                return ""
-            chunks = [
-                f"[{Path(row['source']).name}, p.{row['page'] + 1}]\n{row['text']}"
-                for _, row in results.iterrows()
-            ]
-            return "\n\n---\n\n".join(chunks)
-        except Exception as e:
-            console.log(f"[yellow]RAG query failed: {e}[/yellow]")
+        results = self._table.search(text).limit(n).to_pandas()
+        if results.empty:
             return ""
+        if threshold > 0.0:
+            results = results[results["_distance"].apply(
+                lambda d: l2_to_cosine(d) >= threshold
+            )]
+        if results.empty:
+            return ""
+        chunks = [
+            f"[{Path(row['source']).name}, p.{row['page'] + 1}]\n{row['text']}"
+            for _, row in results.iterrows()
+        ]
+        return "\n\n---\n\n".join(chunks)
 
     def search_docs(self, text: str, n: int = 5):
         """Return raw search results as a pandas DataFrame (for display in match command)."""

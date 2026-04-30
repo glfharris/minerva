@@ -106,7 +106,7 @@ def _make_node_model(embedder):
     return CurriculumNodeRecord
 
 
-def _get_table(db, exam: str):
+def _get_table(db, exam: Literal["primary", "final"]):
     """Return the curriculum LanceDB table, building it if it doesn't exist."""
     from .console import console
 
@@ -117,7 +117,7 @@ def _get_table(db, exam: str):
     if table_name in db.table_names():
         return db.open_table(table_name), Model
 
-    root = load(exam)  # type: ignore[arg-type]
+    root = load(exam)
     nodes = flatten(root)
     node_map, parent_map = _build_maps(root)
 
@@ -138,6 +138,12 @@ def _get_table(db, exam: str):
     return table, Model
 
 
+def _open_table(exam: Literal["primary", "final"], db_path: str | Path):
+    import lancedb
+    db = lancedb.connect(str(db_path))
+    return _get_table(db, exam)
+
+
 def match_topic(
     topic: str,
     exam: Literal["primary", "final"],
@@ -145,9 +151,7 @@ def match_topic(
     threshold: float = _MATCH_THRESHOLD,
 ) -> CurriculumNode | None:
     """Embed topic and return the best-matching curriculum node, or None if below threshold."""
-    import lancedb
-    db = lancedb.connect(str(db_path))
-    table, _ = _get_table(db, exam)
+    table, _ = _open_table(exam, db_path)
 
     # LanceDB uses L2 distance on normalised vectors; cosine similarity = 1 - (d² / 2)
     results = table.search(topic).limit(1).to_pandas()
@@ -172,9 +176,7 @@ def search_table(
     n: int = 5,
 ):
     """Return top-n matches as (similarity, CurriculumNode) pairs."""
-    import lancedb
-    db = lancedb.connect(str(db_path))
-    table, _ = _get_table(db, exam)
+    table, _ = _open_table(exam, db_path)
 
     results = table.search(topic).limit(n).to_pandas()
     root = load(exam)

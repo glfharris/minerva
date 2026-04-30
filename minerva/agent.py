@@ -157,13 +157,6 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
     return ag
 
 
-def load_examples(path: Path | None = None) -> list[str]:
-    if path is None:
-        path = Path(__file__).parent.parent / "examples" / "rcoa.md"
-    if not path.exists():
-        return []
-    return [s.strip() for s in path.read_text().split("---") if s.strip()]
-
 
 _CRITIQUE_ROLE = """\
 You are an expert SBA (single best answer) question editor for the Royal College of \

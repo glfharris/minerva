@@ -5,8 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from .console import console
-
 
 class CurriculumNode(BaseModel):
     code: str
@@ -32,6 +30,9 @@ class Question(BaseModel):
     def validate_options(self) -> Question:
         if len(self.options) != 5:
             raise ValueError(f"Question must have exactly 5 options, got {len(self.options)}")
+        letters = [o.letter for o in self.options]
+        if letters != list("ABCDE"):
+            raise ValueError(f"Options must be labelled A–E in order, got {letters}")
         correct = [o for o in self.options if o.is_correct]
         if len(correct) != 1:
             raise ValueError(f"Question must have exactly 1 correct option, got {len(correct)}")
@@ -45,6 +46,7 @@ class Question(BaseModel):
         raise ValueError(f"No correct option marked in question: {self.lead!r}")
 
     def show(self) -> None:
+        from .console import console
         console.rule("[bold red]Question")
         console.print(f"{self.stem}\n")
         console.print(f"[bold]{self.lead}\n")
