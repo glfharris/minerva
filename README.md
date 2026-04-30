@@ -22,7 +22,7 @@ Copy `.env.example` to `.env` and fill in your API keys:
 ```
 OPENAI_API_KEY=        # required if using OpenAI models
 ANTHROPIC_API_KEY=     # required if using Anthropic/Claude models
-MINERVA_MODEL=openai:gpt-4o
+MINERVA_MODEL=openai:gpt-5.5
 LANCEDB_DIR=./lancedb
 ```
 
@@ -34,7 +34,15 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 
 ```bash
 ./mincli.py embed path/to/docs/
+
+# Show per-file progress and chunk-level detail
+./mincli.py embed path/to/docs/ --verbose
+
+# Reset existing embeddings and re-embed from scratch
+./mincli.py embed path/to/docs/ --reset
 ```
+
+PDFs are split into overlapping 300-word chunks. Tables are extracted atomically as markdown to avoid splitting across chunks. Already-embedded files are skipped automatically on subsequent runs.
 
 **2. Generate questions:**
 
@@ -42,8 +50,11 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 # Single question on a topic
 ./mincli.py create "Lung Compliance"
 
-# Multiple questions
-./mincli.py create "Cardiac Output" --count 3
+# Multiple questions, saved to a directory
+./mincli.py create "Cardiac Output" --count 3 --output ./output
+
+# Save to a specific file
+./mincli.py create "Cardiac Output" --output ./output/cardiac.json
 
 # With curriculum context (agent matches the best curriculum node automatically)
 ./mincli.py create "Rocuronium" --exam primary
@@ -60,7 +71,7 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 # With a self-critique pass to improve question quality
 ./mincli.py create "Lung Compliance" --critique
 
-# Show retrieval and critique details
+# Show retrieval detail, critique feedback, diffs, and token/cost usage
 ./mincli.py create "Lung Compliance" --critique --verbose
 ```
 
@@ -70,7 +81,7 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 # Run a critique pass on a previously generated file
 ./mincli.py critique output/1_GA_P_6_2026-04-30.json
 
-# With a diff showing exactly what changed
+# With feedback and diffs showing exactly what changed
 ./mincli.py critique output/1_GA_P_6_2026-04-30.json --verbose
 
 # Save revised questions to a specific location
@@ -110,12 +121,43 @@ You can also specify a node directly by code (`--node 1_GA_P_6`) to bypass autom
 
 Model strings use `provider:name` format:
 
-| Provider | Example |
+| Provider | Model string |
 |---|---|
+| OpenAI | `openai:gpt-5.5` |
 | OpenAI | `openai:gpt-4o` |
+| OpenAI | `openai:gpt-4o-mini` |
 | Anthropic | `anthropic:claude-opus-4-6` |
+| Anthropic | `anthropic:claude-sonnet-4-6` |
+| Anthropic | `anthropic:claude-haiku-4-5-20251001` |
+| Ollama | `ollama:llama3.2` |
+| Ollama | `ollama:qwen2.5` |
 
 Set the default via `MINERVA_MODEL` in `.env`, or override per-run with `--model`.
+
+Token usage and estimated cost are shown under `--verbose`.
+
+### Running locally with Ollama
+
+[Install Ollama](https://ollama.com) and pull a model, then set `OLLAMA_BASE_URL` in `.env`:
+
+```bash
+ollama pull llama3.2
+```
+
+```
+OLLAMA_BASE_URL=http://localhost:11434
+MINERVA_MODEL=ollama:llama3.2
+```
+
+No API key is required. Structured output quality varies by model — larger models (70B+) tend to produce more reliable question formatting. The Ollama provider recognises llama, gemma, qwen, deepseek, mistral, and command model families.
+
+## Testing
+
+```bash
+uv run pytest
+```
+
+The test suite covers pure functions in all modules (models, curriculum, embed, output, agent) and runs without any API keys or network access.
 
 ## Adapting to Other Fields
 

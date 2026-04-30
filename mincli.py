@@ -45,7 +45,7 @@ class Source(StrEnum):
     curriculum = "curriculum"
     docs = "docs"
 
-_DEFAULT_MODEL = os.environ.get("MINERVA_MODEL", "openai:gpt-4o")
+_DEFAULT_MODEL = os.environ.get("MINERVA_MODEL", "openai:gpt-5.5")
 _DEFAULT_EMBED = f"sentence-transformers:{EMBED_MODEL}"
 _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
