@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.usage import Usage
+from pydantic_ai.usage import RunUsage
 
 from .embed import EmbedClient
 from .models import CurriculumNode, CritiqueResult, QuestionSet
@@ -66,8 +66,6 @@ class Deps:
     retriever: EmbedClient
     curriculum_path: list[CurriculumNode] = field(default_factory=list)
     verbose: bool = False
-    exam: str | None = None  # set only when agent should use match_curriculum tool
-    db_path: Path = field(default_factory=lambda: Path("./lancedb"))
 
 
 def make_agent(model: str) -> Agent[Deps, QuestionSet]:
@@ -88,51 +86,17 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
             chain = " → ".join(n.label for n in ctx.deps.curriculum_path)
             node = ctx.deps.curriculum_path[-1]
             parts.append(
-                f"\nCurriculum context (explicitly specified — do not call match_curriculum):\n"
+                f"\nCurriculum context:\n"
                 f"  Path: {chain}\n"
                 f"  Code: {node.code}\n"
             )
-        elif ctx.deps.exam:
             parts.append(
-                f"\nUse the match_curriculum tool to find the relevant {ctx.deps.exam} FRCA "
-                f"curriculum node before writing questions. Use a specific clinical query, "
-                f"not just the bare topic word."
+                f"\n## Retrieval\n\n"
+                f"Your first call to retrieve must use this query: {chain!r}\n"
+                f"You may follow up with more specific queries if needed."
             )
 
         return "\n".join(parts)
-
-    @ag.tool
-    async def match_curriculum(ctx: RunContext[Deps], query: str) -> str:
-        """Find the most relevant FRCA curriculum node for the given topic.
-
-        Call this once before writing questions when an exam has been specified.
-        Use a specific clinical phrase, e.g. 'sugammadex reversal of neuromuscular
-        blockade' rather than just 'sugammadex'. If the result does not look relevant
-        to the topic, disregard it.
-        """
-        from .console import console
-        from .curriculum import load, match_topic, node_path
-
-        if not ctx.deps.exam:
-            return "No exam specified — curriculum matching unavailable."
-
-        if ctx.deps.verbose:
-            console.log(f"[dim]Searching curriculum for: {query!r}[/dim]")
-
-        node = match_topic(query, ctx.deps.exam, db_path=ctx.deps.db_path)  # type: ignore[arg-type]
-        if not node:
-            if ctx.deps.verbose:
-                console.log(f"[yellow]No confident curriculum match for: {query!r}[/yellow]")
-            return "No confident curriculum match found — proceed without curriculum context."
-
-        root = load(ctx.deps.exam)  # type: ignore[arg-type]
-        path = node_path(root, node.code)
-        chain = " → ".join(n.label for n in path)
-
-        if ctx.deps.verbose:
-            console.log(f"[dim]Curriculum match: {node.code} — {node.label}[/dim]")
-
-        return f"Curriculum node matched:\n  Path: {chain}\n  Code: {node.code}"
 
     @ag.tool
     async def retrieve(ctx: RunContext[Deps], query: str) -> str:
@@ -195,7 +159,7 @@ the question unchanged and write "No changes needed."
 """
 
 
-async def critique_questions(qs: QuestionSet, model: str) -> tuple[CritiqueResult, Usage]:
+async def critique_questions(qs: QuestionSet, model: str) -> tuple[CritiqueResult, RunUsage]:
     """Run a critique pass on a generated QuestionSet and return revised questions with feedback."""
     ag: Agent[None, CritiqueResult] = Agent(
         model=model,

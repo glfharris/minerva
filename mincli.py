@@ -7,6 +7,7 @@ from enum import StrEnum
 import logging
 import os
 from pathlib import Path
+import random
 from typing import Annotated, Optional
 import warnings
 
@@ -23,7 +24,7 @@ from dotenv import load_dotenv
 from rich.table import Table
 
 from minerva.agent import Deps, critique_questions, load_example_messages, make_agent
-from pydantic_ai.usage import Usage
+from pydantic_ai.usage import RunUsage
 from minerva.console import console
 from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, node_path, search_table
 from minerva.embed import EmbedClient
@@ -62,7 +63,7 @@ _MODEL_PRICING: dict[str, tuple[float, float]] = {
 }
 
 
-def _format_usage(usage: Usage, model: str, label: str = "Usage") -> str:
+def _format_usage(usage: RunUsage, model: str, label: str = "Usage") -> str:
     req = usage.input_tokens or 0
     resp = usage.output_tokens or 0
     total = usage.total_tokens or (req + resp)
@@ -72,6 +73,10 @@ def _format_usage(usage: Usage, model: str, label: str = "Usage") -> str:
         cost = (req * in_price + resp * out_price) / 1_000_000
         parts.append(f"≈ ${cost:.4f}")
     return "  ".join(parts)
+
+
+def _sum_usage(*usages: RunUsage) -> RunUsage:
+    return sum(usages, RunUsage())
 
 
 # ---------------------------------------------------------------------------
@@ -124,14 +129,12 @@ async def _generate(
     node: CurriculumNode | None,
     retriever: EmbedClient,
     verbose: bool = False,
-) -> tuple[QuestionSet, list, Usage]:
+) -> tuple[QuestionSet, list, RunUsage]:
     curriculum_path = node_path(load(exam), node.code) if (node and exam) else []  # type: ignore[arg-type]
     deps = Deps(
         retriever=retriever,
         curriculum_path=curriculum_path,
         verbose=verbose,
-        exam=None if node else exam,  # only enable match_curriculum tool when no explicit node
-        db_path=retriever.db_path,
     )
 
     prompt = (
@@ -237,24 +240,76 @@ def create(
         console.print(f"[dim]LLM model:       {model}[/dim]")
         console.print(f"[dim]Embedding model: {embed_model}[/dim]")
 
+    # --- Node selection ---
+    _MATCH_THRESHOLD = 0.4
+    if exam and not curriculum_node:
+        with console.status("Matching curriculum…"):
+            matches = search_table(topic, exam, db_path=db, n=10)
+        candidates = [(score, cnode) for score, cnode in matches if score >= _MATCH_THRESHOLD]
+
+        if not candidates:
+            console.print(f"[yellow]No confident curriculum match for '{topic}' — generating without curriculum context.[/yellow]")
+            generation_plan: list[tuple[CurriculumNode | None, int]] = [(None, count)]
+        elif count == 1:
+            score, selected = random.choice(candidates)
+            console.log(f"Curriculum: [bold]{selected.code}[/bold] — {selected.label} [dim](similarity {score:.2f})[/dim]")
+            generation_plan = [(selected, 1)]
+        else:
+            n_unique = min(count, len(candidates))
+            selected_nodes = [candidates[i % len(candidates)][1] for i in range(count)]
+            random.shuffle(selected_nodes)
+            console.log(f"Distributing {count} question(s) across {n_unique} curriculum node(s):")
+            seen: set[str] = set()
+            for cnode in selected_nodes:
+                if cnode.code not in seen:
+                    sc = next(s for s, cn in candidates if cn.code == cnode.code)
+                    console.log(f"  [bold]{cnode.code}[/bold] — {cnode.label} [dim](similarity {sc:.2f})[/dim]")
+                    seen.add(cnode.code)
+            generation_plan = [(cnode, 1) for cnode in selected_nodes]
+    else:
+        generation_plan = [(curriculum_node, count)]
+
+    # --- Generate ---
     with console.status("Loading embedding model…"):
         retriever = EmbedClient(db_path=db, embedding_model=embed_model)
 
-    with console.status(f"Generating {count} question(s) on '{topic}'…"):
-        qs, messages, usage = asyncio.run(
-            _generate(
-                topic=topic,
-                count=count,
-                model=model,
-                exam=exam,
-                node=curriculum_node,
-                retriever=retriever,
-                verbose=verbose,
-            )
+    all_questions: list = []
+    all_usages: list[RunUsage] = []
+    messages: list = []
+    total_calls = len(generation_plan)
+
+    for i, (gen_node, gen_count) in enumerate(generation_plan):
+        status_msg = (
+            f"Generating question {i + 1}/{total_calls}…"
+            if total_calls > 1
+            else f"Generating {gen_count} question(s) on '{topic}'…"
         )
+        with console.status(status_msg):
+            qs_i, msgs_i, usage_i = asyncio.run(
+                _generate(
+                    topic=topic,
+                    count=gen_count,
+                    model=model,
+                    exam=str(exam) if exam else None,
+                    node=gen_node,
+                    retriever=retriever,
+                    verbose=verbose,
+                )
+            )
+        if gen_node:
+            for q in qs_i.questions:
+                q.curriculum_node_code = gen_node.code
+        all_questions.extend(qs_i.questions)
+        all_usages.append(usage_i)
+        messages = msgs_i
+
+    qs = qs_i
+    qs.questions = all_questions
+    usage = _sum_usage(*all_usages)
 
     if verbose:
-        console.print(f"[dim]{_format_usage(usage, model, label='Generate')}[/dim]")
+        label = "Total" if total_calls > 1 else "Generate"
+        console.print(f"[dim]{_format_usage(usage, model, label=label)}[/dim]")
 
     if critique:
         with console.status("Critiquing questions…"):
