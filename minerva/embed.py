@@ -99,8 +99,8 @@ def _extract_page(page) -> tuple[str, list[str]]:
     for table in tables:
         try:
             prose_page = prose_page.outside_bbox(table.bbox)
-        except Exception:
-            pass  # if cropping fails, leave page as-is
+        except Exception as e:
+            console.log(f"[dim]Warning: could not crop table region ({e}), prose may include table text[/dim]")
 
     prose = prose_page.extract_text() or ""
     return prose, table_texts
@@ -224,6 +224,10 @@ class EmbedClient:
         except Exception as e:
             console.log(f"[yellow]RAG query failed: {e}[/yellow]")
             return ""
+
+    def search_docs(self, text: str, n: int = 5):
+        """Return raw search results as a pandas DataFrame (for display in match command)."""
+        return self._table.search(text).limit(n).to_pandas()
 
     def reset(self) -> None:
         self._db.drop_table(_TABLE_NAME)

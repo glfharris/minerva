@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from difflib import unified_diff
 from enum import StrEnum
 import logging
 import os
@@ -21,7 +22,8 @@ import typer
 from dotenv import load_dotenv
 from rich.table import Table
 
-from minerva.agent import Deps, critique_questions, load_example_messages, load_examples, make_agent
+from minerva.agent import Deps, critique_questions, load_example_messages, make_agent
+from pydantic_ai.usage import Usage
 from minerva.console import console
 from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, node_path, search_table
 from minerva.embed import EmbedClient
@@ -48,16 +50,37 @@ _DEFAULT_EMBED = f"sentence-transformers:{EMBED_MODEL}"
 _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
 
+# (input $/1M tokens, output $/1M tokens)
+_MODEL_PRICING: dict[str, tuple[float, float]] = {
+    "openai:gpt-5.4-mini":                 (0.75,   4.50),
+    "openai:gpt-4o":                       (2.50,  10.00),
+    "openai:gpt-4o-mini":                  (0.15,   0.60),
+    "openai:o1":                           (15.00,  60.00),
+    "anthropic:claude-opus-4-6":           (5.00,   25.00),
+    "anthropic:claude-sonnet-4-6":         (3.00,   15.00),
+    "anthropic:claude-haiku-4-5-20251001": (0.80,    4.00),
+}
+
+
+def _format_usage(usage: Usage, model: str, label: str = "Usage") -> str:
+    req = usage.input_tokens or 0
+    resp = usage.output_tokens or 0
+    total = usage.total_tokens or (req + resp)
+    parts = [f"{label}: {req:,} in / {resp:,} out / {total:,} total tokens"]
+    if model in _MODEL_PRICING:
+        in_price, out_price = _MODEL_PRICING[model]
+        cost = (req * in_price + resp * out_price) / 1_000_000
+        parts.append(f"≈ ${cost:.4f}")
+    return "  ".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def _show_critique(critique_result, original_questions: list, show_feedback: bool, show_diff: bool) -> list:
     """Display critique feedback and/or diff, then return the revised questions."""
-    from difflib import unified_diff
-    from minerva.models import Question
-
-    revised: list[Question] = []
+    revised = []
     if show_feedback:
         console.rule("[bold]Critique feedback")
 
@@ -101,13 +124,11 @@ async def _generate(
     node: CurriculumNode | None,
     retriever: EmbedClient,
     verbose: bool = False,
-) -> tuple[QuestionSet, list]:
-    examples = load_examples()
+) -> tuple[QuestionSet, list, Usage]:
     curriculum_path = node_path(load(exam), node.code) if (node and exam) else []  # type: ignore[arg-type]
     deps = Deps(
         retriever=retriever,
         curriculum_path=curriculum_path,
-        examples=examples,
         verbose=verbose,
         exam=None if node else exam,  # only enable match_curriculum tool when no explicit node
         db_path=retriever.db_path,
@@ -130,7 +151,7 @@ async def _generate(
     qs.model = model
     if node:
         qs.curriculum_node_code = node.code
-    return qs, result.all_messages()
+    return qs, result.all_messages(), result.usage()
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +185,7 @@ def match(
     elif source == Source.docs:
         with console.status("Searching documents…"):
             client = EmbedClient(db_path=db)
-            results = client._table.search(topic).limit(top).to_pandas()
+            results = client.search_docs(topic, n=top)
 
         if results.empty:
             console.print("[yellow]No results found — have you embedded any documents?[/yellow]")
@@ -220,7 +241,7 @@ def create(
         retriever = EmbedClient(db_path=db, embedding_model=embed_model)
 
     with console.status(f"Generating {count} question(s) on '{topic}'…"):
-        qs, messages = asyncio.run(
+        qs, messages, usage = asyncio.run(
             _generate(
                 topic=topic,
                 count=count,
@@ -232,9 +253,14 @@ def create(
             )
         )
 
+    if verbose:
+        console.print(f"[dim]{_format_usage(usage, model, label='Generate')}[/dim]")
+
     if critique:
         with console.status("Critiquing questions…"):
-            critique_result = asyncio.run(critique_questions(qs, model))
+            critique_result, critique_usage = asyncio.run(critique_questions(qs, model))
+        if verbose:
+            console.print(f"[dim]{_format_usage(critique_usage, model, label='Critique')}[/dim]")
         qs.questions = _show_critique(critique_result, qs.questions, show_feedback=verbose, show_diff=verbose)
 
     for q in qs.questions:
@@ -318,10 +344,10 @@ def quiz(
             console.print(f"[dim]Embedding model: {embed_model}[/dim]")
 
         with console.status("Loading embedding model…"):
-            retriever = EmbedClient(db_path=db, embedding_model=embed_model)
+            retriever = EmbedClient(db_path=db, embedding_model=embed_model, verbose=verbose)
 
         with console.status(f"Generating {count} question(s) on '{topic}'…"):
-            qs, _ = asyncio.run(
+            qs, _, usage = asyncio.run(
                 _generate(
                     topic=topic,
                     count=count,
@@ -332,6 +358,8 @@ def quiz(
                     verbose=verbose,
                 )
             )
+        if verbose:
+            console.print(f"[dim]{_format_usage(usage, model, label='Generate')}[/dim]")
         saved = save_json(qs, save_dir)
         console.print(f"[green]Saved:[/green] {saved}")
     else:
@@ -358,7 +386,10 @@ def critique(
     console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
 
     with console.status("Critiquing questions…"):
-        critique_result = asyncio.run(critique_questions(qs, model))
+        critique_result, critique_usage = asyncio.run(critique_questions(qs, model))
+
+    if verbose:
+        console.print(f"[dim]{_format_usage(critique_usage, model, label='Critique')}[/dim]")
 
     qs.questions = _show_critique(critique_result, qs.questions, show_feedback=True, show_diff=verbose)
 

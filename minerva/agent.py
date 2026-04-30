@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.usage import Usage
 
 from .embed import EmbedClient
 from .models import CurriculumNode, CritiqueResult, QuestionSet
@@ -63,7 +65,6 @@ _RAG_THRESHOLD = 0.2  # minimum cosine similarity for a retrieved chunk to be in
 class Deps:
     retriever: EmbedClient
     curriculum_path: list[CurriculumNode] = field(default_factory=list)
-    examples: list[str] | None = None
     verbose: bool = False
     exam: str | None = None  # set only when agent should use match_curriculum tool
     db_path: Path = field(default_factory=lambda: Path("./lancedb"))
@@ -97,10 +98,6 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
                 f"curriculum node before writing questions. Use a specific clinical query, "
                 f"not just the bare topic word."
             )
-
-        if ctx.deps.examples:
-            examples_text = "\n\n---\n\n".join(ctx.deps.examples[:3])
-            parts.append(f"\nHere are example SBA questions for reference:\n\n{examples_text}")
 
         return "\n".join(parts)
 
@@ -205,7 +202,7 @@ the question unchanged and write "No changes needed."
 """
 
 
-async def critique_questions(qs: QuestionSet, model: str) -> CritiqueResult:
+async def critique_questions(qs: QuestionSet, model: str) -> tuple[CritiqueResult, Usage]:
     """Run a critique pass on a generated QuestionSet and return revised questions with feedback."""
     ag: Agent[None, CritiqueResult] = Agent(
         model=model,
@@ -220,7 +217,30 @@ async def critique_questions(qs: QuestionSet, model: str) -> CritiqueResult:
         f"{qs.model_dump_json(indent=2)}"
     )
     result = await ag.run(prompt)
-    return result.output
+    return result.output, result.usage()
+
+
+def _strip_tool_results(messages: list) -> list:
+    """Replace tool return content with a placeholder to reduce token usage.
+
+    Preserves the structural few-shot signal (tool was called, response was
+    produced) without sending full retrieved document chunks on every request.
+    """
+    from pydantic_ai.messages import ModelRequest, ToolReturnPart
+
+    result = []
+    for msg in messages:
+        if isinstance(msg, ModelRequest):
+            new_parts = [
+                dataclasses.replace(part, content="[Retrieved reference material]")
+                if isinstance(part, ToolReturnPart)
+                else part
+                for part in msg.parts
+            ]
+            result.append(dataclasses.replace(msg, parts=new_parts))
+        else:
+            result.append(msg)
+    return result
 
 
 def load_example_messages(path: Path | None = None) -> list:
@@ -236,4 +256,4 @@ def load_example_messages(path: Path | None = None) -> list:
             messages.extend(ModelMessagesTypeAdapter.validate_json(f.read_bytes()))
         except Exception:
             pass  # skip malformed files
-    return messages
+    return _strip_tool_results(messages)
