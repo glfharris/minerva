@@ -124,13 +124,8 @@ Model strings use `provider:name` format:
 | Provider | Model string |
 |---|---|
 | OpenAI | `openai:gpt-5.5` |
-| OpenAI | `openai:gpt-4o` |
-| OpenAI | `openai:gpt-4o-mini` |
 | Anthropic | `anthropic:claude-opus-4-6` |
-| Anthropic | `anthropic:claude-sonnet-4-6` |
-| Anthropic | `anthropic:claude-haiku-4-5-20251001` |
-| Ollama | `ollama:llama3.2` |
-| Ollama | `ollama:qwen2.5` |
+| Ollama | `ollama:qwen3.6` |
 
 Set the default via `MINERVA_MODEL` in `.env`, or override per-run with `--model`.
 
@@ -141,15 +136,15 @@ Token usage and estimated cost are shown under `--verbose`.
 [Install Ollama](https://ollama.com) and pull a model, then set `OLLAMA_BASE_URL` in `.env`:
 
 ```bash
-ollama pull llama3.2
+ollama pull qwen3.6
 ```
 
 ```
 OLLAMA_BASE_URL=http://localhost:11434
-MINERVA_MODEL=ollama:llama3.2
+MINERVA_MODEL=ollama:qwen3.6
 ```
 
-No API key is required. Structured output quality varies by model — larger models (70B+) tend to produce more reliable question formatting. The Ollama provider recognises llama, gemma, qwen, deepseek, mistral, and command model families.
+No API key is required, unless using cloud based models.
 
 ## Testing
 
