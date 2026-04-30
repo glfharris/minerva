@@ -39,30 +39,57 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 **2. Generate questions:**
 
 ```bash
-# Single question
+# Single question on a topic
 ./mincli.py create "Lung Compliance"
 
-# Multiple questions, saved to disk
-./mincli.py create "Cardiac Output" --count 3 --output ./output
+# Multiple questions
+./mincli.py create "Cardiac Output" --count 3
 
-# With curriculum context (auto-matches the best curriculum node)
+# With curriculum context (agent matches the best curriculum node automatically)
 ./mincli.py create "Rocuronium" --exam primary
+
+# From a specific curriculum node by code (topic derived from node label)
+./mincli.py create --exam primary --node 1_GA_P_6
+
+# From a specific node with a custom topic
+./mincli.py create "Rocuronium reversal" --exam primary --node 1_GA_P_6
 
 # Using Anthropic Claude
 ./mincli.py create "Pharmacokinetics" --model anthropic:claude-opus-4-6
+
+# With a self-critique pass to improve question quality
+./mincli.py create "Lung Compliance" --critique
+
+# Show retrieval and critique details
+./mincli.py create "Lung Compliance" --critique --verbose
 ```
 
-**3. Interactive quiz:**
+**3. Critique saved questions:**
+
+```bash
+# Run a critique pass on a previously generated file
+./mincli.py critique output/1_GA_P_6_2026-04-30.json
+
+# With a diff showing exactly what changed
+./mincli.py critique output/1_GA_P_6_2026-04-30.json --verbose
+
+# Save revised questions to a specific location
+./mincli.py critique output/1_GA_P_6_2026-04-30.json -o output/revised/
+```
+
+The critique checks each question against SBA writing criteria (positive framing, homogeneous distractors, option length balance, explanation completeness) and saves a revised file alongside the original with a `_critiqued` suffix.
+
+**4. Interactive quiz:**
 
 ```bash
 # Quiz from a saved file
-./mincli.py quiz output/cardiac_output_2026-04-29.json
+./mincli.py quiz output/cardiac_output_2026-04-30.json
 
 # Generate then quiz in one step
 ./mincli.py quiz --topic "Lung Compliance" --exam primary --count 5
 ```
 
-**4. Test retrieval** (useful for debugging):
+**5. Test retrieval** (useful for debugging):
 
 ```bash
 # Check curriculum node matching for a topic
@@ -75,7 +102,9 @@ Embeddings use `NeuML/pubmedbert-base-embeddings` locally — no API key require
 
 ## Curriculum-aware generation
 
-Minerva includes the full RCoA Primary and Final FRCA curriculum trees. When `--exam` is provided, it automatically matches the topic to the most relevant curriculum node using embedding similarity and includes the full curriculum breadcrumb in the prompt — helping the LLM target the right scope and depth for the exam standard.
+Minerva includes the full RCoA Primary and Final FRCA curriculum trees. When `--exam` is provided, the agent automatically matches the topic to the most relevant curriculum node using embedding similarity and includes the full curriculum breadcrumb in the prompt — helping the LLM target the right scope and depth for the exam standard.
+
+You can also specify a node directly by code (`--node 1_GA_P_6`) to bypass automatic matching and pin generation to a specific curriculum item.
 
 ## Models
 
