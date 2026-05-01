@@ -5,15 +5,15 @@ import pytest
 from minerva.models import CurriculumNode, Question, QuestionOption, QuestionSet
 
 
-def make_options(correct: str = "A") -> list[QuestionOption]:
+def make_options(correct_index: int = 0) -> list[QuestionOption]:
+    labels = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"]
     return [
         QuestionOption(
-            letter=letter,
-            text=f"Option {letter} text",
-            is_correct=(letter == correct),
-            explanation=f"Explanation for option {letter}",
+            text=f"Option {label} text",
+            is_correct=(i == correct_index),
+            explanation=f"Explanation for option {label}",
         )
-        for letter in "ABCDE"
+        for i, label in enumerate(labels)
     ]
 
 
@@ -22,7 +22,7 @@ def sample_question():
     return Question(
         stem="A 45-year-old male presents for elective surgery.",
         lead="What is the most appropriate induction agent?",
-        options=make_options("C"),
+        options=make_options(correct_index=2),
         explanation="Propofol is the standard induction agent for most elective procedures.",
     )
 

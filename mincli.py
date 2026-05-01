@@ -90,7 +90,7 @@ def _show_critique(critique_result, original_questions: list, show_feedback: boo
         console.rule("[bold]Critique feedback")
 
     for i, (cq, original) in enumerate(zip(critique_result.critiqued, original_questions), 1):
-        revised.append(cq.question)
+        revised.append(cq.question.with_sorted_options())
 
         if show_feedback:
             console.print(f"[bold]Q{i}:[/bold] [dim]{cq.feedback}[/dim]")
@@ -129,6 +129,7 @@ async def _generate(
     node: CurriculumNode | None,
     retriever: EmbedClient,
     verbose: bool = False,
+    prior_stems: list[str] | None = None,
 ) -> tuple[QuestionSet, list, RunUsage]:
     curriculum_path = node_path(load(exam), node.code) if (node and exam) else []  # type: ignore[arg-type]
     deps = Deps(
@@ -137,12 +138,20 @@ async def _generate(
         verbose=verbose,
     )
 
+    prior_clause = ""
+    if prior_stems:
+        stems_text = "\n\n".join(f"- {s}" for s in prior_stems)
+        prior_clause = (
+            "\n\nThe following stem(s) have already been written for this question set. "
+            "Ensure your patient demographics and clinical presentation are clearly distinct from these:\n\n"
+            f"{stems_text}"
+        )
     prompt = (
         f"Write {count} dissimilar SBA question(s) on: {topic!r}.\n\n"
         "Each question should test application of knowledge, not simple recall — "
         "a candidate should need to reason from principles rather than just retrieve a fact. "
         "Use the retrieve tool to find relevant reference material before writing. "
-        "Return the result as a QuestionSet."
+        f"Return the result as a QuestionSet.{prior_clause}"
     )
 
     ag = make_agent(model)
@@ -154,6 +163,7 @@ async def _generate(
     qs.model = model
     if node:
         qs.curriculum_node_code = node.code
+    qs.questions = [q.with_sorted_options() for q in qs.questions]
     return qs, result.all_messages(), result.usage()
 
 
@@ -277,6 +287,7 @@ def create(
     all_usages: list[RunUsage] = []
     messages: list = []
     total_calls = len(generation_plan)
+    prior_stems: list[str] = []
 
     for i, (gen_node, gen_count) in enumerate(generation_plan):
         status_msg = (
@@ -294,8 +305,10 @@ def create(
                     node=gen_node,
                     retriever=retriever,
                     verbose=verbose,
+                    prior_stems=prior_stems if prior_stems else None,
                 )
             )
+        prior_stems.extend(q.stem for q in qs_i.questions)
         if gen_node:
             for q in qs_i.questions:
                 q.curriculum_node_code = gen_node.code

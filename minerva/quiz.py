@@ -17,8 +17,8 @@ def run_quiz(questions: list[Question]) -> None:
         console.rule(f"[bold]Question {i} of {len(questions)}")
 
         body = f"{question.stem}\n\n[bold]{question.lead}[/bold]\n\n"
-        for opt in question.options:
-            body += f"  [cyan]{opt.letter}.[/cyan] {opt.text}\n"
+        for j, opt in enumerate(question.options):
+            body += f"  [cyan]{'ABCDE'[j]}.[/cyan] {opt.text}\n"
 
         console.print(Panel(body.rstrip(), expand=False))
 
@@ -28,24 +28,23 @@ def run_quiz(questions: list[Question]) -> None:
             show_choices=True,
         ).upper()
 
-        correct = question.correct_option
-        correct_letter = correct.letter.upper()
+        correct_letter = question.correct_letter
         is_correct = answer == correct_letter
         score += int(is_correct)
         results.append((question.lead[:60], is_correct))
 
         # Re-display options with colour coding and per-option explanations
         lines = []
-        for opt in question.options:
-            letter = opt.letter.upper()
+        for j, opt in enumerate(question.options):
+            letter = "ABCDE"[j]
             if letter == correct_letter:
-                lines.append(f"  [bold green]{opt.letter}.[/bold green] [green]{opt.text}[/green]")
+                lines.append(f"  [bold green]{letter}.[/bold green] [green]{opt.text}[/green]")
                 lines.append(f"    [dim]{opt.explanation}[/dim]")
             elif letter == answer:
-                lines.append(f"  [bold red]{opt.letter}.[/bold red] [red]{opt.text}[/red]")
+                lines.append(f"  [bold red]{letter}.[/bold red] [red]{opt.text}[/red]")
                 lines.append(f"    [dim]{opt.explanation}[/dim]")
             else:
-                lines.append(f"  [dim]{opt.letter}. {opt.text}[/dim]")
+                lines.append(f"  [dim]{letter}. {opt.text}[/dim]")
         reveal = "\n".join(lines)
 
         verdict = "[bold green]Correct![/bold green]" if is_correct else "[bold red]Incorrect.[/bold red]"
