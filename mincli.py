@@ -7,6 +7,7 @@ from enum import StrEnum
 import logging
 import os
 from pathlib import Path
+import re
 import random
 from typing import Annotated, Optional
 import warnings
@@ -23,10 +24,10 @@ import typer
 from dotenv import load_dotenv
 from rich.table import Table
 
-from minerva.agent import Deps, critique_questions, load_example_messages, make_agent
+from minerva.agent import Deps, critique_questions, convert_questions, load_example_messages, make_agent
 from pydantic_ai.usage import RunUsage
 from minerva.console import console
-from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, node_path, search_table
+from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, match_question_nodes, node_path, search_table
 from minerva.embed import EmbedClient
 from minerva.models import CurriculumNode, QuestionSet
 from minerva.output import save_json, save_markdown
@@ -121,6 +122,14 @@ def _lookup_node(exam: Exam, code: str) -> CurriculumNode | None:
     return path[-1]
 
 
+def _rematch_questions(questions: list, exam: str | None, db_path: Path) -> None:
+    """Replace each question's curriculum node codes and scores with full-text semantic matches."""
+    for q in questions:
+        matches = match_question_nodes(q, exam, db_path=db_path)  # type: ignore[arg-type]
+        q.curriculum_node_codes = [code for code, _ in matches]
+        q.curriculum_node_scores = [score for _, score in matches]
+
+
 async def _generate(
     topic: str,
     count: int,
@@ -135,6 +144,7 @@ async def _generate(
     deps = Deps(
         retriever=retriever,
         curriculum_path=curriculum_path,
+        exam=exam,
         verbose=verbose,
     )
 
@@ -155,7 +165,7 @@ async def _generate(
     )
 
     ag = make_agent(model)
-    example_messages = load_example_messages()
+    example_messages = load_example_messages(topic=topic, exam=exam)
     result = await ag.run(prompt, deps=deps, message_history=example_messages)
     qs = result.output
     qs.topic = topic
@@ -309,9 +319,6 @@ def create(
                 )
             )
         prior_stems.extend(q.stem for q in qs_i.questions)
-        if gen_node:
-            for q in qs_i.questions:
-                q.curriculum_node_code = gen_node.code
         all_questions.extend(qs_i.questions)
         all_usages.append(usage_i)
         messages = msgs_i
@@ -324,6 +331,9 @@ def create(
         label = "Total" if total_calls > 1 else "Generate"
         console.print(f"[dim]{_format_usage(usage, model, label=label)}[/dim]")
 
+    with console.status("Matching curriculum nodes…"):
+        _rematch_questions(qs.questions, str(exam) if exam else None, db)
+
     if critique:
         with console.status("Critiquing questions…"):
             critique_result, critique_usage = asyncio.run(critique_questions(qs, model))
@@ -332,7 +342,7 @@ def create(
         qs.questions = _show_critique(critique_result, qs.questions, show_feedback=verbose, show_diff=verbose)
 
     for q in qs.questions:
-        q.show()
+        q.show(verbose=verbose)
 
     j = save_json(qs, output)
     console.print(f"\n[green]Saved:[/green] {j}")
@@ -464,6 +474,155 @@ def critique(
     save_path = output or file.with_stem(file.stem + "_critiqued")
     j = save_json(qs, save_path)
     console.print(f"\n[green]Saved:[/green] {j}")
+
+
+def _read_file(path: Path) -> str:
+    """Read text from a .pdf, .md, or .txt file."""
+    if path.suffix.lower() == ".pdf":
+        import pdfplumber
+        from minerva.embed import _extract_page, _clean_text
+        parts = []
+        with pdfplumber.open(str(path)) as pdf:
+            for page in pdf.pages:
+                prose, tables = _extract_page(page)
+                parts.append(_clean_text(prose))
+                parts.extend(tables)
+        return "\n\n".join(filter(None, parts))
+    else:
+        return path.read_text(encoding="utf-8")
+
+
+@app.command()
+def convert(
+    input_file: Annotated[Optional[Path], typer.Argument(help="Text, Markdown, or PDF file containing SBA questions")] = None,
+    text: Annotated[Optional[str], typer.Option("--text", help="Inline question text to convert")] = None,
+    topic: Annotated[Optional[str], typer.Option("--topic", help="Topic label for the output QuestionSet")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Exam type: 'primary' or 'final'")] = None,
+    model: Annotated[str, typer.Option("-m", "--model")] = _DEFAULT_MODEL,
+    output: Annotated[Path, typer.Option("-o", "--output")] = Path("./output"),
+    db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+    markdown: Annotated[bool, typer.Option(help="Also save a markdown file")] = False,
+    save_example: Annotated[bool, typer.Option(help="Save as a few-shot example history")] = False,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose")] = False,
+) -> None:
+    """Convert unstructured SBA question text/PDF to structured QuestionSet JSON."""
+    if input_file:
+        if not input_file.exists():
+            console.print(f"[red]File not found: {input_file}[/red]")
+            raise typer.Exit(1)
+        raw = _read_file(input_file)
+        derived_topic = topic or input_file.stem.replace("_", " ").replace("-", " ").title()
+    elif text:
+        raw = text
+        derived_topic = topic or "Converted Questions"
+    else:
+        console.print("[red]Provide a file argument or --text.[/red]")
+        raise typer.Exit(1)
+
+    if verbose:
+        console.print(f"[dim]Model: {model}[/dim]")
+        console.print(f"[dim]Input length: {len(raw):,} chars[/dim]")
+
+    with console.status("Converting questions…"):
+        qs, usage = asyncio.run(convert_questions(raw, derived_topic, model))
+
+    if exam:
+        qs.exam = str(exam)
+    with console.status("Matching curriculum nodes…"):
+        _rematch_questions(qs.questions, str(exam) if exam else None, db)
+
+    if verbose:
+        console.print(f"[dim]{_format_usage(usage, model, label='Convert')}[/dim]")
+
+    console.print(f"[green]Parsed {len(qs.questions)} question(s)[/green]")
+    for q in qs.questions:
+        q.show(verbose=verbose)
+
+    j = save_json(qs, output)
+    console.print(f"\n[green]Saved:[/green] {j}")
+    if markdown:
+        m = save_markdown(qs, output)
+        console.print(f"[green]Saved:[/green] {m}")
+
+    if save_example:
+        console.print("[yellow]--save-example not supported for convert; use create --save-example instead.[/yellow]")
+
+
+def _first_sentence(text: str) -> str:
+    """Extract the first sentence from a block of text."""
+    for sep in (". ", ".\n"):
+        idx = text.find(sep)
+        if idx != -1:
+            return text[: idx + 1].strip()
+    return text.strip()[:200]
+
+
+@app.command("make-history")
+def make_history(
+    files: Annotated[list[Path], typer.Argument(help="QuestionSet JSON files to convert")],
+    output: Annotated[Path, typer.Option("-o", "--output")] = Path("examples/histories"),
+) -> None:
+    """Convert QuestionSet JSON files into mock few-shot example histories."""
+    import json as _json
+    from datetime import datetime, timezone
+    from pydantic_ai.messages import (
+        ModelMessagesTypeAdapter,
+        ModelRequest,
+        ModelResponse,
+        ToolCallPart,
+        ToolReturnPart,
+        UserPromptPart,
+    )
+
+    output.mkdir(parents=True, exist_ok=True)
+    now = datetime.now(timezone.utc)
+
+    index_path = output / "index.json"
+    index: dict[str, dict] = {}
+    if index_path.exists():
+        for entry in _json.loads(index_path.read_text()):
+            index[entry["file"]] = entry
+
+    for file in files:
+        try:
+            qs = QuestionSet.model_validate_json(file.read_text())
+        except Exception as e:
+            console.print(f"[red]Could not load '{file}': {e}[/red]")
+            continue
+
+        saved = 0
+        for q in qs.questions:
+            topic = _first_sentence(q.explanation)
+            slug = re.sub(r"[^a-z0-9]+", "_", topic.lower()).strip("_")[:50]
+            filename = f"{slug}.json"
+            retrieve_id = f"mock_r_{slug[:12]}"
+            final_id = f"mock_f_{slug[:12]}"
+
+            single_qs = qs.model_copy(update={"questions": [q]})
+            prompt = (
+                f"Write 1 dissimilar SBA question(s) on: {topic!r}.\n\n"
+                "Each question should test application of knowledge, not simple recall — "
+                "a candidate should need to reason from principles rather than just retrieve a fact. "
+                "Use the retrieve tool to find relevant reference material before writing. "
+                "Return the result as a QuestionSet."
+            )
+
+            messages = [
+                ModelRequest(parts=[UserPromptPart(content=prompt, timestamp=now)], timestamp=now),
+                ModelResponse(parts=[ToolCallPart(tool_name="retrieve", args=f'{{"query": {topic!r}}}', tool_call_id=retrieve_id)], timestamp=now),
+                ModelRequest(parts=[ToolReturnPart(tool_name="retrieve", content="[Retrieved reference material]", tool_call_id=retrieve_id, timestamp=now)], timestamp=now),
+                ModelResponse(parts=[ToolCallPart(tool_name="final_result", args=single_qs.model_dump_json(), tool_call_id=final_id)], timestamp=now),
+                ModelRequest(parts=[ToolReturnPart(tool_name="final_result", content="Final result processed.", tool_call_id=final_id, timestamp=now)], timestamp=now),
+            ]
+
+            (output / filename).write_bytes(ModelMessagesTypeAdapter.dump_json(messages))
+            index[filename] = {"file": filename, "exam": qs.exam, "topic": topic}
+            saved += 1
+
+        console.print(f"[green]Saved {saved} example(s) from {file.name}[/green]")
+
+    index_path.write_text(_json.dumps(list(index.values()), indent=2))
+    console.print(f"[green]Index:[/green] {index_path} ({len(index)} entries)")
 
 
 if __name__ == "__main__":

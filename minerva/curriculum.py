@@ -3,9 +3,12 @@ from __future__ import annotations
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from .models import CurriculumNode
+
+if TYPE_CHECKING:
+    from .models import Question
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
@@ -187,3 +190,35 @@ def search_table(
         for _, row in results.iterrows()
         if row["code"] in node_map
     ]
+
+
+def match_question_nodes(
+    question: Question,
+    exam: Literal["primary", "final"] | None,
+    db_path: str | Path = "./lancedb",
+    n: int = 5,
+    threshold: float = _MATCH_THRESHOLD,
+) -> list[tuple[str, float]]:
+    """Return (code, similarity) pairs that best match a question's content.
+
+    Builds a query from the question's full text (stem, lead-in, correct option
+    explanation, overall explanation) and returns all matches with cosine similarity
+    above *threshold*, up to *n* results, ordered by descending similarity.
+
+    If *exam* is None, both primary and final tables are searched and results merged.
+    """
+    query = " ".join([
+        question.stem,
+        question.lead,
+        question.correct_option.explanation,
+        question.explanation,
+    ])
+    exams: tuple[Literal["primary", "final"], ...] = (exam,) if exam else ("primary", "final")
+    merged: list[tuple[float, CurriculumNode]] = []
+    for ex in exams:
+        try:
+            merged.extend(search_table(query, ex, db_path=db_path, n=n))
+        except Exception:
+            pass
+    merged.sort(key=lambda x: x[0], reverse=True)
+    return [(node.code, score) for score, node in merged if score >= threshold][:n]

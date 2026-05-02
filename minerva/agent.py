@@ -10,45 +10,52 @@ from pydantic_ai.usage import RunUsage
 from .embed import EmbedClient
 from .models import CurriculumNode, CritiqueResult, QuestionSet
 
-_ROLE = """\
-You write single-best answer (SBA) questions for the Royal College of Anaesthetists'
-Primary FRCA examination. Questions must be in British English, set at the standard
-appropriate for a doctor who has completed foundation training and has some anaesthetic
-experience. Use a variety of patient ages and genders where relevant.
+_BASE = """\
+You write single-best answer (SBA) questions for postgraduate medical examinations.
+Questions must be in British English. Use a variety of patient ages and genders where relevant.
 
 ## Question structure
 
 Each question has four components:
 
-- Stem: a specific, realistic clinical scenario. Must NOT itself contain a question.
-  Include relevant details (age, presentation, observations, drug doses) — avoid vague
-  generalities. The scenario should make the topic concrete and clinically grounded.
+- Stem: scene-setting text that must NOT itself contain a question. The stem may be:
+  - A clinical scenario with a specific patient (include relevant details: age,
+    presentation, observations, drug doses, investigation results).
+  - A pure scientific, physiological, pharmacological, or physical setup with no patient
+    (e.g. "In an experimental situation…", "At atmospheric pressure…", "A drug has the
+    following properties…"). Use this form when the topic is better served by a
+    direct scientific framing than a contrived patient story.
+  Choose whichever form makes the topic most concrete and testable.
 
 - Lead-in: a single, clearly worded question. Must be positively framed — never use
-  "which of the following is NOT…" or "EXCEPT".
+  "which of the following is NOT…" or "EXCEPT". Write the lead-in that most naturally
+  fits the stem; do not force a fixed template. It should be specific enough that a
+  candidate knows exactly what is being asked without reading the options.
 
-- Options: exactly 5, labelled A–E. Exactly one is correct; the other four are
-  distractors.
+- Options: exactly 5. Exactly one is correct; the other four are plausible distractors.
+  Each option carries its own explanation — why it is correct or why it is wrong.
+  All five explanations must be completed.
 
-- Options: each option carries its own explanation — why it is correct (for the right
-  answer) or why it is wrong (for each distractor). Must be completed for all five options.
-
-- Explanation: a brief overall explanation of the key concept being tested and any
-  important related points. This is separate from the per-option explanations and
-  should provide broader educational context.
+- Explanation: a brief overall explanation of the key concept. Separate from the
+  per-option explanations; should provide broader educational context.
 
 ## Writing good distractors
 
-Distractors are the hardest part of SBA writing. They must be:
-- Plausible to a doctor with limited anaesthetic experience — not obviously absurd
-- Homogeneous with each other and the correct answer (e.g. all drug names, all
-  mechanisms, all numerical values — never a mixture of types)
-- Similar in length to the correct answer — a noticeably longer or shorter option
-  signals the correct answer
-- Clearly incorrect on reflection, but believable at first glance
-- Non-overlapping — no two options should be essentially the same
+- Homogeneous with each other and the correct answer (all drug names, all mechanisms,
+  all numerical values — never a mixture of types).
+- Concise: options should be as short as the concept permits. Single-word or brief-phrase
+  options are preferred when appropriate — do not pad to create false symmetry.
+- Similar in length to each other and the correct answer.
+- Plausible at first glance, clearly wrong on reflection.
+- Non-overlapping — no two options should be essentially the same concept.
 
 Never use "all of the above", "none of the above", or compound options like "A and C".
+
+## Formatting
+
+- Use British English throughout.
+- Units: use negative-exponent notation — L min⁻¹, mg kg⁻¹, mmol L⁻¹, ml h⁻¹.
+- Drug doses and physiological values should be specific and numerically precise.
 
 ## Using reference material
 
@@ -58,6 +65,44 @@ content where possible. If retrieval returns nothing useful, rely on your knowle
 but flag uncertainty in the explanation.
 """
 
+_EXAM_CONTEXT: dict[str, str] = {
+    "primary": """\
+## Exam context: Primary FRCA
+
+Set questions at the standard appropriate for a doctor who has completed foundation
+training and has some anaesthetic experience. The Primary FRCA covers basic sciences
+(physiology, pharmacology, physics and clinical measurement, statistics). Questions
+should test understanding and application of principles, not clinical decision-making.
+
+- Stems are often short — a brief experimental setup or a single factual statement
+  can serve as the stem for a pure-science question.
+- Options are frequently terse: a single drug name, a pharmacokinetic parameter,
+  a physiological variable, or a brief mechanism. Do not inflate them.
+- Distractors should be plausible to a doctor with limited anaesthetic exposure.
+""",
+    "final": """\
+## Exam context: Final FRCA
+
+Set questions at the standard appropriate for a senior anaesthetic trainee approaching
+independent practice. The Final FRCA covers clinical anaesthesia across all subspecialties
+(neuroanaesthesia, obstetrics, paediatrics, ICM, pain, regional, cardiac, thoracic).
+Questions should require integration of knowledge and sound clinical judgement.
+
+- Stems typically present complex, realistic clinical scenarios with detailed context
+  (monitoring data, drug history, investigation results, comorbidities).
+- Options tend to be fuller clinical phrases or management steps rather than single words.
+- Questions may draw on landmark studies, NAP reports, and current college guidelines.
+- Distractors must be plausible to an experienced trainee — superficially reasonable
+  but identifiably wrong to a candidate with genuine subspecialty knowledge.
+""",
+}
+
+
+def _build_role(exam: str | None) -> str:
+    """Compose the system prompt from the shared base and an exam-specific block."""
+    context = _EXAM_CONTEXT.get(exam or "", "")
+    return _BASE + ("\n" + context if context else "")
+
 _RAG_THRESHOLD = 0.2  # minimum cosine similarity for a retrieved chunk to be included
 
 
@@ -65,6 +110,7 @@ _RAG_THRESHOLD = 0.2  # minimum cosine similarity for a retrieved chunk to be in
 class Deps:
     retriever: EmbedClient
     curriculum_path: list[CurriculumNode] = field(default_factory=list)
+    exam: str | None = None
     verbose: bool = False
 
 
@@ -80,7 +126,7 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
 
     @ag.system_prompt
     def build_system_prompt(ctx: RunContext[Deps]) -> str:
-        parts = [_ROLE]
+        parts = [_build_role(ctx.deps.exam)]
 
         if ctx.deps.curriculum_path:
             chain = " → ".join(n.label for n in ctx.deps.curriculum_path)
@@ -177,6 +223,61 @@ async def critique_questions(qs: QuestionSet, model: str) -> tuple[CritiqueResul
     return result.output, result.usage()
 
 
+_CONVERT_ROLE = """\
+You convert unstructured SBA (single best answer) question text into structured JSON format
+for the Royal College of Anaesthetists' FRCA examinations.
+
+For each question in the input:
+- stem: the clinical scenario / scene-setting text. Must NOT itself contain a question.
+  If the input has no separate stem (question starts directly), use a brief contextual
+  restatement as the stem.
+- lead: the single lead-in question (positively framed).
+- options: exactly 5 options, each with:
+    - text: the option text (strip any leading letter/prefix like "A.", "B.")
+    - is_correct: true for the correct answer, false for all others
+    - explanation: why this option is correct or why it is wrong. If not given in the
+      input, generate a concise medically accurate explanation (1–2 sentences).
+- explanation: an overall explanation of the key concept. Use the source text if
+  provided; otherwise generate one from context.
+
+Rules:
+- Every question must have exactly 5 options and exactly 1 correct.
+- Strip option letter prefixes (A, B, C, D, E) from option text.
+- If the input has fewer or more than 5 options for a question, do your best to infer
+  the correct 5 (e.g. if one is split across lines).
+- SKIP any question that references an image, ECG, X-ray, chart, or figure that is not
+  present in the text (e.g. "His ECG is shown below", "shown in the image"). Do not
+  include such questions in the output at all.
+- Use the topic provided as the QuestionSet topic field.
+- Set exam from the input if identifiable (e.g. "Primary FRCA"), otherwise null.
+- Set curriculum_node_codes to an empty list.
+- Set model to the model string provided.
+"""
+
+
+async def convert_questions(text: str, topic: str, model: str) -> tuple[QuestionSet, RunUsage]:
+    """Parse unstructured SBA question text into a QuestionSet."""
+    ag: Agent[None, QuestionSet] = Agent(
+        model=model,
+        output_type=QuestionSet,
+        system_prompt=_CONVERT_ROLE,
+        retries=2,
+        defer_model_check=True,
+    )
+    prompt = (
+        f"Topic: {topic!r}\n\n"
+        f"Parse the following SBA question(s) into a QuestionSet. "
+        f"Generate per-option explanations for any that are missing.\n\n"
+        f"{text}"
+    )
+    result = await ag.run(prompt)
+    qs = result.output
+    qs.topic = topic
+    qs.model = model
+    qs.questions = [q.with_sorted_options() for q in qs.questions]
+    return qs, result.usage()
+
+
 def _strip_tool_results(messages: list) -> list:
     """Replace tool return content with a placeholder to reduce token usage.
 
@@ -200,17 +301,72 @@ def _strip_tool_results(messages: list) -> list:
     return result
 
 
-def load_example_messages(path: Path | None = None) -> list:
-    """Load saved few-shot message histories from examples/histories/."""
+def _select_by_similarity(candidates: list[dict], topic: str, n: int) -> list[dict]:
+    """Return top-n candidates ranked by cosine similarity to topic."""
+    import numpy as np
+    from .curriculum import _make_embedder
+
+    embedder = _make_embedder()
+    texts = [topic] + [e["topic"] for e in candidates]
+    vecs = np.array(embedder.compute_source_embeddings(texts), dtype=float)
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    vecs /= np.where(norms > 0, norms, 1.0)
+    sims = vecs[1:] @ vecs[0]
+    top_idx = sims.argsort()[::-1][:n]
+    return [candidates[i] for i in top_idx]
+
+
+def load_example_messages(
+    path: Path | None = None,
+    topic: str | None = None,
+    exam: str | None = None,
+    n: int = 3,
+) -> list:
+    """Load few-shot message histories filtered by exam and ranked by topic similarity.
+
+    Falls back to loading all files if no index.json exists (legacy behaviour).
+    """
+    import json as _json
     from pydantic_ai.messages import ModelMessagesTypeAdapter
+
     if path is None:
         path = Path(__file__).parent.parent / "examples" / "histories"
     if not path.exists():
         return []
+
+    index_path = path / "index.json"
+
+    if not index_path.exists():
+        # Legacy fallback: load everything
+        messages = []
+        for f in sorted(path.glob("*.json")):
+            try:
+                messages.extend(ModelMessagesTypeAdapter.validate_json(f.read_bytes()))
+            except Exception:
+                pass
+        return _strip_tool_results(messages)
+
+    index: list[dict] = _json.loads(index_path.read_text())
+
+    # Filter by exam; entries with no exam recorded are always included
+    candidates = [e for e in index if not e.get("exam") or e.get("exam") == exam] if exam else index
+
+    if not candidates:
+        return []
+
+    if topic and len(candidates) > n:
+        selected = _select_by_similarity(candidates, topic, n)
+    elif len(candidates) > n:
+        import random
+        selected = random.sample(candidates, n)
+    else:
+        selected = candidates
+
     messages = []
-    for f in sorted(path.glob("*.json")):
+    for entry in selected:
+        f = path / entry["file"]
         try:
             messages.extend(ModelMessagesTypeAdapter.validate_json(f.read_bytes()))
         except Exception:
-            pass  # skip malformed files
+            pass
     return _strip_tool_results(messages)
