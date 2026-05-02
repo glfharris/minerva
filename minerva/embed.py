@@ -63,47 +63,24 @@ def _chunk_text(text: str) -> list[str]:
     return chunks
 
 
-def _table_to_markdown(data: list[list]) -> str:
-    """Convert pdfplumber table data (list of rows) to a markdown table string."""
-    # Replace None cells with empty string
-    rows = [[str(cell).strip() if cell is not None else "" for cell in row] for row in data]
-    # Drop completely empty rows
-    rows = [row for row in rows if any(cell for cell in row)]
-    if not rows:
-        return ""
-    header = "| " + " | ".join(rows[0]) + " |"
-    separator = "| " + " | ".join("---" for _ in rows[0]) + " |"
-    body = "\n".join("| " + " | ".join(row) + " |" for row in rows[1:])
-    return "\n".join(filter(None, [header, separator, body]))
+def _records_from_sections(
+    sections: list[tuple[int, str, list[str]]], source: str
+) -> tuple[list[dict], int]:
+    """Convert extracted sections to embedding records.
 
-
-def _extract_page(page) -> tuple[str, list[str]]:
-    """Extract prose text and tables from a pdfplumber page.
-
-    Returns (prose_text, list_of_markdown_table_strings).
-    Tables are extracted from their bounding boxes; prose is extracted
-    from the remaining area so table content is not double-counted.
+    Returns (records, table_count) where each record is
+    {"text": ..., "source": ..., "page": ...}.
     """
-    tables = page.find_tables()
-    table_texts = []
-
-    for table in tables:
-        data = table.extract()
-        if data:
-            md = _table_to_markdown(data)
-            if md:
-                table_texts.append(md)
-
-    # Crop page to exclude table bounding boxes before extracting prose
-    prose_page = page
-    for table in tables:
-        try:
-            prose_page = prose_page.outside_bbox(table.bbox)
-        except Exception as e:
-            console.log(f"[dim]Warning: could not crop table region ({e}), prose may include table text[/dim]")
-
-    prose = prose_page.extract_text() or ""
-    return prose, table_texts
+    records = []
+    table_count = 0
+    for section_index, prose, table_texts in sections:
+        text = _clean_text(prose)
+        for chunk in _chunk_text(text):
+            records.append({"text": chunk, "source": source, "page": section_index})
+        for table_md in table_texts:
+            records.append({"text": table_md, "source": source, "page": section_index})
+            table_count += 1
+    return records, table_count
 
 
 class EmbedClient:
@@ -135,9 +112,10 @@ class EmbedClient:
             console.log(f"[yellow]Warning: could not read existing sources from table ({e}). Idempotency check disabled.[/yellow]")
             return set()
 
-    def add_pdf(self, path: Path) -> int:
-        """Embed a single PDF. Returns the number of chunks added (0 if skipped)."""
-        import pdfplumber
+    def add_document(self, path: Path) -> int:
+        """Embed a single document (PDF or EPUB). Returns the number of chunks added (0 if skipped)."""
+        from .inputs import extract_sections
+
         source = str(path.resolve())
         if source in self._embedded_sources:
             if self.verbose:
@@ -147,22 +125,8 @@ class EmbedClient:
         if self.verbose:
             console.log(f"{path.name} — reading…")
 
-        records = []
-        empty_pages = 0
-        table_count = 0
-        with pdfplumber.open(str(path)) as pdf:
-            page_count = len(pdf.pages)
-            for page_num, page in enumerate(pdf.pages):
-                prose, table_texts = _extract_page(page)
-                text = _clean_text(prose)
-                if not text and not table_texts:
-                    empty_pages += 1
-                    continue
-                for chunk in _chunk_text(text):
-                    records.append({"text": chunk, "source": source, "page": page_num})
-                for table_md in table_texts:
-                    records.append({"text": table_md, "source": source, "page": page_num})
-                    table_count += 1
+        sections = extract_sections(path)
+        records, table_count = _records_from_sections(sections, source)
 
         if not records:
             console.log(f"[yellow]No text extracted from {path.name}[/yellow]")
@@ -170,9 +134,11 @@ class EmbedClient:
 
         if self.verbose:
             from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn
-            skipped = f", {empty_pages} empty page(s) skipped" if empty_pages else ""
+            section_count = len(sections)
+            empty_sections = section_count - len([s for s in sections if _clean_text(s[1]) or s[2]])
+            skipped = f", {empty_sections} empty section(s) skipped" if empty_sections else ""
             tables_note = f", {table_count} table(s)" if table_count else ""
-            console.log(f"{path.name} — {page_count} page(s){skipped}{tables_note} → {len(records)} chunk(s), embedding…")
+            console.log(f"{path.name} — {section_count} section(s){skipped}{tables_note} → {len(records)} chunk(s), embedding…")
             with Progress(
                 TextColumn("  [dim]{task.description}[/dim]"),
                 BarColumn(),
@@ -196,15 +162,17 @@ class EmbedClient:
 
     def add_dir(self, path: Path) -> None:
         from rich.progress import track
-        pdfs = list(Path(path).glob("**/*.pdf"))
-        if not pdfs:
-            console.log(f"[yellow]No PDFs found in {path}[/yellow]")
+        docs = sorted(
+            list(Path(path).glob("**/*.pdf")) + list(Path(path).glob("**/*.epub"))
+        )
+        if not docs:
+            console.log(f"[yellow]No documents found in {path}[/yellow]")
             return
-        console.log(f"Found {len(pdfs)} PDF(s) in {Path(path).name}/")
+        console.log(f"Found {len(docs)} document(s) in {Path(path).name}/")
         total_chunks = 0
-        for pdf in track(pdfs, description="Embedding PDFs", disable=self.verbose):
-            total_chunks += self.add_pdf(pdf)
-        console.log(f"[green]Done[/green] — {total_chunks} chunk(s) added across {len(pdfs)} file(s)")
+        for doc in track(docs, description="Embedding documents", disable=self.verbose):
+            total_chunks += self.add_document(doc)
+        console.log(f"[green]Done[/green] — {total_chunks} chunk(s) added across {len(docs)} file(s)")
 
     def query(self, text: str, n: int = 5, threshold: float = 0.0) -> str:
         results = self._table.search(text).limit(n).to_pandas()

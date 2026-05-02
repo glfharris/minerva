@@ -1,4 +1,5 @@
-from minerva.embed import _chunk_text, _clean_text, _table_to_markdown
+from minerva.embed import _chunk_text, _clean_text
+from minerva.inputs import _extract_epub_chapters, _table_to_markdown
 
 _CHUNK_SIZE = 300
 _CHUNK_OVERLAP = 50
@@ -73,3 +74,69 @@ class TestTableToMarkdown:
 
     def test_all_empty_data_returns_empty_string(self):
         assert _table_to_markdown([["", ""], [None, None]]) == ""
+
+
+def _make_test_epub(tmp_path, chapters):
+    """Create a minimal EPUB from a list of (filename, html_body) tuples."""
+    from ebooklib import epub
+
+    book = epub.EpubBook()
+    book.set_identifier("test-id")
+    book.set_title("Test Book")
+    book.set_language("en")
+
+    items = []
+    for filename, html_body in chapters:
+        item = epub.EpubHtml(title=filename, file_name=filename, lang="en")
+        item.set_content(f"<html><body>{html_body}</body></html>".encode())
+        book.add_item(item)
+        items.append(item)
+
+    book.spine = ["nav"] + items
+    book.add_item(epub.EpubNcx())
+    book.add_item(epub.EpubNav())
+
+    path = tmp_path / "test.epub"
+    epub.write_epub(str(path), book)
+    return path
+
+
+class TestExtractEpubChapters:
+    def test_extracts_prose_from_chapters(self, tmp_path):
+        path = _make_test_epub(tmp_path, [
+            ("ch1.xhtml", "<p>Chapter one content.</p>"),
+            ("ch2.xhtml", "<p>Chapter two content.</p>"),
+        ])
+        chapters = _extract_epub_chapters(path)
+        # Should have at least 2 chapters with prose (nav may also appear)
+        prose_texts = [prose for _, prose, _ in chapters if "Chapter" in prose]
+        assert len(prose_texts) == 2
+        assert "Chapter one content." in prose_texts[0]
+        assert "Chapter two content." in prose_texts[1]
+
+    def test_extracts_tables_as_markdown(self, tmp_path):
+        html = (
+            "<p>Some prose.</p>"
+            "<table><tr><th>Drug</th><th>Dose</th></tr>"
+            "<tr><td>Propofol</td><td>2 mg/kg</td></tr></table>"
+        )
+        path = _make_test_epub(tmp_path, [("ch1.xhtml", html)])
+        chapters = _extract_epub_chapters(path)
+        table_chapters = [(prose, tables) for _, prose, tables in chapters if tables]
+        assert len(table_chapters) >= 1
+        prose, tables = table_chapters[0]
+        assert "| Drug | Dose |" in tables[0]
+        assert "| Propofol | 2 mg/kg |" in tables[0]
+        # Table text should not appear in prose (decomposed)
+        assert "Propofol" not in prose
+
+    def test_whitespace_only_chapter_is_skipped(self, tmp_path):
+        path = _make_test_epub(tmp_path, [
+            ("ch1.xhtml", "<p>  </p>"),
+            ("ch2.xhtml", "<p>Has content.</p>"),
+        ])
+        chapters = _extract_epub_chapters(path)
+        # No chapter should have whitespace-only prose (those are skipped)
+        for _, prose, tables in chapters:
+            assert prose.strip() or tables
+        assert any("Has content." in prose for _, prose, _ in chapters)

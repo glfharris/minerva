@@ -11,13 +11,13 @@ from minerva.embed import EmbedClient
 
 
 def embed(
-    path: Annotated[Path, typer.Argument(help="PDF file or directory to embed")],
+    path: Annotated[Path, typer.Argument(help="Document file or directory to embed")],
     reset: Annotated[bool, typer.Option(help="Drop existing embeddings first")] = False,
     model: Annotated[str, typer.Option(help="Embedding model string")] = DEFAULT_EMBED,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = DEFAULT_DB,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show per-file chunk counts")] = False,
 ) -> None:
-    """Embed PDF documents into the vector store."""
+    """Embed documents (PDF/EPUB) into the vector store."""
     if verbose:
         console.print(f"[dim]Embedding model: {model}[/dim]")
         console.print(f"[dim]DB:              {db}[/dim]")
@@ -31,7 +31,7 @@ def embed(
     if path.is_dir():
         client.add_dir(path)
     elif path.is_file():
-        n = client.add_pdf(path)
+        n = client.add_document(path)
         if n:
             console.print(f"[green]Embedded {n} chunk(s) from {path.name}[/green]")
     else:
