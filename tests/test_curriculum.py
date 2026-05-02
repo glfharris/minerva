@@ -5,7 +5,9 @@ from minerva.curriculum import (
     _build_text,
     flatten,
     l2_to_cosine,
+    lookup_node,
     node_path,
+    resolve_topic,
     search,
 )
 
@@ -73,6 +75,39 @@ class TestNodePath:
     def test_root_excluded_from_path(self, curriculum_tree):
         path = node_path(curriculum_tree, "B1a")
         assert all(n.code != "root" for n in path)
+
+
+class TestResolveTopic:
+    def test_topic_without_node_returns_topic_only(self):
+        resolved = resolve_topic("primary", None, "Rocuronium")
+
+        assert resolved is not None
+        assert resolved.node is None
+        assert resolved.exam == "primary"
+        assert resolved.topic == "Rocuronium"
+
+    def test_missing_topic_and_node_returns_none(self):
+        assert resolve_topic("primary", None, None) is None
+
+    def test_unknown_node_returns_none(self):
+        assert resolve_topic("primary", "ZZZ", None) is None
+
+    def test_lookup_node_finds_primary_node(self):
+        result = lookup_node("primary", "1_PBC")
+
+        assert result is not None
+        node, exam = result
+        assert node.code == "1_PBC"
+        assert exam == "primary"
+
+    def test_node_without_exam_infers_exam(self):
+        resolved = resolve_topic(None, "1_PBC", None)
+
+        assert resolved is not None
+        assert resolved.node is not None
+        assert resolved.node.code == "1_PBC"
+        assert resolved.exam == "primary"
+        assert resolved.topic == resolved.node.label
 
 
 class TestBuildMaps:

@@ -68,3 +68,11 @@ class TestSaveMarkdown:
         path = save_markdown(sample_question_set, tmp_path)
         assert path.parent == tmp_path
         assert path.suffix == ".md"
+
+    def test_json_file_path_writes_markdown_sidecar(self, tmp_path, sample_question_set):
+        json_path = tmp_path / "questions.json"
+        md_path = save_markdown(sample_question_set, json_path)
+
+        assert md_path == tmp_path / "questions.md"
+        assert md_path.exists()
+        assert not json_path.exists()

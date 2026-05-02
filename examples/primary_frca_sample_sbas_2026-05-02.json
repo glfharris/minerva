@@ -1,0 +1,741 @@
+{
+  "topic": "Primary Frca Sample Sbas",
+  "exam": "primary",
+  "curriculum_node_code": null,
+  "model": "openai:gpt-5.5",
+  "generated_at": "2026-05-02T01:16:45.156172",
+  "questions": [
+    {
+      "stem": "A ventilated patient has been admitted to the intensive care unit after emergency major colorectal surgery and is receiving a continuous intravenous cardiovascular support drug. Twelve hours later the blood glucose concentration is 13 mmol L-1, although he is not known to be diabetic.",
+      "lead": "Which drug infusion is most likely to be responsible for the hyperglycaemia?",
+      "options": [
+        {
+          "text": "Adrenaline",
+          "is_correct": true,
+          "explanation": "Adrenaline commonly causes hyperglycaemia by stimulating glycogenolysis and gluconeogenesis and reducing peripheral glucose uptake via adrenergic receptor effects."
+        },
+        {
+          "text": "Dobutamine",
+          "is_correct": false,
+          "explanation": "Dobutamine is primarily a beta-1 agonist inotrope and is less strongly associated with clinically significant hyperglycaemia than adrenaline."
+        },
+        {
+          "text": "Enoximone",
+          "is_correct": false,
+          "explanation": "Enoximone is a phosphodiesterase III inhibitor causing inotropy and vasodilatation; hyperglycaemia is not a typical prominent effect."
+        },
+        {
+          "text": "Noradrenaline",
+          "is_correct": false,
+          "explanation": "Noradrenaline is predominantly an alpha agonist vasopressor with some beta-1 activity and is less likely than adrenaline to cause marked hyperglycaemia."
+        },
+        {
+          "text": "Vasopressin",
+          "is_correct": false,
+          "explanation": "Vasopressin acts at V1 receptors to cause vasoconstriction and is not typically associated with hyperglycaemia."
+        }
+      ],
+      "explanation": "Adrenaline increases plasma glucose by promoting hepatic and skeletal muscle glycogenolysis, hepatic gluconeogenesis, and reducing glucose uptake in tissues such as skeletal muscle. These effects are mediated through alpha- and beta-adrenoceptor activation.",
+      "curriculum_node_codes": [
+        "1_GA_G3_76",
+        "1_GA_G2_86",
+        "1_GA_G2_42",
+        "1_GA_E_25",
+        "1_GA_G2_79"
+      ],
+      "curriculum_node_scores": [
+        0.5481589421613577,
+        0.5367709665848039,
+        0.4538620919229004,
+        0.45364341807555064,
+        0.4521544016606356
+      ]
+    },
+    {
+      "stem": "A patient undergoes day-case removal of a sebaceous cyst under total intravenous general anaesthesia using propofol and alfentanil. The surgeon infiltrates local anaesthetic at the end of surgery.",
+      "lead": "Which pharmacokinetic property is the best reason for choosing alfentanil rather than fentanyl in this setting?",
+      "options": [
+        {
+          "text": "Clearance",
+          "is_correct": false,
+          "explanation": "Alfentanil has a lower clearance than fentanyl, so clearance does not explain its faster offset in this context."
+        },
+        {
+          "text": "Inactive metabolites",
+          "is_correct": false,
+          "explanation": "Inactive metabolites may be advantageous for some drugs, but they are not the main reason alfentanil has a faster offset than fentanyl after brief use."
+        },
+        {
+          "text": "Potency",
+          "is_correct": false,
+          "explanation": "Potency relates to the dose needed to produce an effect and may influence onset, but it is not the best explanation for alfentanil's faster offset."
+        },
+        {
+          "text": "Volume of distribution",
+          "is_correct": true,
+          "explanation": "Alfentanil has a lower volume of distribution than fentanyl, so after short infusions or boluses it redistributes less extensively and has a faster offset."
+        },
+        {
+          "text": "pKa",
+          "is_correct": false,
+          "explanation": "Alfentanil's low pKa contributes to rapid onset, but the question concerns choosing it for day-case offset rather than onset."
+        }
+      ],
+      "explanation": "Alfentanil is useful in short day-case anaesthesia because it has a rapid onset and relatively rapid offset after brief administration. Compared with fentanyl, the lower volume of distribution is the best explanation for its faster offset despite lower clearance.",
+      "curriculum_node_codes": [
+        "1_RA",
+        "1_GA_H_2",
+        "1_GA_B_17",
+        "1_GA_S",
+        "1_GA"
+      ],
+      "curriculum_node_scores": [
+        0.7153659755464883,
+        0.7001266589431907,
+        0.6884818939513195,
+        0.6808970545373381,
+        0.6588554724028182
+      ]
+    },
+    {
+      "stem": "A two-year-old boy weighing 12.5 kg requires day-case inguinal hernia repair. After induction of general anaesthesia, a caudal block is performed using levobupivacaine for intraoperative and postoperative analgesia.",
+      "lead": "Which dose of levobupivacaine is most appropriate?",
+      "options": [
+        {
+          "text": "0.5%, 5 ml",
+          "is_correct": false,
+          "explanation": "This contains a safe total dose of 25 mg, but the smaller volume is less likely to provide adequate caudal spread than 10 ml of 0.25% solution."
+        },
+        {
+          "text": "0.5%, 10 ml",
+          "is_correct": false,
+          "explanation": "This contains 50 mg and exceeds the maximum safe dose for a 12.5 kg child."
+        },
+        {
+          "text": "0.25%, 10 ml",
+          "is_correct": true,
+          "explanation": "This provides 25 mg of levobupivacaine, which is 2 mg kg-1 in a 12.5 kg child, and the 10 ml volume is suitable for caudal spread for inguinal surgery."
+        },
+        {
+          "text": "0.25%, 20 ml",
+          "is_correct": false,
+          "explanation": "This contains 50 mg, which exceeds the usual maximum safe dose of 2 mg kg-1 for this child."
+        },
+        {
+          "text": "0.75%, 3 ml",
+          "is_correct": false,
+          "explanation": "This contains 22.5 mg, which is within the safe dose, but the low volume is likely to give insufficient spread for inguinal hernia repair."
+        }
+      ],
+      "explanation": "The maximum recommended dose of levobupivacaine is approximately 2 mg kg-1, giving a maximum of 25 mg in this child. For caudal anaesthesia, adequate volume is also important for dermatomal spread, making 0.25% 10 ml the best option.",
+      "curriculum_node_codes": [
+        "1_GA_P_4",
+        "1_RA_G_5",
+        "1_RA_H",
+        "1_RA_H_1",
+        "1_RA"
+      ],
+      "curriculum_node_scores": [
+        0.6884146123631965,
+        0.6856135147162377,
+        0.6769529822193974,
+        0.6553924279768282,
+        0.652545148257559
+      ]
+    },
+    {
+      "stem": "A patient with asthma develops severe bronchospasm after taking over-the-counter diclofenac.",
+      "lead": "Increased production of which mediator is most likely to be responsible?",
+      "options": [
+        {
+          "text": "Arachidonic acid",
+          "is_correct": false,
+          "explanation": "Arachidonic acid is the substrate for both cyclo-oxygenase and lipoxygenase pathways, but it is not the final mediator most responsible for NSAID-induced bronchospasm."
+        },
+        {
+          "text": "Leukotrienes",
+          "is_correct": true,
+          "explanation": "Cyclo-oxygenase inhibition diverts arachidonic acid metabolism towards leukotriene production, which can cause bronchoconstriction in susceptible asthmatic patients."
+        },
+        {
+          "text": "Phospholipase A2",
+          "is_correct": false,
+          "explanation": "Phospholipase A2 releases arachidonic acid from membrane phospholipids, but NSAID-exacerbated asthma is mainly due to increased leukotrienes."
+        },
+        {
+          "text": "Prostacyclin",
+          "is_correct": false,
+          "explanation": "Diclofenac inhibits prostaglandin and prostacyclin synthesis rather than increasing it."
+        },
+        {
+          "text": "Thromboxane A2",
+          "is_correct": false,
+          "explanation": "Thromboxane A2 synthesis is reduced by cyclo-oxygenase inhibition and is not the main cause of NSAID-induced bronchospasm."
+        }
+      ],
+      "explanation": "Non-steroidal anti-inflammatory drugs inhibit cyclo-oxygenase. In susceptible patients, arachidonic acid metabolism is shunted towards the lipoxygenase pathway, increasing cysteinyl leukotrienes and causing bronchospasm.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "A new aminosteroid non-depolarising neuromuscular blocker with a molecular weight similar to rocuronium produces satisfactory intubating conditions 45 seconds after administration.",
+      "lead": "Which property is most likely to explain the rapid onset of this new drug?",
+      "options": [
+        {
+          "text": "Clinical intubating dose 2 mg kg-1",
+          "is_correct": true,
+          "explanation": "A larger intubating dose suggests lower potency, meaning more drug molecules are administered and onset is faster by mass action at the neuromuscular junction."
+        },
+        {
+          "text": "Greater potency than rocuronium",
+          "is_correct": false,
+          "explanation": "Greater potency usually means fewer molecules are given for an equipotent dose, which tends to slow onset rather than speed it."
+        },
+        {
+          "text": "Muscle fasciculation",
+          "is_correct": false,
+          "explanation": "Fasciculations are characteristic of depolarising neuromuscular blockers such as suxamethonium, not non-depolarising aminosteroids."
+        },
+        {
+          "text": "Recovery of train of four ratio >0.9 within 15 minutes",
+          "is_correct": false,
+          "explanation": "Rapid recovery depends on redistribution and elimination and does not explain rapid onset."
+        },
+        {
+          "text": "Reversed by sugammadex",
+          "is_correct": false,
+          "explanation": "As an aminosteroid it may be reversible by sugammadex, but this does not explain the speed of onset."
+        }
+      ],
+      "explanation": "The Bowman principle states that less potent neuromuscular blocking drugs require a larger dose, so more molecules reach the neuromuscular junction and onset is faster. Rocuronium's relatively rapid onset compared with more potent agents illustrates this principle.",
+      "curriculum_node_codes": [
+        "1_GA_G3_53",
+        "1_GA_G3_52",
+        "1_GA_G3_51",
+        "1_GA_G3_28",
+        "1_GA_D_4"
+      ],
+      "curriculum_node_scores": [
+        0.7090510464281987,
+        0.697625419207661,
+        0.6769394234909623,
+        0.529384949467719,
+        0.5271802189710968
+      ]
+    },
+    {
+      "stem": "Myocardial contractility is the intrinsic ability of cardiac muscle fibres to do work at a given preload and afterload.",
+      "lead": "Which measure is the best indicator of left ventricular contractility from the options listed?",
+      "options": [
+        {
+          "text": "Ejection fraction",
+          "is_correct": true,
+          "explanation": "Ejection fraction is influenced by loading conditions, but among the listed variables it is the least dependent on preload and afterload and is the best overall indicator."
+        },
+        {
+          "text": "LV end diastolic pressure",
+          "is_correct": false,
+          "explanation": "LV end-diastolic pressure is strongly affected by preload and ventricular compliance, so it is not a good direct measure of contractility."
+        },
+        {
+          "text": "LV end diastolic volume",
+          "is_correct": false,
+          "explanation": "LV end-diastolic volume reflects preload and chamber compliance rather than intrinsic contractile state."
+        },
+        {
+          "text": "LV end systolic pressure",
+          "is_correct": false,
+          "explanation": "LV end-systolic pressure is influenced by afterload and arterial pressure and is not the best standalone measure of contractility."
+        },
+        {
+          "text": "Stroke volume",
+          "is_correct": false,
+          "explanation": "Stroke volume is heavily dependent on preload, afterload, heart rate, and contractility, so it is less specific than ejection fraction."
+        }
+      ],
+      "explanation": "True contractility is difficult to measure clinically because most indices are load dependent. Of the listed choices, ejection fraction is the best practical indicator, though it is still affected by preload and afterload.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "Oxygen delivery to skeletal muscle can increase markedly during vigorous exercise.",
+      "lead": "Which physiological change increases oxygen delivery to exercising skeletal muscle by the greatest factor?",
+      "options": [
+        {
+          "text": "Decreased parasympathetic tone to skeletal muscle",
+          "is_correct": false,
+          "explanation": "Parasympathetic innervation has little direct role in regulating skeletal muscle blood flow compared with local metabolic vasodilatation."
+        },
+        {
+          "text": "Increased cardiac output",
+          "is_correct": false,
+          "explanation": "Cardiac output increases substantially during exercise, typically by about 5- to 10-fold, but this is not the largest local factor."
+        },
+        {
+          "text": "Increased partial pressure gradient for oxygen between capillary blood and mitochondria",
+          "is_correct": false,
+          "explanation": "This improves diffusion but increases by a smaller factor than the increase in muscle blood flow."
+        },
+        {
+          "text": "Relaxation of skeletal muscle precapillary sphincters",
+          "is_correct": true,
+          "explanation": "Local metabolic vasodilatation opens precapillary sphincters and can increase skeletal muscle blood flow by 20- to 30-fold, the largest factor listed."
+        },
+        {
+          "text": "Right shift of the oxyhaemoglobin dissociation curve",
+          "is_correct": false,
+          "explanation": "A right shift facilitates oxygen unloading, but this increases extraction by only a few-fold and is not the dominant mechanism."
+        }
+      ],
+      "explanation": "During exercise, local metabolites such as adenosine, potassium, carbon dioxide, hydrogen ions, and lactate cause arteriolar and precapillary sphincter relaxation. This produces a large increase in muscle perfusion and therefore oxygen delivery.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "Venous blood pH is only slightly lower than arterial blood pH despite the addition of large amounts of carbon dioxide in tissues.",
+      "lead": "Which mechanism best explains this buffering of venous blood pH?",
+      "options": [
+        {
+          "text": "Bohr effect",
+          "is_correct": false,
+          "explanation": "The Bohr effect describes reduced haemoglobin affinity for oxygen in the presence of increased carbon dioxide and hydrogen ions; it does not primarily explain buffering of venous pH."
+        },
+        {
+          "text": "Buffering of H+ ions by plasma proteins",
+          "is_correct": false,
+          "explanation": "Plasma proteins provide some buffering, but this is a minor contribution compared with haemoglobin."
+        },
+        {
+          "text": "Carbon dioxide is very soluble in blood",
+          "is_correct": false,
+          "explanation": "Carbon dioxide solubility contributes to transport but does not adequately explain the limited change in pH."
+        },
+        {
+          "text": "Carbonic anhydrase activity",
+          "is_correct": false,
+          "explanation": "Carbonic anhydrase accelerates conversion of carbon dioxide to bicarbonate and hydrogen ions but does not itself buffer the hydrogen ions."
+        },
+        {
+          "text": "Haldane effect",
+          "is_correct": true,
+          "explanation": "Deoxygenated haemoglobin carries more carbon dioxide and buffers hydrogen ions more effectively, limiting the fall in venous pH."
+        }
+      ],
+      "explanation": "The Haldane effect describes the increased ability of deoxygenated haemoglobin to carry carbon dioxide and buffer hydrogen ions. This is a key reason why large amounts of tissue carbon dioxide can be transported with only a small venous pH fall.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "A patient with a body mass index of 50 kg m-2 and no other notable medical history is positioned from semi-sitting to horizontal for induction of general anaesthesia.",
+      "lead": "Which respiratory change is most important when this patient lies flat?",
+      "options": [
+        {
+          "text": "Chest compliance will decrease",
+          "is_correct": false,
+          "explanation": "Chest wall compliance does decrease in obesity and supine positioning, but this is less immediately important than the fall in functional residual capacity."
+        },
+        {
+          "text": "Functional residual capacity will decrease",
+          "is_correct": true,
+          "explanation": "Supine positioning in morbid obesity markedly reduces functional residual capacity, promoting airway closure, shunt, hypoxaemia, and rapid desaturation during apnoea."
+        },
+        {
+          "text": "Inspiratory reserve volume will increase",
+          "is_correct": false,
+          "explanation": "Inspiratory reserve volume may change with positioning, but this is not the key clinically important effect compared with reduced FRC."
+        },
+        {
+          "text": "Peak expiratory flow rate will decrease",
+          "is_correct": false,
+          "explanation": "Peak expiratory flow may decrease, but it is not the dominant concern during induction."
+        },
+        {
+          "text": "Respiratory rate will increase",
+          "is_correct": false,
+          "explanation": "Respiratory rate may be higher in obesity, but the positional change's most important effect is reduced FRC."
+        }
+      ],
+      "explanation": "In obesity, particularly when supine and anaesthetised, functional residual capacity falls and may approach or fall below closing capacity. This increases atelectasis and shunt and reduces the oxygen reservoir, causing rapid desaturation during apnoea.",
+      "curriculum_node_codes": [
+        "1_GA_B_12",
+        "1_GA_B_25",
+        "1_GA_B_13",
+        "1_GA_H_4",
+        "1_GA_I_1"
+      ],
+      "curriculum_node_scores": [
+        0.6480269089984176,
+        0.6196490613725061,
+        0.6028511021056868,
+        0.5878945321552393,
+        0.5681566534763913
+      ]
+    },
+    {
+      "stem": "In an experimental situation, a myelinated axon is bathed in an electrolyte solution containing chloride, potassium, and sodium ions.",
+      "lead": "Which change would have the greatest effect in making the resting membrane potential less negative?",
+      "options": [
+        {
+          "text": "Decreasing the extracellular concentration of potassium ions",
+          "is_correct": false,
+          "explanation": "Reducing extracellular potassium increases the potassium gradient out of the cell and tends to hyperpolarise the membrane."
+        },
+        {
+          "text": "Decreasing the extracellular concentration of sodium ions",
+          "is_correct": false,
+          "explanation": "The resting membrane is relatively impermeable to sodium, so changing extracellular sodium has relatively little effect on resting membrane potential."
+        },
+        {
+          "text": "Increasing the extracellular concentration of chloride ions",
+          "is_correct": false,
+          "explanation": "Chloride permeability is not the dominant determinant of resting membrane potential in axons compared with potassium permeability."
+        },
+        {
+          "text": "Increasing the extracellular concentration of potassium ions",
+          "is_correct": true,
+          "explanation": "Increasing extracellular potassium reduces the potassium concentration gradient, making the potassium equilibrium potential less negative and depolarising the resting membrane potential."
+        },
+        {
+          "text": "Increasing the extracellular concentration of sodium ions",
+          "is_correct": false,
+          "explanation": "Although sodium has an inward electrochemical gradient, the resting membrane has low sodium permeability, so this has less effect than changing potassium."
+        }
+      ],
+      "explanation": "The resting membrane potential is determined mainly by potassium permeability. Increasing extracellular potassium reduces potassium efflux and makes the membrane potential less negative, as predicted by the Nernst and Goldman equations.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "A sevoflurane vaporiser calibrated at sea level is used in a hospital at 3000 metres altitude without adjustment. Anaesthesia using a dial setting of 1.7–2% sevoflurane in air appears uneventful.",
+      "lead": "Which statement best explains why the vaporiser may be used at similar dial settings at high altitude and sea level?",
+      "options": [
+        {
+          "text": "Depth of anaesthesia is titrated against clinical response not anaesthetic concentration",
+          "is_correct": false,
+          "explanation": "This is true clinically, but it does not explain the physical behaviour of the vaporiser with altitude."
+        },
+        {
+          "text": "Monitors of end tidal vapour concentration compensate for altitude",
+          "is_correct": false,
+          "explanation": "End-tidal agent monitors may display appropriately, but monitoring does not explain vaporiser output."
+        },
+        {
+          "text": "Plenum vaporisers deliver the same partial pressure at any particular dial setting irrespective of ambient pressure",
+          "is_correct": true,
+          "explanation": "Variable-bypass plenum vaporisers effectively deliver a fixed vapour partial pressure for a given dial setting, so the clinically relevant partial pressure is preserved at altitude."
+        },
+        {
+          "text": "Sevoflurane concentration at the vaporiser output increases as ambient pressure decreases",
+          "is_correct": false,
+          "explanation": "This may occur when a fixed partial pressure is delivered at lower barometric pressure, but it is a consequence rather than the best explanation."
+        },
+        {
+          "text": "The temperature drop at higher altitudes has only minimal effect on vaporiser function",
+          "is_correct": false,
+          "explanation": "Temperature compensation is important, but this does not best explain altitude independence of dial settings."
+        }
+      ],
+      "explanation": "Anaesthetic depth is related more closely to partial pressure than volume percent. Modern plenum vaporisers are calibrated to deliver a predictable vapour partial pressure at a given setting, making similar dial settings usable at altitude, although displayed volume percent may change.",
+      "curriculum_node_codes": [
+        "1_GA_F2_16",
+        "1_GA_B_18",
+        "1_GA_G2_56",
+        "1_GA_F3_15",
+        "1_GA_F1_8"
+      ],
+      "curriculum_node_scores": [
+        0.6552015944628167,
+        0.6117488863081917,
+        0.6111315981931682,
+        0.6086284338761914,
+        0.5959277484372407
+      ]
+    },
+    {
+      "stem": "A patient is receiving oxygen therapy via a Venturi face mask with an entrainment ratio of approximately 1:10 and an oxygen flow rate of 6 L min-1.",
+      "lead": "What is the approximate inspired oxygen concentration?",
+      "options": [
+        {
+          "text": "24%",
+          "is_correct": false,
+          "explanation": "This is lower than the calculated concentration for 6 L min-1 oxygen with 60 L min-1 entrained air."
+        },
+        {
+          "text": "28%",
+          "is_correct": true,
+          "explanation": "The mixture is 6 L min-1 oxygen plus 60 L min-1 air: ((6 × 1.0) + (60 × 0.21)) / 66 = 0.282, or about 28%."
+        },
+        {
+          "text": "35%",
+          "is_correct": false,
+          "explanation": "This would require a higher oxygen contribution or lower entrainment of air than in the stated ratio."
+        },
+        {
+          "text": "40%",
+          "is_correct": false,
+          "explanation": "A 40% mixture would require substantially less entrained air relative to oxygen flow."
+        },
+        {
+          "text": "60%",
+          "is_correct": false,
+          "explanation": "This is far higher than expected with a 1:10 oxygen-to-air entrainment ratio."
+        }
+      ],
+      "explanation": "For a Venturi system, inspired oxygen concentration can be estimated by calculating the weighted average of oxygen and entrained air flows. With 6 L min-1 oxygen and 60 L min-1 air, the total oxygen content is 18.6 L min-1 in 66 L min-1, giving approximately 28%.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "An oxygen rotameter bobbin reads 1 L min-1. As the needle valve is opened further the bobbin rises and then comes to rest at the 8 L min-1 marker.",
+      "lead": "Which description best explains why the bobbin comes to rest at the 8 L min-1 marker?",
+      "options": [
+        {
+          "text": "The cross-sectional area of the rotameter tube has increased",
+          "is_correct": false,
+          "explanation": "The tapered tube's cross-sectional area increases as the bobbin rises, but this alone does not explain why it stops at a particular height."
+        },
+        {
+          "text": "The flow has become less laminar",
+          "is_correct": false,
+          "explanation": "Flow characteristics may change around the bobbin, but this is not the fundamental reason it comes to rest."
+        },
+        {
+          "text": "The flow has become more turbulent",
+          "is_correct": false,
+          "explanation": "Turbulence may increase at higher flows, but the bobbin stops because forces balance."
+        },
+        {
+          "text": "The forces acting above and below the bobbin have equalised",
+          "is_correct": true,
+          "explanation": "At equilibrium, upward force from the pressure difference and gas flow equals the bobbin's weight, so it remains stationary at that calibrated flow."
+        },
+        {
+          "text": "The pressure gradient across the bobbin has remained constant during its ascent",
+          "is_correct": false,
+          "explanation": "The pressure gradient does not simply remain constant throughout ascent; the bobbin moves until the opposing forces balance."
+        }
+      ],
+      "explanation": "A rotameter bobbin rises in a tapered tube until the upward forces generated by gas flow and pressure difference equal the downward force of its weight. A stationary bobbin indicates force equilibrium at the calibrated flow.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "An arterial line and its measurement system have an intrinsic resonant bandwidth. The system must be damped to function correctly, and an ideal level of damping is described as optimal damping.",
+      "lead": "Which statement best describes optimal damping?",
+      "options": [
+        {
+          "text": "Damping where overshoots and oscillations are minimised",
+          "is_correct": false,
+          "explanation": "Very high damping can minimise overshoot but causes a slow response and may distort real-time measurements."
+        },
+        {
+          "text": "Damping where real time accuracy is greatest",
+          "is_correct": true,
+          "explanation": "Optimal damping balances response time against overshoot and resonance, giving the most accurate real-time reproduction of the pressure waveform."
+        },
+        {
+          "text": "Damping where the coefficient is between 0 and 1",
+          "is_correct": false,
+          "explanation": "A damping coefficient between 0 and 1 describes underdamping generally, not specifically optimal damping."
+        },
+        {
+          "text": "Damping where the response time is greatest",
+          "is_correct": false,
+          "explanation": "A long response time indicates overdamping and reduces waveform accuracy."
+        },
+        {
+          "text": "Damping where there is least resonance",
+          "is_correct": false,
+          "explanation": "Least resonance alone would imply heavy damping, but optimal damping requires an acceptable response time as well."
+        }
+      ],
+      "explanation": "Optimal damping is the best compromise between rapid response and avoidance of overshoot or oscillation. In arterial pressure monitoring, underdamping exaggerates systolic pressure and oscillations, while overdamping blunts the waveform and slows response.",
+      "curriculum_node_codes": [],
+      "curriculum_node_scores": []
+    },
+    {
+      "stem": "Patients in the operating theatre are routinely connected to multiple items of electrical equipment, making electrical safety essential.",
+      "lead": "Which feature is the most important principle of electrical safety for such equipment?",
+      "options": [
+        {
+          "text": "A current operated earth leakage circuit breaker is in place",
+          "is_correct": false,
+          "explanation": "Residual current devices improve safety but are part of a broader strategy rather than the central principle."
+        },
+        {
+          "text": "An isolation transformer is used",
+          "is_correct": false,
+          "explanation": "Isolation transformers reduce the risk of a current path to earth, but their purpose is to prevent dangerous leakage currents."
+        },
+        {
+          "text": "Avoidance of earth leakage currents",
+          "is_correct": true,
+          "explanation": "The key aim of electrical safety in medical equipment is to prevent leakage currents passing through the patient to earth, especially during invasive monitoring."
+        },
+        {
+          "text": "Equipment is earthed",
+          "is_correct": false,
+          "explanation": "Earthing is important for Class I equipment but does not by itself eliminate the risk of leakage currents, particularly microshock."
+        },
+        {
+          "text": "Equipment meets Class 1 safety standards",
+          "is_correct": false,
+          "explanation": "Class I standards include protective earthing, but the overarching safety goal is avoidance of dangerous leakage currents."
+        }
+      ],
+      "explanation": "Electrical safety in anaesthesia focuses on preventing macroshock and microshock. Avoidance of earth leakage currents is the central rationale behind insulation, earthing, isolation transformers, and equipment design standards.",
+      "curriculum_node_codes": [
+        "1_GA_F1_11",
+        "1_GA_F1_9",
+        "1_GA_F1_25",
+        "1_GA_F1_10",
+        "1_GA_F1_21"
+      ],
+      "curriculum_node_scores": [
+        0.7880840801776525,
+        0.7686511813134231,
+        0.7364012765603931,
+        0.6927255196424085,
+        0.6641330119970732
+      ]
+    },
+    {
+      "stem": "An otherwise healthy 21-year-old woman is anaesthetised for laparoscopic appendicectomy. After rapid sequence induction with fentanyl, propofol and rocuronium, she receives co-amoxiclav, gentamicin, morphine and ondansetron. After skin preparation and before incision, her blood pressure falls and the ventilator high-pressure alarm sounds.",
+      "lead": "Which agent is the most likely cause of this clinical deterioration?",
+      "options": [
+        {
+          "text": "Chlorhexidine",
+          "is_correct": false,
+          "explanation": "Chlorhexidine is an important cause of perioperative anaphylaxis, but in this timing and context it is less common than antibiotics."
+        },
+        {
+          "text": "Co-amoxiclav",
+          "is_correct": true,
+          "explanation": "The combination of hypotension and bronchospasm suggests anaphylaxis; antibiotics are the commonest perioperative cause, and co-amoxiclav is a frequent culprit."
+        },
+        {
+          "text": "Gentamicin",
+          "is_correct": false,
+          "explanation": "Gentamicin can cause allergic reactions but is less commonly implicated than beta-lactam antibiotics such as co-amoxiclav."
+        },
+        {
+          "text": "Morphine",
+          "is_correct": false,
+          "explanation": "Morphine can cause non-IgE histamine release with hypotension or bronchospasm, but severe perioperative anaphylaxis is more likely due to antibiotics."
+        },
+        {
+          "text": "Rocuronium",
+          "is_correct": false,
+          "explanation": "Neuromuscular blocking agents are a common cause of perioperative anaphylaxis, but antibiotics are slightly more frequent overall and co-amoxiclav is the most likely listed agent."
+        }
+      ],
+      "explanation": "Sudden hypotension with increased airway pressure after drug administration is highly suggestive of perioperative anaphylaxis with bronchospasm. NAP6 identified antibiotics as the most frequent cause of perioperative anaphylaxis, with co-amoxiclav commonly implicated.",
+      "curriculum_node_codes": [
+        "1_GA_E_18",
+        "1_GA_A_8",
+        "1_GA_B_3",
+        "1_GA_B_17",
+        "1_GA_B_4"
+      ],
+      "curriculum_node_scores": [
+        0.7931595056105607,
+        0.7808902710360073,
+        0.7364008005026488,
+        0.7196253273375248,
+        0.7138077408071251
+      ]
+    },
+    {
+      "stem": "An otherwise healthy 21-year-old woman under anaesthesia for laparoscopic appendicectomy develops hypotension and increased airway pressure after receiving perioperative drugs, consistent with perioperative anaphylaxis.",
+      "lead": "What is the most appropriate immediate pharmacological treatment?",
+      "options": [
+        {
+          "text": "Adrenaline 0.5 mg IM",
+          "is_correct": false,
+          "explanation": "Intramuscular adrenaline is appropriate in community or ward anaphylaxis, or when IV access is unavailable, but perioperative anaphylaxis with IV access should be treated with IV adrenaline titrated in small boluses."
+        },
+        {
+          "text": "Adrenaline 50 microg IV",
+          "is_correct": true,
+          "explanation": "In adult perioperative anaphylaxis with IV access, adrenaline 50 microg IV boluses are recommended and titrated to response, alongside stopping triggers, calling for help, 100% oxygen and fluids."
+        },
+        {
+          "text": "Chlorphenamine 10 mg IV",
+          "is_correct": false,
+          "explanation": "Antihistamines are not first-line treatment for life-threatening perioperative anaphylaxis and do not treat shock or bronchospasm rapidly."
+        },
+        {
+          "text": "Hartmann’s solution 500 ml bolus",
+          "is_correct": false,
+          "explanation": "IV crystalloid is important because vasodilatation and capillary leak cause relative hypovolaemia, but adrenaline is the key immediate drug."
+        },
+        {
+          "text": "Hydrocortisone 200 mg IV",
+          "is_correct": false,
+          "explanation": "Steroids have a delayed onset and may be considered later or in refractory cases; they are not first-line treatment."
+        }
+      ],
+      "explanation": "Perioperative anaphylaxis should be treated promptly with IV adrenaline when IV access is present, usually in 50 microg adult boluses titrated to effect. Supportive measures include stopping suspected triggers, calling for help, giving 100% oxygen, securing ventilation, and rapid IV fluids.",
+      "curriculum_node_codes": [
+        "1_GA_E_18",
+        "1_GA_B_3",
+        "1_GA_A_8",
+        "1_GA_B_17",
+        "1_GA_B_14"
+      ],
+      "curriculum_node_scores": [
+        0.7793012617392616,
+        0.7684498355666545,
+        0.7570867569775643,
+        0.7499083729144882,
+        0.7410262655256403
+      ]
+    },
+    {
+      "stem": "A 67-year-old man has been admitted to intensive care with an infective exacerbation of COPD. He is receiving antibiotics, steroids and synchronised non-invasive ventilation with FiO2 0.6, inspiratory pressure 12 cmH2O and expiratory pressure 5 cmH2O. He becomes unrousable with respiratory rate 12 min-1. Arterial blood gas shows pH 7.14, PaCO2 11.2 kPa, PaO2 7.4 kPa, HCO3- 34 mmol L-1 and base excess 7.4.",
+      "lead": "What is the most appropriate next step in management?",
+      "options": [
+        {
+          "text": "Doxapram intravenously",
+          "is_correct": false,
+          "explanation": "Doxapram is a respiratory stimulant but is rarely appropriate when a patient is unrousable with severe acidaemia and an unprotected airway."
+        },
+        {
+          "text": "Increase FiO2 to 0.8",
+          "is_correct": false,
+          "explanation": "Increasing FiO2 may improve oxygenation but will not address ventilatory failure and may worsen hypercapnia in COPD."
+        },
+        {
+          "text": "Increase inspiratory pressure",
+          "is_correct": false,
+          "explanation": "Increasing pressure support may improve ventilation, but this patient is unconscious and cannot protect his airway, so NIV is no longer appropriate."
+        },
+        {
+          "text": "Invasive ventilation",
+          "is_correct": true,
+          "explanation": "The patient has severe acute-on-chronic hypercapnic respiratory failure with depressed consciousness and an unprotected airway, requiring tracheal intubation and invasive ventilation."
+        },
+        {
+          "text": "Reduce FiO2 to 0.4",
+          "is_correct": false,
+          "explanation": "Although excessive oxygen can worsen hypercapnia in COPD, this patient is dangerously hypoxaemic and reducing FiO2 would be unsafe."
+        }
+      ],
+      "explanation": "This patient has severe ventilatory failure with marked hypercapnia, acidaemia, hypoxaemia and reduced consciousness. NIV is contraindicated or failing when the patient cannot protect the airway, so intubation and invasive ventilation are required.",
+      "curriculum_node_codes": [
+        "1_GA_K_2",
+        "1_RT_B_7",
+        "1_GA_K_4",
+        "1_ICM_C_1",
+        "1_GA_K"
+      ],
+      "curriculum_node_scores": [
+        0.6542108474077111,
+        0.6461963490378206,
+        0.6158445566584287,
+        0.5847704428726317,
+        0.5711400136859766
+      ]
+    }
+  ]
+}

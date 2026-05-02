@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
@@ -13,6 +14,13 @@ if TYPE_CHECKING:
 _DATA_DIR = Path(__file__).parent.parent / "data"
 EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
 _MATCH_THRESHOLD = 0.4  # cosine similarity; below this = no confident match
+
+
+@dataclass(frozen=True)
+class ResolvedTopic:
+    node: CurriculumNode | None
+    exam: str | None
+    topic: str
 
 
 def l2_to_cosine(d: float) -> float:
@@ -43,6 +51,15 @@ def flatten(root: CurriculumNode) -> list[CurriculumNode]:
     return result
 
 
+def search(nodes: list[CurriculumNode], query: str) -> list[CurriculumNode]:
+    """Return nodes whose code or label contains the query, case-insensitively."""
+    q = query.casefold()
+    return [
+        node for node in nodes
+        if q in node.code.casefold() or q in node.label.casefold()
+    ]
+
+
 def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
     """Return the list of nodes from root to the node with the given code (root excluded)."""
     def _find(node: CurriculumNode, path: list[CurriculumNode]) -> list[CurriculumNode] | None:
@@ -56,6 +73,34 @@ def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
         return None
 
     return _find(root, []) or []
+
+
+def lookup_node(exam: str | None, code: str) -> tuple[CurriculumNode, str] | None:
+    """Look up a curriculum node by exact code, inferring exam when omitted."""
+    exams_to_search = (exam,) if exam else ("primary", "final")
+    for ex in exams_to_search:
+        if ex not in {"primary", "final"}:
+            continue
+        path = node_path(load(ex), code)  # type: ignore[arg-type]
+        if path:
+            return path[-1], ex
+    return None
+
+
+def resolve_topic(exam: str | None, node_code: str | None, topic: str | None) -> ResolvedTopic | None:
+    """Resolve optional node code and topic into generation context."""
+    curriculum_node: CurriculumNode | None = None
+    if node_code:
+        result = lookup_node(exam, node_code)
+        if result is None:
+            return None
+        curriculum_node, exam = result
+    if not topic:
+        if curriculum_node:
+            topic = curriculum_node.label
+        else:
+            return None
+    return ResolvedTopic(node=curriculum_node, exam=exam, topic=topic)
 
 
 def _build_maps(root: CurriculumNode) -> tuple[dict[str, CurriculumNode], dict[str, str]]:
@@ -184,10 +229,25 @@ def match_question_nodes(
     ])
     exams: tuple[Literal["primary", "final"], ...] = (exam,) if exam else ("primary", "final")
     merged: list[tuple[float, CurriculumNode]] = []
+    failures: list[str] = []
     for ex in exams:
         try:
             merged.extend(search_table(query, ex, db_path=db_path, n=n))
-        except Exception:
-            pass
+        except Exception as e:
+            failures.append(f"{ex}: {e}")
+    if failures and not merged:
+        from .console import console
+        console.log(
+            "[yellow]Warning: could not match curriculum nodes "
+            f"({'; '.join(failures)})[/yellow]"
+        )
     merged.sort(key=lambda x: x[0], reverse=True)
     return [(node.code, score) for score, node in merged if score >= threshold][:n]
+
+
+def rematch_questions(questions: list[Question], exam: str | None, db_path: str | Path) -> None:
+    """Replace each question's curriculum node codes and scores with semantic matches."""
+    for q in questions:
+        matches = match_question_nodes(q, exam, db_path=db_path)
+        q.curriculum_node_codes = [code for code, _ in matches]
+        q.curriculum_node_scores = [score for _, score in matches]

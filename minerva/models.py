@@ -58,38 +58,6 @@ class Question(BaseModel):
         sorted_opts = natsorted(self.options, key=lambda o: o.text)
         return self.model_copy(update={"options": sorted_opts})
 
-    def show(self, verbose: bool = False) -> None:
-        from .console import console
-        console.rule(f"[bold red]{self.title}[/bold red]" if self.title else "[bold red]Question[/bold red]")
-        console.print(f"{self.stem}\n")
-        console.print(f"[bold]{self.lead}\n")
-        for i, opt in enumerate(self.options):
-            letter = OPTION_LETTERS[i]
-            console.print(f"\t[cyan]{letter}.[/cyan] {opt.text}")
-        console.print(f"\n[bold]Correct:[/bold] {self.correct_letter}. {self.correct_option.text}\n")
-        for i, opt in enumerate(self.options):
-            letter = OPTION_LETTERS[i]
-            prefix = "[green]✓[/green]" if opt.is_correct else "[red]✗[/red]"
-            console.print(f"  {prefix} [bold]{letter}.[/bold] {opt.explanation}")
-        console.print(f"\n{self.explanation}")
-        if self.curriculum_node_codes:
-            if verbose:
-                from .curriculum import _build_maps, load
-                node_map: dict[str, CurriculumNode] = {}
-                for exam in ("primary", "final"):
-                    nm, _ = _build_maps(load(exam))  # type: ignore[arg-type]
-                    node_map.update(nm)
-                scores = dict(zip(self.curriculum_node_codes, self.curriculum_node_scores))
-                lines = []
-                for c in self.curriculum_node_codes:
-                    label = node_map[c].label if c in node_map else c
-                    score = scores.get(c)
-                    score_str = f" ({score:.2f})" if score is not None else ""
-                    lines.append(f"  {c} — {label}{score_str}")
-                console.print("\n[dim]Curriculum:\n" + "\n".join(lines) + "[/dim]")
-            else:
-                console.print(f"\n[dim]Curriculum: {', '.join(self.curriculum_node_codes)}[/dim]")
-
     def to_md(self) -> str:
         lines = ([f"## {self.title}", ""] if self.title else []) + [self.stem, "", f"**{self.lead}**", ""]
         for i, opt in enumerate(self.options):

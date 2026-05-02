@@ -1,0 +1,231 @@
+{
+  "topic": "Final Frca Sample Sbas",
+  "exam": "final",
+  "curriculum_node_code": null,
+  "model": "openai:gpt-5.5",
+  "generated_at": "2026-05-02T00:00:00Z",
+  "questions": [
+    {
+      "stem": "A 39-year-old male weighing 152 kg and measuring 180 cm is scheduled for laparoscopic gastric bypass under general anaesthesia. A propofol target-controlled infusion using the Eleveld model is planned.",
+      "lead": "Which feature of the Eleveld model best explains its improved dosing accuracy in this patient compared with the Marsh or Schnider models?",
+      "options": [
+        {
+          "text": "It adjusts the ke0 value upward in obese individuals to compensate for increased adipose tissue distribution",
+          "is_correct": false,
+          "explanation": "The Eleveld model does not improve dosing in obesity by increasing ke0. In fact, ke0 tends to decrease with increasing age and obesity in the model, so this statement is inaccurate."
+        },
+        {
+          "text": "It assumes a two-compartment model with slower distribution into peripheral tissues in obese individuals",
+          "is_correct": false,
+          "explanation": "Eleveld is a three-compartment pharmacokinetic-pharmacodynamic model. Its strength is covariate-based and allometric scaling, not a simplified two-compartment assumption."
+        },
+        {
+          "text": "It automatically limits total infusion rates when BMI exceeds 40, to avoid excessive plasma concentrations",
+          "is_correct": false,
+          "explanation": "The Eleveld model does not apply an arbitrary infusion-rate cap based on BMI. It calculates doses from pharmacokinetic parameters adjusted continuously for patient covariates."
+        },
+        {
+          "text": "It includes continuous covariate-based scaling of both volume and clearance using fat-free mass and applies allometric functions to account for obesity",
+          "is_correct": true,
+          "explanation": "Eleveld incorporates continuous covariates including age, sex, height, weight and fat-free mass, and uses allometric scaling for volumes and clearances. This gives more robust predictions at extremes of body weight than models based on total body weight or fixed lean body mass equations."
+        },
+        {
+          "text": "It uses fixed lean body mass estimates, thereby preventing overdose in obese patients",
+          "is_correct": false,
+          "explanation": "Fixed lean body mass estimates are a limitation of the Schnider model, especially at extremes of body size. Eleveld avoids this by using continuous covariate and allometric scaling."
+        }
+      ],
+      "explanation": "The Eleveld propofol model was derived from a large dataset across a broad range of ages and body sizes. Unlike Marsh, which scales linearly with total body weight and may overdose obese patients, and Schnider, which uses lean body mass equations that may be unreliable at extremes, Eleveld uses covariate-based and allometric scaling of pharmacokinetic and pharmacodynamic parameters. This makes it better suited to morbidly obese patients undergoing TCI anaesthesia.",
+      "curriculum_node_codes": [
+        "2_GA_X_1"
+      ],
+      "curriculum_node_scores": [
+        0.5004564077727434
+      ]
+    },
+    {
+      "stem": "A 58-year-old woman presents 18 hours after sudden-onset headache and collapse. CT confirms diffuse subarachnoid haemorrhage without hydrocephalus and CT angiography demonstrates a 6 mm anterior communicating artery aneurysm. She is undergoing endovascular coiling under general anaesthesia in the neurointerventional suite. She is GCS 15, has received oral nimodipine, has arterial and large-bore intravenous access, and during the case her MAP falls to 55 mmHg with an EtCO2 of 4.3 kPa as the microcatheter is about to cross the aneurysm neck.",
+      "lead": "Which action is most appropriate to optimise cerebral physiology at this point?",
+      "options": [
+        {
+          "text": "Administer labetalol to blunt potential BP surges during microcatheter passage",
+          "is_correct": false,
+          "explanation": "Labetalol would worsen the current hypotension and reduce cerebral perfusion pressure. Although hypertension may increase rebleeding risk before aneurysm securing, this immediate problem is inadequate MAP."
+        },
+        {
+          "text": "Administer mannitol 0.5 g/kg IV to reduce cerebral swelling",
+          "is_correct": false,
+          "explanation": "There is no evidence of raised intracranial pressure, hydrocephalus or cerebral swelling in the scenario. Mannitol may also worsen hypotension through osmotic diuresis and reduce cerebral perfusion."
+        },
+        {
+          "text": "Hyperventilate the patient to EtCO2 of 3.5 kPa to reduce cerebral blood volume",
+          "is_correct": false,
+          "explanation": "Hyperventilation causes cerebral vasoconstriction and can reduce cerebral blood flow. In a patient with SAH and impaired autoregulation, this may worsen ischaemia."
+        },
+        {
+          "text": "Reduce anaesthetic depth to increase BP and allow cerebral vasodilation",
+          "is_correct": false,
+          "explanation": "Lightening anaesthesia is unpredictable and risks awareness, movement and haemodynamic surges during a critical neurointerventional step. Vasopressor support is a more controlled method of restoring cerebral perfusion pressure."
+        },
+        {
+          "text": "Start phenylephrine infusion",
+          "is_correct": true,
+          "explanation": "Phenylephrine will increase MAP and support cerebral perfusion pressure while avoiding unnecessary cerebral vasodilation or hypercapnia. Maintaining adequate CPP is critical during aneurysm manipulation after SAH."
+        }
+      ],
+      "explanation": "During endovascular treatment of aneurysmal subarachnoid haemorrhage, cerebral autoregulation may be impaired and hypotension can rapidly cause cerebral ischaemia. With an unsecured aneurysm, extreme hypertension should be avoided, but a MAP of 55 mmHg is inadequate. Normocapnia and restoration of MAP using a vasopressor such as phenylephrine are appropriate; hyperventilation, mannitol or beta-blockade would risk worsening cerebral perfusion.",
+      "curriculum_node_codes": [
+        "2_GA_C_5",
+        "2_GA_M_8",
+        "2_RT_G_3",
+        "2_GA_C_4",
+        "2_GA_N_2"
+      ],
+      "curriculum_node_scores": [
+        0.6749444928496313,
+        0.6465697865022388,
+        0.5367042416219316,
+        0.5080567037959369,
+        0.5032783476187603
+      ]
+    },
+    {
+      "stem": "A 42-year-old ASA I male is undergoing laparoscopic adrenalectomy under TIVA with target-controlled propofol at an effect-site target of 4.0 micrograms/mL and remifentanil at 2.5 ng/mL. He received rocuronium 50 mg 30 minutes previously. BIS monitoring with full EEG and density spectral array display is in use. Midway through surgery the BIS rises from 44 to 58 over 5 minutes, the DSA shows loss of delta and alpha power, prominent high-frequency beta activity with increased EMG contamination, and the raw EEG shows low-amplitude high-frequency activity without burst suppression or artefact. Blood pressure and heart rate are unchanged and the propofol and remifentanil infusions are confirmed to be running and connected, while the surgeon is using intermittent diathermy.",
+      "lead": "What is the most appropriate action?",
+      "options": [
+        {
+          "text": "Administer a bolus of rocuronium to remove EMG interference",
+          "is_correct": false,
+          "explanation": "Although EMG can increase BIS, the combined loss of alpha and delta activity with persistent beta activity suggests light anaesthesia rather than isolated muscle artefact. Further paralysis could mask movement without treating awareness risk."
+        },
+        {
+          "text": "Decrease the propofol target concentration to prevent propofol-related burst suppression and hypotension",
+          "is_correct": false,
+          "explanation": "The EEG does not show burst suppression or excessive anaesthetic depth. Decreasing propofol would worsen the pattern consistent with inadequate hypnosis."
+        },
+        {
+          "text": "Increase the propofol effect-site target concentration",
+          "is_correct": true,
+          "explanation": "Rising BIS, loss of alpha and delta power, beta activation and low-amplitude high-frequency EEG activity are consistent with light anaesthesia. Increasing propofol target addresses inadequate hypnosis and reduces awareness risk in a paralysed patient."
+        },
+        {
+          "text": "Increase the remifentanil effect-site target concentration",
+          "is_correct": false,
+          "explanation": "Remifentanil treats nociceptive responses but is not a reliable hypnotic agent. Stable haemodynamics and EEG features of arousal point to a need to deepen hypnosis with propofol rather than increase opioid alone."
+        },
+        {
+          "text": "Reposition EEG electrodes and reassess trace quality as this is likely to be diathermy interference",
+          "is_correct": false,
+          "explanation": "Diathermy artefact is usually transient, with spikes, dropout or obvious high-amplitude interference. A sustained drift in BIS with EEG/DSA features of arousal is more consistent with inadequate hypnotic depth."
+        }
+      ],
+      "explanation": "Processed EEG values should be interpreted alongside the raw EEG and spectral display. Loss of anaesthetic alpha/delta power with increasing beta activity and rising BIS suggests light anaesthesia or arousal, even if haemodynamics are stable, particularly during remifentanil anaesthesia and neuromuscular blockade. Diathermy artefact is typically transient and recognisable. The appropriate response is to increase hypnotic depth, most directly by increasing the propofol target.",
+      "curriculum_node_codes": [
+        "2_GA_K_6",
+        "2_GA_L_4",
+        "2_RA",
+        "2_GA",
+        "2_GA_K_5"
+      ],
+      "curriculum_node_scores": [
+        0.7620287126074867,
+        0.7347220659790406,
+        0.6883832274875044,
+        0.6849363826438246,
+        0.6790195787121931
+      ]
+    },
+    {
+      "stem": "A 34-year-old woman with drug-resistant epilepsy has an implanted left-cervical vagus nerve stimulator and presents for elective laparoscopic cholecystectomy.",
+      "lead": "Which management step is most appropriate before induction of general anaesthesia?",
+      "options": [
+        {
+          "text": "Apply a magnet over the VNS generator at the time of induction only",
+          "is_correct": false,
+          "explanation": "A magnet may temporarily inhibit or alter stimulation depending on the device and how it is applied, but this is less reliable than formal deactivation. It also does not address stimulation during the rest of the perioperative period."
+        },
+        {
+          "text": "Formally deactivate the VNS device before induction of general or spinal anaesthesia",
+          "is_correct": true,
+          "explanation": "Association of Anaesthetists guidance advises that it is generally safer to formally deactivate vagus nerve stimulation devices before general or spinal anaesthesia. This reduces the risk of airway, respiratory, cardiac and equipment-related complications."
+        },
+        {
+          "text": "Leave the device active and proceed with routine anaesthetic and surgical care",
+          "is_correct": false,
+          "explanation": "Leaving the VNS active risks bradyarrhythmia, cough, airway obstruction, apnoea and interference with monitoring or surgical equipment. Routine care without a device plan is not recommended."
+        },
+        {
+          "text": "Leave the device active but avoid electrocautery during the procedure",
+          "is_correct": false,
+          "explanation": "Avoiding or modifying electrocautery may reduce electromagnetic interference, but it does not prevent physiological complications from ongoing vagal stimulation. Formal deactivation remains the safer perioperative strategy."
+        },
+        {
+          "text": "Program the VNS to maximum stimulation (“burst mode”) immediately prior to surgery",
+          "is_correct": false,
+          "explanation": "Increasing stimulation would increase the risk of vagally mediated bradyarrhythmias and respiratory or airway complications. It is contraindicated as a routine perioperative approach."
+        }
+      ],
+      "explanation": "Vagus nerve stimulators may cause perioperative complications including bradycardia, asystole, cough, laryngospasm, airway obstruction, apnoea and interference with electrocautery or monitoring. Current guidance supports planned formal deactivation before general or spinal anaesthesia where feasible, with appropriate arrangements for reactivation after surgery and seizure management planning.",
+      "curriculum_node_codes": [
+        "2_GA_K_9",
+        "2_GA_K_1",
+        "2_GA_L_4",
+        "2_GA_Q_3",
+        "2_GA_N_6"
+      ],
+      "curriculum_node_scores": [
+        0.7830429098484739,
+        0.7725587728657342,
+        0.7587506491503699,
+        0.7551602828528399,
+        0.7513344046915051
+      ]
+    },
+    {
+      "stem": "A 12-year-old girl with cerebral palsy is scheduled for bilateral pelvic osteotomies. She is gastrostomy-fed, non-ambulant, and takes baclofen and sodium valproate. She has mild scoliosis and occasional gastro-oesophageal reflux.",
+      "lead": "Which analgesic strategy is most appropriate to provide effective analgesia while minimising complications specific to her condition?",
+      "options": [
+        {
+          "text": "Bilateral fascia iliaca blocks under ultrasound guidance with levobupivacaine 0.25% (0.5 ml/kg per side)",
+          "is_correct": false,
+          "explanation": "Fascia iliaca blocks may help anterior hip or thigh pain but do not reliably cover posterior pelvic pain or muscle spasm after pelvic osteotomies. Analgesia would therefore be incomplete."
+        },
+        {
+          "text": "Continuous intravenous morphine infusion titrated to comfort",
+          "is_correct": false,
+          "explanation": "Systemic morphine alone is less effective for this severe orthopaedic pain and increases risks of respiratory depression, sedation, ileus and delayed gastric emptying. These are particularly problematic in a child with cerebral palsy, reflux and potentially impaired airway protection."
+        },
+        {
+          "text": "Continuous lumbar epidural with bupivacaine 0.1% and fentanyl 2 micrograms/ml",
+          "is_correct": true,
+          "explanation": "A continuous lumbar epidural provides high-quality segmental analgesia for severe pelvic osteotomy pain, reduces muscle spasm and lowers systemic opioid requirements. Low-concentration local anaesthetic with opioid can preserve some motor function while providing prolonged analgesia."
+        },
+        {
+          "text": "Intrathecal morphine (3 micrograms/kg) at the end of surgery combined with multimodal oral analgesia",
+          "is_correct": false,
+          "explanation": "Intrathecal morphine may provide early analgesia but has limited and variable duration and carries a risk of delayed respiratory depression. This is undesirable in a child with cerebral palsy and potential respiratory or secretion-management vulnerability."
+        },
+        {
+          "text": "Single-shot caudal epidural with 0.25% bupivacaine (1 ml/kg) and clonidine 1 microgram/kg",
+          "is_correct": false,
+          "explanation": "A single-shot caudal would provide insufficient duration for major bilateral pelvic osteotomies, where analgesia is needed for days. Clonidine may also contribute to sedation and hypotension."
+        }
+      ],
+      "explanation": "Children with cerebral palsy undergoing major pelvic surgery experience severe somatic pain and muscle spasm, while systemic opioids can worsen respiratory, gastrointestinal and airway-related complications. A continuous lumbar or low thoracic epidural using low-concentration local anaesthetic with opioid provides prolonged segmental analgesia, reduces spasm and minimises opioid exposure. Scoliosis or altered anatomy may make placement more difficult, so placement under direct vision or with appropriate expertise should be considered.",
+      "curriculum_node_codes": [
+        "2_RA_E_6",
+        "2_GA_N_5",
+        "2_RA_E_3",
+        "2_RA_E_1",
+        "2_GA_N_3"
+      ],
+      "curriculum_node_scores": [
+        0.714002245630466,
+        0.6564110768649964,
+        0.6560465322083626,
+        0.6318417619161707,
+        0.631785499077516
+      ]
+    }
+  ]
+}

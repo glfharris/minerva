@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from .models import QuestionSet
+from .paths import slugify
 
 
 def load_questionset(path: Path) -> QuestionSet:
@@ -14,8 +14,7 @@ def default_filename(qs: QuestionSet, suffix: str = ".json") -> str:
     if qs.curriculum_node_code:
         slug = qs.curriculum_node_code
     else:
-        slug = re.sub(r"[^a-z0-9]+", "_", qs.topic.lower()).strip("_")[:40].strip("_")
-        slug = slug or "questions"  # guard against empty slug (e.g. topic was all symbols)
+        slug = slugify(qs.topic, max_len=40, fallback="questions")
     date = qs.generated_at.strftime("%Y-%m-%d")
     return f"{slug}_{date}{suffix}"
 
@@ -37,6 +36,9 @@ def save_json(qs: QuestionSet, path: Path) -> Path:
 
 
 def save_markdown(qs: QuestionSet, path: Path) -> Path:
+    path = Path(path)
+    if path.suffix and path.suffix.lower() != ".md":
+        path = path.with_suffix(".md")
     path = _resolve_path(qs, path, ".md")
     body = "\n\n---\n\n".join(q.to_md() for q in qs.questions)
     header = f"# {qs.topic}\n\nGenerated: {qs.generated_at.strftime('%Y-%m-%d')}  |  Model: {qs.model}\n\n---\n\n"
