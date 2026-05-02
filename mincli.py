@@ -27,10 +27,10 @@ from rich.table import Table
 from minerva.agent import Deps, critique_questions, convert_questions, load_example_messages, make_agent
 from pydantic_ai.usage import RunUsage
 from minerva.console import console
-from minerva.curriculum import EMBED_MODEL, l2_to_cosine, load, match_question_nodes, node_path, search_table
+from minerva.curriculum import _MATCH_THRESHOLD, _make_embedder, EMBED_MODEL, l2_to_cosine, load, match_question_nodes, node_path, search_table
 from minerva.embed import EmbedClient
 from minerva.models import CurriculumNode, QuestionSet
-from minerva.output import save_json, save_markdown
+from minerva.output import load_questionset, save_json, save_markdown
 from minerva.quiz import run_quiz
 
 load_dotenv()
@@ -52,28 +52,11 @@ _DEFAULT_EMBED = f"sentence-transformers:{EMBED_MODEL}"
 _DEFAULT_DB = Path(os.environ.get("LANCEDB_DIR", "./lancedb"))
 
 
-# (input $/1M tokens, output $/1M tokens)
-_MODEL_PRICING: dict[str, tuple[float, float]] = {
-    "openai:gpt-5.4-mini":                 (0.75,   4.50),
-    "openai:gpt-4o":                       (2.50,  10.00),
-    "openai:gpt-4o-mini":                  (0.15,   0.60),
-    "openai:o1":                           (15.00,  60.00),
-    "anthropic:claude-opus-4-6":           (5.00,   25.00),
-    "anthropic:claude-sonnet-4-6":         (3.00,   15.00),
-    "anthropic:claude-haiku-4-5-20251001": (0.80,    4.00),
-}
-
-
-def _format_usage(usage: RunUsage, model: str, label: str = "Usage") -> str:
+def _format_usage(usage: RunUsage, label: str = "Usage") -> str:
     req = usage.input_tokens or 0
     resp = usage.output_tokens or 0
     total = usage.total_tokens or (req + resp)
-    parts = [f"{label}: {req:,} in / {resp:,} out / {total:,} total tokens"]
-    if model in _MODEL_PRICING:
-        in_price, out_price = _MODEL_PRICING[model]
-        cost = (req * in_price + resp * out_price) / 1_000_000
-        parts.append(f"≈ ${cost:.4f}")
-    return "  ".join(parts)
+    return f"{label}: {req:,} in / {resp:,} out / {total:,} total tokens"
 
 
 def _sum_usage(*usages: RunUsage) -> RunUsage:
@@ -112,14 +95,18 @@ def _show_critique(critique_result, original_questions: list, show_feedback: boo
     return revised
 
 
-def _lookup_node(exam: Exam, code: str) -> CurriculumNode | None:
-    """Look up a curriculum node by exact code."""
-    root = load(exam)  # type: ignore[arg-type]
-    path = node_path(root, code)
-    if not path:
-        console.print(f"[red]No curriculum node found with code '{code}'[/red]")
-        return None
-    return path[-1]
+def _lookup_node(exam: Exam | None, code: str) -> tuple[CurriculumNode, Exam] | None:
+    """Look up a curriculum node by exact code.
+
+    If exam is None, searches both trees and derives the exam from whichever contains the node.
+    """
+    exams_to_search = [exam] if exam else [Exam.primary, Exam.final]
+    for ex in exams_to_search:
+        path = node_path(load(ex), code)  # type: ignore[arg-type]
+        if path:
+            return path[-1], ex
+    console.print(f"[red]No curriculum node found with code '{code}'[/red]")
+    return None
 
 
 def _rematch_questions(questions: list, exam: str | None, db_path: Path) -> None:
@@ -188,32 +175,48 @@ def match(
     exam: Annotated[Exam, typer.Option(help="Curriculum exam (curriculum only)")] = Exam.primary,
     top: Annotated[int, typer.Option(help="Number of top matches to show")] = 5,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show extra detail per result")] = False,
 ) -> None:
     """Search curriculum nodes or embedded documents for a topic."""
+    if verbose:
+        console.print(f"[dim]Embedding model: {_DEFAULT_EMBED}[/dim]")
+        console.print(f"[dim]DB:              {db}[/dim]")
+
     if source == Source.curriculum:
+        with console.status("Loading embedding model…"):
+            _make_embedder()
         with console.status("Searching curriculum…"):
             matches = search_table(topic, exam, db_path=db, n=top)  # type: ignore[arg-type]
 
+        root = load(exam)  # type: ignore[arg-type]
         table = Table(show_header=True, header_style="bold")
         table.add_column("Score", width=7)
         table.add_column("Code", width=16)
         table.add_column("Label")
+        if verbose:
+            table.add_column("Path", style="dim")
 
         for score, node in matches:
             colour = "green" if score >= 0.4 else "yellow"
-            table.add_row(f"[{colour}]{score:.2f}[/{colour}]", node.code, node.label)
+            row = [f"[{colour}]{score:.2f}[/{colour}]", node.code, node.label]
+            if verbose:
+                ancestors = node_path(root, node.code)[:-1]  # exclude the node itself
+                row.append(" > ".join(n.label for n in ancestors) if ancestors else "")
+            table.add_row(*row)
 
         console.print(table)
 
     elif source == Source.docs:
-        with console.status("Searching documents…"):
+        with console.status("Loading embedding model…"):
             client = EmbedClient(db_path=db)
+        with console.status("Searching documents…"):
             results = client.search_docs(topic, n=top)
 
         if results.empty:
             console.print("[yellow]No results found — have you embedded any documents?[/yellow]")
             return
 
+        snippet_len = 300 if verbose else 120
         table = Table(show_header=True, header_style="bold")
         table.add_column("Score", width=7)
         table.add_column("Source")
@@ -223,8 +226,8 @@ def match(
         for _, row in results.iterrows():
             d = float(row["_distance"])
             score = l2_to_cosine(d)
-            source_name = Path(row["source"]).name
-            snippet = row["text"][:120].replace("\n", " ")
+            source_name = str(row["source"]) if verbose else Path(row["source"]).name
+            snippet = row["text"][:snippet_len].replace("\n", " ")
             colour = "green" if score >= 0.4 else "yellow"
             table.add_row(f"[{colour}]{score:.2f}[/{colour}]", source_name, str(int(row["page"])), snippet)
 
@@ -247,7 +250,12 @@ def create(
     critique: Annotated[bool, typer.Option("--critique", help="Run a self-critique pass to improve questions")] = False,
 ) -> None:
     """Generate SBA questions on a topic."""
-    curriculum_node = _lookup_node(exam, node) if (exam and node) else None
+    curriculum_node = None
+    if node:
+        result = _lookup_node(exam, node)
+        if result is None:
+            raise typer.Exit(1)
+        curriculum_node, exam = result
 
     if not topic:
         if curriculum_node:
@@ -259,9 +267,9 @@ def create(
     if verbose:
         console.print(f"[dim]LLM model:       {model}[/dim]")
         console.print(f"[dim]Embedding model: {embed_model}[/dim]")
+        console.print(f"[dim]DB:              {db}[/dim]")
 
     # --- Node selection ---
-    _MATCH_THRESHOLD = 0.4
     if exam and not curriculum_node:
         with console.status("Matching curriculum…"):
             matches = search_table(topic, exam, db_path=db, n=10)
@@ -272,18 +280,18 @@ def create(
             generation_plan: list[tuple[CurriculumNode | None, int]] = [(None, count)]
         elif count == 1:
             score, selected = random.choice(candidates)
-            console.log(f"Curriculum: [bold]{selected.code}[/bold] — {selected.label} [dim](similarity {score:.2f})[/dim]")
+            console.print(f"Curriculum: [bold]{selected.code}[/bold] — {selected.label} [dim](similarity {score:.2f})[/dim]")
             generation_plan = [(selected, 1)]
         else:
             n_unique = min(count, len(candidates))
             selected_nodes = [candidates[i % len(candidates)][1] for i in range(count)]
             random.shuffle(selected_nodes)
-            console.log(f"Distributing {count} question(s) across {n_unique} curriculum node(s):")
+            console.print(f"Distributing {count} question(s) across {n_unique} curriculum node(s):")
             seen: set[str] = set()
             for cnode in selected_nodes:
                 if cnode.code not in seen:
                     sc = next(s for s, cn in candidates if cn.code == cnode.code)
-                    console.log(f"  [bold]{cnode.code}[/bold] — {cnode.label} [dim](similarity {sc:.2f})[/dim]")
+                    console.print(f"  [bold]{cnode.code}[/bold] — {cnode.label} [dim](similarity {sc:.2f})[/dim]")
                     seen.add(cnode.code)
             generation_plan = [(cnode, 1) for cnode in selected_nodes]
     else:
@@ -311,13 +319,15 @@ def create(
                     topic=topic,
                     count=gen_count,
                     model=model,
-                    exam=str(exam) if exam else None,
+                    exam=exam,
                     node=gen_node,
                     retriever=retriever,
                     verbose=verbose,
                     prior_stems=prior_stems if prior_stems else None,
                 )
             )
+        if verbose and total_calls > 1:
+            console.print(f"[dim]{_format_usage(usage_i, label=f'Q{i + 1}')}[/dim]")
         prior_stems.extend(q.stem for q in qs_i.questions)
         all_questions.extend(qs_i.questions)
         all_usages.append(usage_i)
@@ -329,16 +339,16 @@ def create(
 
     if verbose:
         label = "Total" if total_calls > 1 else "Generate"
-        console.print(f"[dim]{_format_usage(usage, model, label=label)}[/dim]")
+        console.print(f"[dim]{_format_usage(usage, label=label)}[/dim]")
 
     with console.status("Matching curriculum nodes…"):
-        _rematch_questions(qs.questions, str(exam) if exam else None, db)
+        _rematch_questions(qs.questions, exam, db)
 
     if critique:
         with console.status("Critiquing questions…"):
             critique_result, critique_usage = asyncio.run(critique_questions(qs, model))
         if verbose:
-            console.print(f"[dim]{_format_usage(critique_usage, model, label='Critique')}[/dim]")
+            console.print(f"[dim]{_format_usage(critique_usage, label='Critique')}[/dim]")
         qs.questions = _show_critique(critique_result, qs.questions, show_feedback=verbose, show_diff=verbose)
 
     for q in qs.questions:
@@ -371,7 +381,7 @@ def embed(
     """Embed PDF documents into the vector store."""
     if verbose:
         console.print(f"[dim]Embedding model: {model}[/dim]")
-        console.print(f"[dim]LanceDB path:     {db}[/dim]")
+        console.print(f"[dim]DB:              {db}[/dim]")
 
     with console.status("Loading embedding model…"):
         client = EmbedClient(db_path=db, embedding_model=model, verbose=verbose)
@@ -406,13 +416,18 @@ def quiz(
     """Run an interactive terminal quiz."""
     if file:
         try:
-            qs = QuestionSet.model_validate_json(file.read_text())
+            qs = load_questionset(file)
         except Exception as e:
             console.print(f"[red]Could not load '{file}': {e}[/red]")
             raise typer.Exit(1)
         console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
     elif topic:
-        curriculum_node = _lookup_node(exam, node) if (exam and node) else None
+        curriculum_node = None
+        if node:
+            result = _lookup_node(exam, node)
+            if result is None:
+                raise typer.Exit(1)
+            curriculum_node, exam = result
 
         save_dir = output or Path("./output")
         console.print(f"[dim]Questions will be saved to:[/dim] {save_dir}")
@@ -420,6 +435,7 @@ def quiz(
         if verbose:
             console.print(f"[dim]LLM model:       {model}[/dim]")
             console.print(f"[dim]Embedding model: {embed_model}[/dim]")
+            console.print(f"[dim]DB:              {db}[/dim]")
 
         with console.status("Loading embedding model…"):
             retriever = EmbedClient(db_path=db, embedding_model=embed_model, verbose=verbose)
@@ -437,7 +453,7 @@ def quiz(
                 )
             )
         if verbose:
-            console.print(f"[dim]{_format_usage(usage, model, label='Generate')}[/dim]")
+            console.print(f"[dim]{_format_usage(usage, label='Generate')}[/dim]")
         saved = save_json(qs, save_dir)
         console.print(f"[green]Saved:[/green] {saved}")
     else:
@@ -455,8 +471,10 @@ def critique(
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show diff alongside feedback")] = False,
 ) -> None:
     """Run a critique pass on a saved QuestionSet JSON file."""
+    if verbose:
+        console.print(f"[dim]LLM model: {model}[/dim]")
     try:
-        qs = QuestionSet.model_validate_json(file.read_text())
+        qs = load_questionset(file)
     except Exception as e:
         console.print(f"[red]Could not load '{file}': {e}[/red]")
         raise typer.Exit(1)
@@ -467,7 +485,7 @@ def critique(
         critique_result, critique_usage = asyncio.run(critique_questions(qs, model))
 
     if verbose:
-        console.print(f"[dim]{_format_usage(critique_usage, model, label='Critique')}[/dim]")
+        console.print(f"[dim]{_format_usage(critique_usage, label='Critique')}[/dim]")
 
     qs.questions = _show_critique(critique_result, qs.questions, show_feedback=True, show_diff=verbose)
 
@@ -520,19 +538,22 @@ def convert(
         raise typer.Exit(1)
 
     if verbose:
-        console.print(f"[dim]Model: {model}[/dim]")
-        console.print(f"[dim]Input length: {len(raw):,} chars[/dim]")
+        console.print(f"[dim]LLM model: {model}[/dim]")
+        console.print(f"[dim]DB:        {db}[/dim]")
+        console.print(f"[dim]Input:     {len(raw):,} chars[/dim]")
 
     with console.status("Converting questions…"):
         qs, usage = asyncio.run(convert_questions(raw, derived_topic, model))
 
     if exam:
-        qs.exam = str(exam)
+        qs.exam = exam
+    with console.status("Loading embedding model…"):
+        _make_embedder()
     with console.status("Matching curriculum nodes…"):
-        _rematch_questions(qs.questions, str(exam) if exam else None, db)
+        _rematch_questions(qs.questions, exam, db)
 
     if verbose:
-        console.print(f"[dim]{_format_usage(usage, model, label='Convert')}[/dim]")
+        console.print(f"[dim]{_format_usage(usage, label='Convert')}[/dim]")
 
     console.print(f"[green]Parsed {len(qs.questions)} question(s)[/green]")
     for q in qs.questions:
@@ -585,7 +606,7 @@ def make_history(
 
     for file in files:
         try:
-            qs = QuestionSet.model_validate_json(file.read_text())
+            qs = load_questionset(file)
         except Exception as e:
             console.print(f"[red]Could not load '{file}': {e}[/red]")
             continue

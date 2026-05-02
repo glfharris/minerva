@@ -5,7 +5,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from .console import console
-from .models import Question
+from .models import OPTION_LETTERS, Question
 
 
 def run_quiz(questions: list[Question]) -> None:
@@ -18,7 +18,7 @@ def run_quiz(questions: list[Question]) -> None:
 
         body = f"{question.stem}\n\n[bold]{question.lead}[/bold]\n\n"
         for j, opt in enumerate(question.options):
-            body += f"  [cyan]{'ABCDE'[j]}.[/cyan] {opt.text}\n"
+            body += f"  [cyan]{OPTION_LETTERS[j]}.[/cyan] {opt.text}\n"
 
         console.print(Panel(body.rstrip(), expand=False))
 
@@ -36,7 +36,7 @@ def run_quiz(questions: list[Question]) -> None:
         # Re-display options with colour coding and per-option explanations
         lines = []
         for j, opt in enumerate(question.options):
-            letter = "ABCDE"[j]
+            letter = OPTION_LETTERS[j]
             if letter == correct_letter:
                 lines.append(f"  [bold green]{letter}.[/bold green] [green]{opt.text}[/green]")
                 lines.append(f"    [dim]{opt.explanation}[/dim]")

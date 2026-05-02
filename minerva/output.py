@@ -6,6 +6,10 @@ from pathlib import Path
 from .models import QuestionSet
 
 
+def load_questionset(path: Path) -> QuestionSet:
+    return QuestionSet.model_validate_json(Path(path).read_text())
+
+
 def default_filename(qs: QuestionSet, suffix: str = ".json") -> str:
     if qs.curriculum_node_code:
         slug = qs.curriculum_node_code

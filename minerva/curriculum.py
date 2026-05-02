@@ -43,12 +43,6 @@ def flatten(root: CurriculumNode) -> list[CurriculumNode]:
     return result
 
 
-def search(nodes: list[CurriculumNode], query: str) -> list[CurriculumNode]:
-    """Case-insensitive substring match on code or label."""
-    q = query.lower()
-    return [n for n in nodes if q in n.code.lower() or q in n.label.lower()]
-
-
 def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
     """Return the list of nodes from root to the node with the given code (root excluded)."""
     def _find(node: CurriculumNode, path: list[CurriculumNode]) -> list[CurriculumNode] | None:
@@ -145,31 +139,6 @@ def _open_table(exam: Literal["primary", "final"], db_path: str | Path):
     import lancedb
     db = lancedb.connect(str(db_path))
     return _get_table(db, exam)
-
-
-def match_topic(
-    topic: str,
-    exam: Literal["primary", "final"],
-    db_path: str | Path = "./lancedb",
-    threshold: float = _MATCH_THRESHOLD,
-) -> CurriculumNode | None:
-    """Embed topic and return the best-matching curriculum node, or None if below threshold."""
-    table, _ = _open_table(exam, db_path)
-
-    # LanceDB uses L2 distance on normalised vectors; cosine similarity = 1 - (d² / 2)
-    results = table.search(topic).limit(1).to_pandas()
-    if results.empty:
-        return None
-
-    best = results.iloc[0]
-    similarity = l2_to_cosine(float(best["_distance"]))
-
-    if similarity < threshold:
-        return None
-
-    root = load(exam)
-    node_map, _ = _build_maps(root)
-    return node_map.get(best["code"])
 
 
 def search_table(

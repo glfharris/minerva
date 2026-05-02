@@ -5,6 +5,9 @@ from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 
 
+OPTION_LETTERS = "ABCDE"
+
+
 class CurriculumNode(BaseModel):
     code: str
     label: str
@@ -45,7 +48,7 @@ class Question(BaseModel):
     def correct_letter(self) -> str:
         for i, opt in enumerate(self.options):
             if opt.is_correct:
-                return "ABCDE"[i]
+                return OPTION_LETTERS[i]
         raise ValueError(f"No correct option marked in question: {self.lead!r}")
 
     def with_sorted_options(self) -> Question:
@@ -60,11 +63,11 @@ class Question(BaseModel):
         console.print(f"{self.stem}\n")
         console.print(f"[bold]{self.lead}\n")
         for i, opt in enumerate(self.options):
-            letter = "ABCDE"[i]
+            letter = OPTION_LETTERS[i]
             console.print(f"\t[cyan]{letter}.[/cyan] {opt.text}")
         console.print(f"\n[bold]Correct:[/bold] {self.correct_letter}. {self.correct_option.text}\n")
         for i, opt in enumerate(self.options):
-            letter = "ABCDE"[i]
+            letter = OPTION_LETTERS[i]
             prefix = "[green]✓[/green]" if opt.is_correct else "[red]✗[/red]"
             console.print(f"  {prefix} [bold]{letter}.[/bold] {opt.explanation}")
         console.print(f"\n{self.explanation}")
@@ -89,11 +92,11 @@ class Question(BaseModel):
     def to_md(self) -> str:
         lines = [self.stem, "", f"**{self.lead}**", ""]
         for i, opt in enumerate(self.options):
-            letter = "ABCDE"[i]
+            letter = OPTION_LETTERS[i]
             lines.append(f"**{letter}.** {opt.text}")
         lines += ["", f"**Correct:** {self.correct_letter}. {self.correct_option.text}", ""]
         for i, opt in enumerate(self.options):
-            letter = "ABCDE"[i]
+            letter = OPTION_LETTERS[i]
             mark = "✓" if opt.is_correct else "✗"
             lines.append(f"**{mark} {letter}.** {opt.explanation}")
         lines += ["", self.explanation]
