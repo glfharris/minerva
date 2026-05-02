@@ -67,6 +67,14 @@ def _sum_usage(*usages: RunUsage) -> RunUsage:
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _save_outputs(qs: QuestionSet, output: Path, markdown: bool) -> None:
+    j = save_json(qs, output)
+    console.print(f"\n[green]Saved:[/green] {j}")
+    if markdown:
+        m = save_markdown(qs, output)
+        console.print(f"[green]Saved:[/green] {m}")
+
+
 def _show_critique(critique_result, original_questions: list, show_feedback: bool, show_diff: bool) -> list:
     """Display critique feedback and/or diff, then return the revised questions."""
     revised = []
@@ -107,6 +115,33 @@ def _lookup_node(exam: Exam | None, code: str) -> tuple[CurriculumNode, Exam] | 
             return path[-1], ex
     console.print(f"[red]No curriculum node found with code '{code}'[/red]")
     return None
+
+
+def _resolve_topic(
+    exam: Exam | None,
+    node: str | None,
+    topic: str | None,
+    missing_msg: str = "[red]Provide a topic or --node.[/red]",
+) -> tuple[CurriculumNode | None, Exam | None, str]:
+    """Resolve node code + topic into (curriculum_node, exam, topic).
+
+    If *node* is given, looks it up and derives exam from it.
+    If *topic* is not given, falls back to the node label.
+    Raises typer.Exit(1) on any error.
+    """
+    curriculum_node: CurriculumNode | None = None
+    if node:
+        result = _lookup_node(exam, node)
+        if result is None:
+            raise typer.Exit(1)
+        curriculum_node, exam = result
+    if not topic:
+        if curriculum_node:
+            topic = curriculum_node.label
+        else:
+            console.print(missing_msg)
+            raise typer.Exit(1)
+    return curriculum_node, exam, topic
 
 
 def _rematch_questions(questions: list, exam: str | None, db_path: Path) -> None:
@@ -153,6 +188,7 @@ async def _generate(
 
     ag = make_agent(model)
     example_messages = load_example_messages(topic=topic, exam=exam)
+
     result = await ag.run(prompt, deps=deps, message_history=example_messages)
     qs = result.output
     qs.topic = topic
@@ -183,9 +219,9 @@ def match(
         console.print(f"[dim]DB:              {db}[/dim]")
 
     if source == Source.curriculum:
-        with console.status("Loading embedding model…"):
+        with console.status("Loading embedding model…") as status:
             _make_embedder()
-        with console.status("Searching curriculum…"):
+            status.update("Searching curriculum…")
             matches = search_table(topic, exam, db_path=db, n=top)  # type: ignore[arg-type]
 
         root = load(exam)  # type: ignore[arg-type]
@@ -207,9 +243,9 @@ def match(
         console.print(table)
 
     elif source == Source.docs:
-        with console.status("Loading embedding model…"):
+        with console.status("Loading embedding model…") as status:
             client = EmbedClient(db_path=db)
-        with console.status("Searching documents…"):
+            status.update("Searching documents…")
             results = client.search_docs(topic, n=top)
 
         if results.empty:
@@ -244,25 +280,16 @@ def create(
     output: Annotated[Path, typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = Path("./output"),
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
-    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval details")] = False,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval, curriculum, and token details")] = False,
     markdown: Annotated[bool, typer.Option(help="Also save a markdown file alongside the JSON")] = False,
     save_example: Annotated[bool, typer.Option(help="Save this run as a few-shot example")] = False,
     critique: Annotated[bool, typer.Option("--critique", help="Run a self-critique pass to improve questions")] = False,
 ) -> None:
     """Generate SBA questions on a topic."""
-    curriculum_node = None
-    if node:
-        result = _lookup_node(exam, node)
-        if result is None:
-            raise typer.Exit(1)
-        curriculum_node, exam = result
-
-    if not topic:
-        if curriculum_node:
-            topic = curriculum_node.label
-        else:
-            console.print("[red]Provide a topic or use --exam and --node together.[/red]")
-            raise typer.Exit(1)
+    curriculum_node, exam, topic = _resolve_topic(
+        exam, node, topic,
+        missing_msg="[red]Provide a topic or --node.[/red]",
+    )
 
     if verbose:
         console.print(f"[dim]LLM model:       {model}[/dim]")
@@ -271,7 +298,9 @@ def create(
 
     # --- Node selection ---
     if exam and not curriculum_node:
-        with console.status("Matching curriculum…"):
+        with console.status("Loading embedding model…") as status:
+            _make_embedder()
+            status.update("Matching curriculum…")
             matches = search_table(topic, exam, db_path=db, n=10)
         candidates = [(score, cnode) for score, cnode in matches if score >= _MATCH_THRESHOLD]
 
@@ -280,20 +309,27 @@ def create(
             generation_plan: list[tuple[CurriculumNode | None, int]] = [(None, count)]
         elif count == 1:
             score, selected = random.choice(candidates)
-            console.print(f"Curriculum: [bold]{selected.code}[/bold] — {selected.label} [dim](similarity {score:.2f})[/dim]")
+            console.print(f"Curriculum: [bold]{selected.code}[/bold] [dim](similarity {score:.2f})[/dim]")
             generation_plan = [(selected, 1)]
         else:
-            n_unique = min(count, len(candidates))
             selected_nodes = [candidates[i % len(candidates)][1] for i in range(count)]
             random.shuffle(selected_nodes)
-            console.print(f"Distributing {count} question(s) across {n_unique} curriculum node(s):")
-            seen: set[str] = set()
+
+            # Group by node so questions sharing a node are generated in one call
+            node_counts: dict[str, int] = {}
+            node_objects: dict[str, CurriculumNode] = {}
             for cnode in selected_nodes:
-                if cnode.code not in seen:
-                    sc = next(s for s, cn in candidates if cn.code == cnode.code)
-                    console.print(f"  [bold]{cnode.code}[/bold] — {cnode.label} [dim](similarity {sc:.2f})[/dim]")
-                    seen.add(cnode.code)
-            generation_plan = [(cnode, 1) for cnode in selected_nodes]
+                node_counts[cnode.code] = node_counts.get(cnode.code, 0) + 1
+                node_objects[cnode.code] = cnode
+
+            console.print(f"Distributing {count} question(s) across {len(node_counts)} curriculum node(s):")
+            for code, q_count in node_counts.items():
+                cnode = node_objects[code]
+                sc = next(s for s, cn in candidates if cn.code == code)
+                qs_label = f"{q_count}q"
+                console.print(f"  [bold]{cnode.code}[/bold] [dim](similarity {sc:.2f}, {qs_label})[/dim]")
+
+            generation_plan = [(node_objects[code], q_count) for code, q_count in node_counts.items()]
     else:
         generation_plan = [(curriculum_node, count)]
 
@@ -323,11 +359,11 @@ def create(
                     node=gen_node,
                     retriever=retriever,
                     verbose=verbose,
-                    prior_stems=prior_stems if prior_stems else None,
+                    prior_stems=prior_stems or None,
                 )
             )
         if verbose and total_calls > 1:
-            console.print(f"[dim]{_format_usage(usage_i, label=f'Q{i + 1}')}[/dim]")
+            console.print(f"[dim]  Q{i + 1}: {_format_usage(usage_i)}[/dim]")
         prior_stems.extend(q.stem for q in qs_i.questions)
         all_questions.extend(qs_i.questions)
         all_usages.append(usage_i)
@@ -354,11 +390,7 @@ def create(
     for q in qs.questions:
         q.show(verbose=verbose)
 
-    j = save_json(qs, output)
-    console.print(f"\n[green]Saved:[/green] {j}")
-    if markdown:
-        m = save_markdown(qs, output)
-        console.print(f"[green]Saved:[/green] {m}")
+    _save_outputs(qs, output, markdown)
 
     if save_example:
         from pydantic_ai.messages import ModelMessagesTypeAdapter
@@ -404,14 +436,14 @@ def embed(
 def quiz(
     file: Annotated[Optional[Path], typer.Argument(help="JSON QuestionSet file to quiz from")] = None,
     topic: Annotated[Optional[str], typer.Option(help="Topic: generate questions then quiz")] = None,
-    count: Annotated[int, typer.Option("-c", "--count", help="Questions to generate")] = 3,
-    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string")] = _DEFAULT_MODEL,
+    count: Annotated[int, typer.Option("-c", "--count", help="Number of questions to generate")] = 3,
+    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
     exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
     node: Annotated[Optional[str], typer.Option(help="Exact curriculum node code e.g. 1_GA_P_6")] = None,
     output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Where to save generated JSON")] = None,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     embed_model: Annotated[str, typer.Option(help="Embedding model string")] = _DEFAULT_EMBED,
-    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval details")] = False,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show retrieval, curriculum, and token details")] = False,
 ) -> None:
     """Run an interactive terminal quiz."""
     if file:
@@ -421,13 +453,8 @@ def quiz(
             console.print(f"[red]Could not load '{file}': {e}[/red]")
             raise typer.Exit(1)
         console.print(f"[dim]Loaded {len(qs.questions)} question(s) on '{qs.topic}'[/dim]")
-    elif topic:
-        curriculum_node = None
-        if node:
-            result = _lookup_node(exam, node)
-            if result is None:
-                raise typer.Exit(1)
-            curriculum_node, exam = result
+    elif topic or node:
+        curriculum_node, exam, topic = _resolve_topic(exam, node, topic)
 
         save_dir = output or Path("./output")
         console.print(f"[dim]Questions will be saved to:[/dim] {save_dir}")
@@ -454,10 +481,14 @@ def quiz(
             )
         if verbose:
             console.print(f"[dim]{_format_usage(usage, label='Generate')}[/dim]")
+
+        with console.status("Matching curriculum nodes…"):
+            _rematch_questions(qs.questions, exam, db)
+
         saved = save_json(qs, save_dir)
         console.print(f"[green]Saved:[/green] {saved}")
     else:
-        console.print("[red]Provide a JSON file or use --topic to generate questions.[/red]")
+        console.print("[red]Provide a JSON file, --topic, or --node.[/red]")
         raise typer.Exit(1)
 
     run_quiz(qs.questions)
@@ -472,7 +503,7 @@ def critique(
 ) -> None:
     """Run a critique pass on a saved QuestionSet JSON file."""
     if verbose:
-        console.print(f"[dim]LLM model: {model}[/dim]")
+        console.print(f"[dim]LLM model:       {model}[/dim]")
     try:
         qs = load_questionset(file)
     except Exception as e:
@@ -516,12 +547,11 @@ def convert(
     text: Annotated[Optional[str], typer.Option("--text", help="Inline question text to convert")] = None,
     topic: Annotated[Optional[str], typer.Option("--topic", help="Topic label for the output QuestionSet")] = None,
     exam: Annotated[Optional[Exam], typer.Option(help="Exam type: 'primary' or 'final'")] = None,
-    model: Annotated[str, typer.Option("-m", "--model")] = _DEFAULT_MODEL,
+    model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = _DEFAULT_MODEL,
     output: Annotated[Path, typer.Option("-o", "--output")] = Path("./output"),
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = _DEFAULT_DB,
     markdown: Annotated[bool, typer.Option(help="Also save a markdown file")] = False,
-    save_example: Annotated[bool, typer.Option(help="Save as a few-shot example history")] = False,
-    verbose: Annotated[bool, typer.Option("-v", "--verbose")] = False,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show model and token details")] = False,
 ) -> None:
     """Convert unstructured SBA question text/PDF to structured QuestionSet JSON."""
     if input_file:
@@ -538,18 +568,18 @@ def convert(
         raise typer.Exit(1)
 
     if verbose:
-        console.print(f"[dim]LLM model: {model}[/dim]")
-        console.print(f"[dim]DB:        {db}[/dim]")
-        console.print(f"[dim]Input:     {len(raw):,} chars[/dim]")
+        console.print(f"[dim]LLM model:       {model}[/dim]")
+        console.print(f"[dim]DB:              {db}[/dim]")
+        console.print(f"[dim]Input:           {len(raw):,} chars[/dim]")
 
     with console.status("Converting questions…"):
         qs, usage = asyncio.run(convert_questions(raw, derived_topic, model))
 
     if exam:
         qs.exam = exam
-    with console.status("Loading embedding model…"):
+    with console.status("Loading embedding model…") as status:
         _make_embedder()
-    with console.status("Matching curriculum nodes…"):
+        status.update("Matching curriculum nodes…")
         _rematch_questions(qs.questions, exam, db)
 
     if verbose:
@@ -559,14 +589,9 @@ def convert(
     for q in qs.questions:
         q.show(verbose=verbose)
 
-    j = save_json(qs, output)
-    console.print(f"\n[green]Saved:[/green] {j}")
-    if markdown:
-        m = save_markdown(qs, output)
-        console.print(f"[green]Saved:[/green] {m}")
+    _save_outputs(qs, output, markdown)
 
-    if save_example:
-        console.print("[yellow]--save-example not supported for convert; use create --save-example instead.[/yellow]")
+
 
 
 def _first_sentence(text: str) -> str:
@@ -613,7 +638,7 @@ def make_history(
 
         saved = 0
         for q in qs.questions:
-            topic = _first_sentence(q.explanation)
+            topic = q.title or _first_sentence(q.explanation)
             slug = re.sub(r"[^a-z0-9]+", "_", topic.lower()).strip("_")[:50]
             filename = f"{slug}.json"
             retrieve_id = f"mock_r_{slug[:12]}"

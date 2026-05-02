@@ -39,6 +39,10 @@ Each question has four components:
 - Explanation: a brief overall explanation of the key concept. Separate from the
   per-option explanations; should provide broader educational context.
 
+- Title: a short topic label (5–10 words) capturing the key concept being tested.
+  Written as a descriptive label, not a question, e.g. "Rocuronium — mechanism at
+  the NMJ" or "One-lung ventilation — hypoxic pulmonary vasoconstriction".
+
 ## Writing good distractors
 
 - Homogeneous with each other and the correct answer (all drug names, all mechanisms,
@@ -158,10 +162,10 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
         result = ctx.deps.retriever.query(query, threshold=_RAG_THRESHOLD)
         if ctx.deps.verbose:
             if not result:
-                console.log(f"[yellow]No relevant chunks found for query: {query!r}[/yellow]")
+                console.print(f"[yellow]No relevant chunks found for query: {query!r}[/yellow]")
             else:
                 chunk_count = result.count("---") + 1
-                console.log(f"[dim]Retrieved {chunk_count} chunk(s) for query: {query!r}[/dim]")
+                console.print(f"[dim]Retrieved {chunk_count} chunk(s) for query: {query!r}[/dim]")
         return result
 
     return ag
@@ -239,6 +243,8 @@ For each question in the input:
       input, generate a concise medically accurate explanation (1–2 sentences).
 - explanation: an overall explanation of the key concept. Use the source text if
   provided; otherwise generate one from context.
+- title: a short topic label (5–10 words) capturing the key concept, e.g.
+  "Rocuronium — mechanism at the NMJ". Written as a label, not a question.
 
 Rules:
 - Every question must have exactly 5 options and exactly 1 correct.

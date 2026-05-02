@@ -31,7 +31,7 @@ def run_quiz(questions: list[Question]) -> None:
         correct_letter = question.correct_letter
         is_correct = answer == correct_letter
         score += int(is_correct)
-        results.append((question.lead[:60], is_correct))
+        results.append((question.title or question.lead[:60], is_correct))
 
         # Re-display options with colour coding and per-option explanations
         lines = []

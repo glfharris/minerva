@@ -59,11 +59,11 @@ PDFs are split into overlapping 300-word chunks. Tables are extracted atomically
 # With curriculum context (agent matches the best curriculum node automatically)
 ./mincli.py create "Rocuronium" --exam primary
 
-# From a specific curriculum node by code (topic derived from node label)
-./mincli.py create --exam primary --node 1_GA_P_6
+# From a specific curriculum node by code (--exam inferred from node if omitted)
+./mincli.py create --node 1_GA_P_6
 
 # From a specific node with a custom topic
-./mincli.py create "Rocuronium reversal" --exam primary --node 1_GA_P_6
+./mincli.py create "Rocuronium reversal" --node 1_GA_P_6
 
 # Using Anthropic Claude
 ./mincli.py create "Pharmacokinetics" --model anthropic:claude-opus-4-6
@@ -71,7 +71,7 @@ PDFs are split into overlapping 300-word chunks. Tables are extracted atomically
 # With a self-critique pass to improve question quality
 ./mincli.py create "Lung Compliance" --critique
 
-# Show retrieval detail, critique feedback, diffs, and token/cost usage
+# Show retrieval detail, critique feedback, diffs, and token usage
 ./mincli.py create "Lung Compliance" --critique --verbose
 ```
 
@@ -100,12 +100,30 @@ The critique checks each question against SBA writing criteria (positive framing
 ./mincli.py quiz --topic "Lung Compliance" --exam primary --count 5
 ```
 
-**5. Test retrieval** (useful for debugging):
+**5. Convert existing questions:**
+
+```bash
+# Parse a PDF or markdown file of SBA questions into structured JSON
+./mincli.py convert "Primary FRCA Sample SBAs.pdf" --exam primary --output ./output
+
+# From a markdown file with a custom topic label
+./mincli.py convert examples/questions.md --topic "Primary FRCA Pharmacology"
+
+# Inline text
+./mincli.py convert --text "A patient... Which drug? A. X B. Y ..." --topic "test"
+```
+
+Per-option explanations are generated where missing. Questions referencing images or ECGs are automatically skipped.
+
+**6. Test retrieval** (useful for debugging):
 
 ```bash
 # Check curriculum node matching for a topic
 ./mincli.py match "Rocuronium"
 ./mincli.py match "Rocuronium" --exam final
+
+# Show ancestor path and similarity scores
+./mincli.py match "Rocuronium" --verbose
 
 # Check what reference material would be retrieved
 ./mincli.py match "Rocuronium" --source docs
@@ -129,7 +147,7 @@ Model strings use `provider:name` format:
 
 Set the default via `MINERVA_MODEL` in `.env`, or override per-run with `--model`.
 
-Token usage and estimated cost are shown under `--verbose`.
+Token usage is shown under `--verbose`.
 
 ### Running locally with Ollama
 

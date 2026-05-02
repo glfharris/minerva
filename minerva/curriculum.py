@@ -118,7 +118,7 @@ def _get_table(db, exam: Literal["primary", "final"]):
     nodes = flatten(root)
     node_map, parent_map = _build_maps(root)
 
-    console.log(f"Building curriculum embeddings for {exam} FRCA (one-time)…")
+    console.print(f"Building curriculum embeddings for {exam} FRCA (one-time)…")
     records = [
         {
             "code": n.code,
@@ -130,7 +130,7 @@ def _get_table(db, exam: Literal["primary", "final"]):
 
     table = db.create_table(table_name, schema=Model)
     table.add(records)
-    console.log(f"Embedded {len(records)} curriculum nodes into '{table_name}'")
+    console.print(f"Embedded {len(records)} curriculum nodes into '{table_name}'")
 
     return table, Model
 

@@ -25,6 +25,7 @@ class Question(BaseModel):
     lead: str = Field(description="The lead-in question")
     options: list[QuestionOption] = Field(description="Exactly 5 options, each with its own explanation")
     explanation: str = Field(description="Overall explanation providing educational context for the question — the key concept being tested and any important related points")
+    title: str = Field(default="", description="A concise title (5–10 words) capturing the key concept tested, written as a topic label rather than a question, e.g. 'Rocuronium — mechanism of action at the NMJ' or 'One-lung ventilation — hypoxic pulmonary vasoconstriction'. Used for display and reference only.")
     curriculum_node_codes: list[str] = Field(default_factory=list)
     curriculum_node_scores: list[float] = Field(default_factory=list)
 
@@ -59,7 +60,7 @@ class Question(BaseModel):
 
     def show(self, verbose: bool = False) -> None:
         from .console import console
-        console.rule("[bold red]Question")
+        console.rule(f"[bold red]{self.title}[/bold red]" if self.title else "[bold red]Question[/bold red]")
         console.print(f"{self.stem}\n")
         console.print(f"[bold]{self.lead}\n")
         for i, opt in enumerate(self.options):
@@ -90,7 +91,7 @@ class Question(BaseModel):
                 console.print(f"\n[dim]Curriculum: {', '.join(self.curriculum_node_codes)}[/dim]")
 
     def to_md(self) -> str:
-        lines = [self.stem, "", f"**{self.lead}**", ""]
+        lines = ([f"## {self.title}", ""] if self.title else []) + [self.stem, "", f"**{self.lead}**", ""]
         for i, opt in enumerate(self.options):
             letter = OPTION_LETTERS[i]
             lines.append(f"**{letter}.** {opt.text}")
