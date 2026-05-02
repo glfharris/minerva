@@ -1,13 +1,59 @@
 # Minerva
 #### LLM-based Single Best Answer Question Generation
 
-![](minerva-example.gif)
+![Minerva CLI generating an SBA question on lung compliance](minerva-example.gif)
 
-## Rationale
+High-quality question banks for postgraduate medical examinations are expensive, often charging significant sums for access — with little reduction in price for candidates who need to resit. Minerva generates Single Best Answer (SBA) questions from your own reference material using retrieval-augmented generation, with the aim of producing questions that meet the standard of those written by human examiners.
 
-High-quality question banks for postgraduate medical examinations are expensive, often charging significant sums for access — with little reduction in price for candidates who need to resit. Given the capabilities of modern LLMs, there is no good reason for this to remain the case.
+### Example output
 
-Minerva generates Single Best Answer (SBA) questions from your own reference material using retrieval-augmented generation, with the aim of producing questions that meet the standard of those written by human examiners.
+> A ventilated patient has been admitted to the intensive care unit after emergency major colorectal surgery and is receiving a continuous intravenous cardiovascular support drug. Twelve hours later the blood glucose concentration is 13 mmol L⁻¹, although he is not known to be diabetic.
+>
+> **Which drug infusion is most likely to be responsible for the hyperglycaemia?**
+>
+> A. Adrenaline\
+> B. Dobutamine\
+> C. Enoximone\
+> D. Noradrenaline\
+> E. Vasopressin
+>
+> **Correct: A.** Adrenaline commonly causes hyperglycaemia by stimulating glycogenolysis and gluconeogenesis and reducing peripheral glucose uptake via adrenergic receptor effects.
+
+Each question includes per-option explanations, an overall educational explanation, and matched curriculum node codes.
+
+## How it works
+
+```mermaid
+flowchart LR
+    PDFs["📄 Reference PDFs"]
+    Embed["Embed"]
+    VectorDB[("LanceDB")]
+    Topic["Topic + Exam"]
+    CurrMatch["Curriculum\nMatch"]
+    Curriculum[("Curriculum\nTree")]
+    Node["--node"]
+    Retrieve["Retrieve"]
+    Generate["Generate"]
+    QS["QuestionSet"]
+    Match["Match"]
+    Critique["Critique"]
+    Out["📋 JSON + Markdown"]
+
+    PDFs --> Embed --> VectorDB
+    VectorDB --> Retrieve --> Generate --> QS --> Match --> Out
+
+    Topic --> CurrMatch
+    Curriculum --> CurrMatch
+    CurrMatch --> Generate
+    Node --> Generate
+
+    Match -.->|optional| Critique -.-> Out
+```
+
+- **Embed** — reference PDFs are chunked and embedded into a local [LanceDB](https://lancedb.github.io/lancedb/) vector store using [PubMedBERT](https://huggingface.co/NeuML/pubmedbert-base-embeddings) (runs locally, no API key needed).
+- **Retrieve + Generate** — a [Pydantic AI](https://ai.pydantic.dev/) agent searches the vector store for relevant material, then produces structured questions using the retrieved context and an exam-aware system prompt.
+- **Match** — each question is semantically matched to the most relevant curriculum node(s) from the RCoA Primary or Final FRCA curriculum tree.
+- **Critique** *(optional)* — a second LLM pass reviews questions against SBA writing criteria and revises where needed.
 
 ## Setup
 
@@ -115,7 +161,23 @@ The critique checks each question against SBA writing criteria (positive framing
 
 Per-option explanations are generated where missing. Questions referencing images or ECGs are automatically skipped.
 
-**6. Test retrieval** (useful for debugging):
+**6. Validate saved questions** (no LLM call):
+
+```bash
+# Check structure, option counts, curriculum codes, etc.
+./mincli.py validate output/lung_compliance_2026-05-02.json
+
+# Validate multiple files at once
+./mincli.py validate output/*.json
+```
+
+**7. Build few-shot examples** from converted question sets:
+
+```bash
+./mincli.py make-history output/primary_frca_2026-05-02.json
+```
+
+**8. Test retrieval** (useful for debugging):
 
 ```bash
 # Check curriculum node matching for a topic
@@ -170,12 +232,12 @@ No API key is required, unless using cloud based models.
 uv run pytest
 ```
 
-The test suite covers pure functions in all modules (models, curriculum, embed, output, agent) and runs without any API keys or network access.
+The test suite covers pure functions across all modules (models, curriculum, embed, output, agent, prompts, validation, CLI, inputs, paths) and runs without any API keys or network access.
 
 ## Adapting to Other Fields
 
 To use Minerva in another domain:
-- Update the role prompt in `minerva/agent.py`
+- Update the role prompt in `minerva/prompts.py`
 - Replace the few-shot examples in `examples/`
 - Supply embeddings from relevant reference material
 - Replace the curriculum JSON in `data/` with your own structure
