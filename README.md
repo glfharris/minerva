@@ -24,36 +24,58 @@ Each question includes per-option explanations, an overall educational explanati
 ## How it works
 
 ```mermaid
-flowchart LR
-    PDFs["📄 Reference PDFs"]
-    Embed["Embed"]
-    VectorDB[("LanceDB")]
-    Topic["Topic + Exam"]
-    CurrMatch["Curriculum\nMatch"]
-    Curriculum[("Curriculum\nTree")]
-    Node["--node"]
-    Retrieve["Retrieve"]
-    Generate["Generate"]
-    QS["QuestionSet"]
-    Match["Match"]
-    Critique["Critique"]
-    Out["📋 JSON + Markdown"]
+flowchart TD
+    subgraph Index["Reference indexing"]
+        Docs["Reference PDFs / EPUBs"] --> Parse["Parse + chunk"]
+        Parse --> Embed["Embed chunks"]
+        Embed --> VectorDB[("LanceDB reference store")]
+    end
 
-    PDFs --> Embed --> VectorDB
-    VectorDB --> Retrieve --> Generate --> QS --> Match --> Out
+    subgraph Curriculum["Curriculum context"]
+        Curricula[("RCoA curriculum trees")]
+        Topic["Topic + exam"]
+        Node["Optional --node"]
+        Topic --> CurrMatch["Match topic to curriculum node"]
+        Curricula --> CurrMatch
+        Node --> PromptContext["Curriculum breadcrumb"]
+        CurrMatch --> PromptContext
+    end
 
-    Topic --> CurrMatch
-    Curriculum --> CurrMatch
-    CurrMatch --> Generate
-    Node --> Generate
+    subgraph Generation["Question generation"]
+        VectorDB --> Retrieve["Retrieve relevant context"]
+        PromptContext --> Agent["Pydantic AI agent"]
+        Retrieve --> Agent
+        Agent --> QS["QuestionSet"]
+    end
 
-    Match -.->|optional| Critique -.-> Out
+    subgraph Review["Post-processing"]
+        QS --> Match["Match questions to curriculum nodes"]
+        Match --> Critique{"Critique?"}
+        Critique -->|optional| Revised["Revised QuestionSet"]
+        Critique -->|skip| Final["Final QuestionSet"]
+        Revised --> Final
+    end
+
+    subgraph Outputs["Outputs and reuse"]
+        Final --> JSON["JSON"]
+        Final --> MD["Markdown"]
+        JSON --> Validate["Validate"]
+        JSON --> Quiz["Interactive quiz"]
+        JSON --> History["Few-shot histories"]
+    end
+
+    subgraph Convert["Existing question conversion"]
+        Existing["PDF / Markdown / text SBAs"] --> ConvertCmd["Convert"]
+        ConvertCmd --> QS
+    end
 ```
 
-- **Embed** — reference PDFs are chunked and embedded into a local [LanceDB](https://lancedb.github.io/lancedb/) vector store using [PubMedBERT](https://huggingface.co/NeuML/pubmedbert-base-embeddings) (runs locally, no API key needed).
-- **Retrieve + Generate** — a [Pydantic AI](https://ai.pydantic.dev/) agent searches the vector store for relevant material, then produces structured questions using the retrieved context and an exam-aware system prompt.
-- **Match** — each question is semantically matched to the most relevant curriculum node(s) from the RCoA Primary or Final FRCA curriculum tree.
-- **Critique** *(optional)* — a second LLM pass reviews questions against SBA writing criteria and revises where needed.
+- **Reference indexing** — reference PDFs and EPUBs are parsed, chunked, and embedded into a local [LanceDB](https://lancedb.github.io/lancedb/) vector store using [PubMedBERT](https://huggingface.co/NeuML/pubmedbert-base-embeddings) (runs locally, no API key needed).
+- **Curriculum context** — a topic and exam can be matched to the most relevant RCoA curriculum node, or a node can be supplied directly with `--node`.
+- **Retrieve + generate** — a [Pydantic AI](https://ai.pydantic.dev/) agent searches the vector store for relevant material, then produces a structured `QuestionSet` using the retrieved context and exam-aware prompt.
+- **Post-process** — generated or converted questions are matched to curriculum nodes, and an optional critique pass can revise questions against SBA writing criteria.
+- **Outputs and reuse** — final `QuestionSet` files can be saved as JSON or Markdown, validated, used in the interactive quiz, or converted into few-shot example histories.
+- **Convert** — existing SBA questions from PDFs, Markdown, or inline text can be parsed into the same structured `QuestionSet` format.
 
 ## Setup
 
