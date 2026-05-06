@@ -5,13 +5,17 @@ from pydantic import ValidationError
 from typer.testing import CliRunner
 
 from minerva.cli.app import app
+from minerva.embed import RetrievedChunk
 from minerva.models import Question, QuestionOption
 from minerva.website_export import (
     CONTENT_FINGERPRINT_HASH_ALGORITHM,
+    WebsiteCurriculumMetadataV1,
     WebsiteQuestionOptionV1,
     WebsiteQuestionSetV1,
     WebsiteQuestionV1,
+    citations_from_chunks,
     content_fingerprints,
+    sources_from_chunks,
     website_questionset_from_questionset,
 )
 
@@ -199,6 +203,228 @@ class TestWebsiteQuestionValidation:
                     ], explanation="Overall")
                 ),
             )
+
+    def test_rejects_mismatched_curriculum_scores_length(self):
+        with pytest.raises(ValidationError, match="same length"):
+            WebsiteCurriculumMetadataV1(
+                curriculum_node_codes=["1_GA_P_6", "1_GA_P_7"],
+                curriculum_node_scores=[0.9],
+            )
+
+    def test_rejects_wrong_option_count(self):
+        options = [
+            WebsiteQuestionOptionV1(option_id="opt_a", text="A", is_correct=True, explanation="Correct"),
+            WebsiteQuestionOptionV1(option_id="opt_b", text="B", is_correct=False, explanation="Wrong"),
+            WebsiteQuestionOptionV1(option_id="opt_c", text="C", is_correct=False, explanation="Wrong"),
+        ]
+
+        with pytest.raises(ValidationError, match="exactly 5 options"):
+            WebsiteQuestionV1(
+                external_question_id="q_1",
+                title="Title",
+                stem="Stem",
+                lead="Lead?",
+                options=options,
+                correct_option_id="opt_a",
+                explanation="Overall",
+                fingerprints=content_fingerprints(
+                    Question(stem="Stem", lead="Lead?", options=[
+                        QuestionOption(text=o.text, is_correct=o.is_correct, explanation=o.explanation)
+                        for o in options
+                    ] + [
+                        QuestionOption(text="D", is_correct=False, explanation="Wrong"),
+                        QuestionOption(text="E", is_correct=False, explanation="Wrong"),
+                    ], explanation="Overall")
+                ),
+            )
+
+    def test_rejects_zero_correct_options(self):
+        options = [
+            WebsiteQuestionOptionV1(option_id=f"opt_{c}", text=c, is_correct=False, explanation="Wrong")
+            for c in "ABCDE"
+        ]
+
+        with pytest.raises(ValidationError, match="exactly 1 correct"):
+            WebsiteQuestionV1(
+                external_question_id="q_1",
+                title="Title",
+                stem="Stem",
+                lead="Lead?",
+                options=options,
+                correct_option_id="opt_A",
+                explanation="Overall",
+                fingerprints=content_fingerprints(
+                    Question(stem="Stem", lead="Lead?", options=[
+                        QuestionOption(text=o.text, is_correct=o.is_correct, explanation=o.explanation)
+                        for o in options
+                    ], explanation="Overall")
+                ),
+            )
+
+    def test_rejects_multiple_correct_options(self):
+        options = [
+            WebsiteQuestionOptionV1(option_id="opt_a", text="A", is_correct=True, explanation="Correct"),
+            WebsiteQuestionOptionV1(option_id="opt_b", text="B", is_correct=True, explanation="Also correct"),
+            WebsiteQuestionOptionV1(option_id="opt_c", text="C", is_correct=False, explanation="Wrong"),
+            WebsiteQuestionOptionV1(option_id="opt_d", text="D", is_correct=False, explanation="Wrong"),
+            WebsiteQuestionOptionV1(option_id="opt_e", text="E", is_correct=False, explanation="Wrong"),
+        ]
+
+        with pytest.raises(ValidationError, match="exactly 1 correct"):
+            WebsiteQuestionV1(
+                external_question_id="q_1",
+                title="Title",
+                stem="Stem",
+                lead="Lead?",
+                options=options,
+                correct_option_id="opt_a",
+                explanation="Overall",
+                fingerprints=content_fingerprints(
+                    Question(stem="Stem", lead="Lead?", options=[
+                        QuestionOption(text=o.text, is_correct=o.is_correct, explanation=o.explanation)
+                        for o in options
+                    ], explanation="Overall")
+                ),
+            )
+
+    def test_rejects_empty_question_list(self):
+        with pytest.raises(ValidationError, match="at least one question"):
+            WebsiteQuestionSetV1(
+                minerva_cli_version="0.1.0",
+                questions=[],
+            )
+
+    def test_rejects_duplicate_external_question_ids(self, sample_question_set):
+        web_export = website_questionset_from_questionset(sample_question_set)
+        q = web_export.questions[0]
+
+        with pytest.raises(ValidationError, match="unique"):
+            WebsiteQuestionSetV1(
+                minerva_cli_version="0.1.0",
+                questions=[q, q],
+            )
+
+
+def _make_chunk(
+    *,
+    text: str = "Sample chunk text",
+    source: str = "/docs/book.pdf",
+    page: int = 0,
+    similarity: float = 0.85,
+    source_id: str | None = "src_abc",
+    source_title: str | None = "A Textbook",
+    source_type: str | None = "book",
+    **kwargs,
+) -> RetrievedChunk:
+    return RetrievedChunk(
+        text=text,
+        source=source,
+        page=page,
+        similarity=similarity,
+        source_id=source_id,
+        source_title=source_title,
+        source_type=source_type,
+        **kwargs,
+    )
+
+
+class TestSourcesAndCitationsFromChunks:
+    def test_sources_deduplicates_by_source_id(self):
+        chunks = [
+            _make_chunk(source_id="src_1", source_title="Book One", page=0),
+            _make_chunk(source_id="src_1", source_title="Book One", page=5),
+        ]
+
+        sources = sources_from_chunks(chunks)
+
+        assert len(sources) == 1
+        assert sources[0].source_id == "src_1"
+        assert sources[0].title == "Book One"
+
+    def test_sources_skips_chunks_without_source_id(self):
+        chunks = [
+            _make_chunk(source_id=None),
+            _make_chunk(source_id="src_1"),
+        ]
+
+        sources = sources_from_chunks(chunks)
+
+        assert len(sources) == 1
+        assert sources[0].source_id == "src_1"
+
+    def test_sources_empty_for_all_legacy_chunks(self):
+        chunks = [
+            _make_chunk(source_id=None),
+            _make_chunk(source_id=None),
+        ]
+
+        assert sources_from_chunks(chunks) == []
+
+    def test_citations_one_per_chunk(self):
+        chunks = [
+            _make_chunk(source_id="src_1", page=0),
+            _make_chunk(source_id="src_1", page=4),
+            _make_chunk(source_id="src_2", page=9),
+        ]
+
+        citations = citations_from_chunks(chunks)
+
+        assert len(citations) == 3
+        assert all(c.citation_type == "retrieved" for c in citations)
+        assert citations[0].page == "1"
+        assert citations[1].page == "5"
+        assert citations[2].page == "10"
+
+    def test_citations_skips_without_source_id(self):
+        chunks = [
+            _make_chunk(source_id=None),
+            _make_chunk(source_id="src_1", page=2),
+        ]
+
+        citations = citations_from_chunks(chunks)
+
+        assert len(citations) == 1
+        assert citations[0].source_id == "src_1"
+
+    def test_citations_no_excerpt_by_default(self):
+        chunks = [_make_chunk(text="Some detailed text here")]
+
+        citations = citations_from_chunks(chunks)
+
+        assert citations[0].concise_excerpt is None
+
+    def test_citations_includes_excerpt_when_opted_in(self):
+        chunks = [_make_chunk(text="Some detailed text here")]
+
+        citations = citations_from_chunks(chunks, include_excerpt=True)
+
+        assert citations[0].concise_excerpt == "Some detailed text here"
+
+    def test_question_includes_sources_when_chunks_provided(self, sample_question_set):
+        chunks = [
+            _make_chunk(source_id="src_1", source_title="Pharmacology Text", page=3),
+            _make_chunk(source_id="src_2", source_title="Physiology Text", page=7),
+        ]
+
+        web_export = website_questionset_from_questionset(
+            sample_question_set,
+            retrieved_chunks=chunks,
+        )
+
+        q = web_export.questions[0]
+        assert len(q.sources) == 2
+        assert q.sources[0].source_id == "src_1"
+        assert q.sources[1].source_id == "src_2"
+        assert len(q.citations) == 2
+        assert q.citations[0].page == "4"
+        assert q.citations[1].page == "8"
+
+    def test_question_empty_sources_without_chunks(self, sample_question_set):
+        web_export = website_questionset_from_questionset(sample_question_set)
+
+        q = web_export.questions[0]
+        assert q.sources == []
+        assert q.citations == []
 
 
 class TestWebsiteExportCommand:

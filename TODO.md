@@ -10,7 +10,7 @@ website without starting the website implementation yet.
    - Keep legacy `QuestionSet` JSON output working.
    - Prove the website import contract from the CLI before Django exists.
 
-2. [ ] Harden `WebsiteQuestionSetV1` validation
+2. [x] Harden `WebsiteQuestionSetV1` validation
    - Cover required fields, stable option identity, source mode, per-question
      origin, fingerprints, and curriculum metadata.
    - Make bad imports fail predictably.
@@ -25,7 +25,7 @@ website without starting the website implementation yet.
    - Format those chunks for agent prompts through an adapter.
    - Avoid parsing prompt strings to recover source/citation facts.
 
-5. [ ] Populate source/citation export where safe
+5. [x] Populate source/citation export where safe
    - Use source manifest metadata and structured retrieval chunks.
    - Fill `WebsiteSourceV1` and `WebsiteCitationV1` where evidence is available.
    - Keep excerpts optional and conservative.

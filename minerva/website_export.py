@@ -3,12 +3,16 @@ from __future__ import annotations
 from datetime import datetime
 from hashlib import sha256
 from importlib.metadata import PackageNotFoundError, version
-from typing import Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
 from .curriculum import normalize_assessment_key
 from .models import Question, QuestionSet
+
+if TYPE_CHECKING:
+    from .embed import RetrievedChunk
 
 
 EXPORT_SCHEMA_VERSION = "1"
@@ -214,6 +218,52 @@ def content_fingerprints(question: Question) -> WebsiteContentFingerprintsV1:
     )
 
 
+_VALID_SOURCE_TYPES = {"book", "article", "web_page", "manual", "curriculum", "pdf", "unknown"}
+
+
+def sources_from_chunks(chunks: list[RetrievedChunk]) -> list[WebsiteSourceV1]:
+    """Deduplicated WebsiteSourceV1 list from retrieved chunks.
+
+    Chunks without source_id are skipped. First occurrence wins.
+    """
+    seen: dict[str, WebsiteSourceV1] = {}
+    for chunk in chunks:
+        if not chunk.source_id or chunk.source_id in seen:
+            continue
+        source_type = chunk.source_type if chunk.source_type in _VALID_SOURCE_TYPES else "unknown"
+        seen[chunk.source_id] = WebsiteSourceV1(
+            source_id=chunk.source_id,
+            title=chunk.source_title or Path(chunk.source).name,
+            source_type=source_type,
+            author_or_publisher=chunk.author_or_publisher,
+            year=chunk.year,
+            url=chunk.url,
+            doi=chunk.doi,
+            file_name=chunk.file_name,
+        )
+    return list(seen.values())
+
+
+def citations_from_chunks(
+    chunks: list[RetrievedChunk],
+    *,
+    include_excerpt: bool = False,
+    max_excerpt_len: int = 200,
+) -> list[WebsiteCitationV1]:
+    """One citation per chunk. Chunks without source_id are skipped."""
+    citations = []
+    for chunk in chunks:
+        if not chunk.source_id:
+            continue
+        citations.append(WebsiteCitationV1(
+            source_id=chunk.source_id,
+            page=str(chunk.page + 1),
+            citation_type="retrieved",
+            concise_excerpt=chunk.text[:max_excerpt_len] if include_excerpt else None,
+        ))
+    return citations
+
+
 def website_question_from_question(
     question: Question,
     question_set: QuestionSet,
@@ -223,6 +273,7 @@ def website_question_from_question(
     option_ordering_mode: OptionOrderingMode = "fixed",
     curriculum_code: str | None = None,
     curriculum_version_label: str | None = None,
+    retrieved_chunks: list[RetrievedChunk] | None = None,
 ) -> WebsiteQuestionV1:
     exam = normalize_assessment_key(question_set.exam)
     option_ids: set[str] = set()
@@ -253,6 +304,9 @@ def website_question_from_question(
             converted_at=question_set.generated_at,
         )
 
+    sources = sources_from_chunks(retrieved_chunks) if retrieved_chunks else []
+    citations = citations_from_chunks(retrieved_chunks) if retrieved_chunks else []
+
     return WebsiteQuestionV1(
         external_question_id=external_question_id,
         title=question.title,
@@ -275,6 +329,8 @@ def website_question_from_question(
         converted_by="minerva" if source_mode == "converted" else None,
         generation_metadata=generation_metadata,
         conversion_metadata=conversion_metadata,
+        sources=sources,
+        citations=citations,
         fingerprints=content_fingerprints(question),
     )
 
@@ -289,6 +345,7 @@ def website_questionset_from_questionset(
     option_ordering_mode: OptionOrderingMode = "fixed",
     curriculum_code: str | None = None,
     curriculum_version_label: str | None = None,
+    retrieved_chunks: list[RetrievedChunk] | None = None,
 ) -> WebsiteQuestionSetV1:
     question_ids: set[str] = set()
     questions = [
@@ -300,6 +357,7 @@ def website_questionset_from_questionset(
             option_ordering_mode=option_ordering_mode,
             curriculum_code=curriculum_code,
             curriculum_version_label=curriculum_version_label,
+            retrieved_chunks=retrieved_chunks,
         )
         for question in question_set.questions
     ]
