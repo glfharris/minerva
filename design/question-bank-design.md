@@ -1,484 +1,355 @@
-# Question Bank Website Design
+# Question Pool Website V1 Design
 
-This document captures the product and domain decisions for a future Django and HTMX website built around Minerva-generated Single Best Answer questions.
+This document describes the current v1 idea for a small Django and HTMX website around a canonical pool of reviewed Single Best Answer questions.
 
-The website should host, review, publish, practise, and improve question bank content. It should also support AI generation inside the website, but with a human review step before learner-facing publication.
+The first version should prove one complete workflow with two content entry paths:
+
+1. Create candidate SBA questions either by importing Minerva CLI JSON or by manually authoring a complete SBA in the website.
+2. Review each candidate question version.
+3. Publish approved questions into one canonical learner-facing pool.
+4. Let learners practise published questions.
+5. Record attempts and reports against the exact question version shown.
+
+Anything that does not directly support that loop should be deferred. Deferred ideas live in `design/future.md`.
 
 ## Goals
 
-- Support multiple independently managed question banks.
-- Reuse the existing Minerva `QuestionSet` JSON format as an import path.
-- Allow bank owners to generate questions with AI inside the web app.
-- Keep generated questions out of the published bank until a human has reviewed them.
-- Let learners report issues and help improve published questions.
-- Let questions be reused across banks without duplicating content unnecessarily.
-- Preserve immutable question versions so reports, attempts, citations, and review decisions refer to the exact content seen.
+- Keep a canonical pool of reviewed SBA questions.
+- Use a stable Minerva CLI JSON export as the primary bulk content path.
+- Support simple manual authoring for complete text-only SBAs.
+- Keep candidate content out of learner practice until a human has approved it.
+- Preserve immutable question versions so review decisions, attempts, and reports always refer to the exact content seen.
+- Provide enough source, citation, curriculum, and provenance metadata for review and later audit.
+- Keep the implementation small enough to deliver before adding generation, banks, reuse, media, or rich contribution workflows.
 
-## Initial Technology Direction
+## Non-Goals
 
-The expected web stack is Django with HTMX.
+V1 should not include:
 
-Django is a good fit because the core product is workflow-heavy: users, permissions, review queues, versioned content, admin tooling, uploads, and audit trails. HTMX is a good fit because most interactions are form and list driven: filtering review queues, approving drafts, adding citations, submitting reports, and practising questions.
+- in-web AI generation
+- source document upload, indexing, embedding, or retrieval inside the website
+- image-based questions
+- non-SBA formats
+- long-lived in-web drafts
+- structured learner proposed edits
+- independently managed question banks or collections
+- cross-bank reuse, request-to-reuse, or update propagation
+- duplicate or similarity review workflows beyond optional cheap exact warnings
+- rich attribution, contributor dashboards, or learner-facing contribution history
+- configurable bank policies
+- public or unlisted bank discovery
+- spaced repetition or difficulty modelling
+- mandatory two-person review
+
+## Technology Direction
+
+The expected stack is Django with HTMX.
+
+Django fits the workflow-heavy parts: users, permissions, review queues, uploads, model validation, admin tooling, and audit-friendly records.
+
+HTMX fits the first interface because most interactions are form and list driven: import validation, review queue filters, approval forms, publication actions, practice answers, and report submission.
 
 ## Core Domain Model
 
 ### Question
 
-`Question` is the stable reusable educational object. It represents the underlying concept being tested, not one exact wording.
+`Question` is the stable educational object. It represents the concept being tested, not one exact wording.
 
 Examples:
 
 - `Adrenaline hyperglycaemia mechanism`
 - `Suxamethonium hyperkalaemia after burns`
 
-A question can appear in multiple question banks.
+In v1, a `Question` belongs to the canonical pool and can have at most one current learner-facing version.
+
+Suggested fields:
+
+- title or concept label
+- publication status: `unpublished`, `published`, or `retired`
+- current published version, optional
+- internal notes, optional
+- published by, optional
+- published at, optional
+- retired by, optional
+- retired at, optional
+- retirement reason, optional
+
+A question is eligible for learner practice only when:
+
+- its publication status is `published`
+- its `current_published_version` is approved
+- required curriculum alignment is present and confirmed
+
+Eligibility should be derived from those facts rather than stored as a separate status.
 
 ### QuestionVersion
 
-`QuestionVersion` is immutable and stores the exact learner-facing SBA content:
+`QuestionVersion` stores the exact learner-facing SBA content. It is immutable after creation.
 
+Suggested content fields:
+
+- question
 - title
 - stem
 - lead-in
-- five immutable options, each with a stable identity within the version
-- correct option
+- five options
+- stable option identity for each option
+- correct option identity
 - per-option explanations
 - overall explanation
-- option ordering mode
-- citations
-- source/provenance links
-- content approval state
+- option ordering mode: `fixed` or `randomizable`
+- content approval status: `unreviewed`, `approved`, or `rejected`
 
-Published edits create a new `QuestionVersion`. Existing versions are preserved for reports, learner attempts, audit history, and comparison.
+Suggested review fields:
 
-Options are part of the immutable version. Editing option text, changing the correct option, or changing an option explanation should create a new `QuestionVersion`.
-
-Learner attempts and reports should refer to the stable option identity, not only to the displayed letter. The displayed letter may change if a version is marked as randomizable, but the selected option identity must remain auditable.
-
-Content approval belongs to the `QuestionVersion`. Either the exact version is accurate, well supported, and suitable for publication, or it is not. That judgement should not vary by question bank. Bank-specific review decides whether an approved version belongs in that bank, not whether the content is intrinsically correct.
-
-Content approval should record:
-
-- approval status, such as unreviewed, approved, rejected, or superseded
-- reviewer
+- reviewed by
 - reviewed at
 - completed proofing checklist
-- citation support judgement, such as citations_support_answer or insufficient_support
-- review notes
+- citation support judgement
+- structured rejection reason, optional
+- review notes, optional
 
-Reviewers explicitly choose whether an edit is:
+Citation, source, provenance, and curriculum alignment records may attach to a `QuestionVersion`, but they are editable metadata. Editing that metadata does not create a new version.
 
-- a new version of the same question
-- a fork into a new question
+Changing learner-facing SBA content must create a new `QuestionVersion`. Historical attempts and reports continue to point at the older version.
 
-A change should remain a new version if it preserves the same learning objective, correct answer, reasoning pathway, and curriculum alignment. It should become a new question if it changes the tested concept, correct answer, exam level, curriculum alignment, or answer logic materially.
+### Options
 
-### Question Format
-
-V1 should support Single Best Answer questions only:
+V1 supports text-only SBA questions with:
 
 - exactly five options
 - exactly one correct option
+- stable option identities within the version
 - per-option explanations
-- overall explanation
-- fixed or randomizable option ordering
+- one overall explanation
 
-Image-based SBAs should be allowed as an SBA subtype, not as a separate question format.
+Learner attempts must store the selected stable option identity, not only the displayed letter. This is required because display order may be randomized for versions marked `randomizable`.
 
-Suggested model:
+### Sources And Citations
 
-- `QuestionMedia`
+`Source` represents reference metadata, not a hosted source file.
 
-`QuestionMedia` should record:
+Suggested `Source` fields:
 
-- question version
-- media type, initially image
-- file reference
-- caption, optional
-- alt text
-- source or contribution reference where relevant
-- display order
+- title
+- source type: `book`, `article`, `web_page`, `manual`, `curriculum`, `pdf`, or `unknown`
+- author or publisher, optional
+- year, optional
+- URL, optional
+- DOI, optional
+- file name or external reference, optional
 
-Media belongs to `QuestionVersion` because changing the image can change the question. Learner attempts should therefore continue to reference the exact immutable version shown.
+`Citation` attaches a source reference to a `QuestionVersion`.
 
-Non-SBA formats, such as multi-select, true/false, EMQ, short answer, and OSCE or viva prompts, are deferred.
-
-### Contribution and Attribution
-
-Contribution and attribution should be a first-class model rather than only simple `created_by` fields.
-
-The site needs to credit both internal users and external sources. For example, a question may start as an imported open-access Royal College question, then be updated by one user, then forked or substantially revised by another.
-
-Attribution is separate from citation support. Citation support answers "what source supports this answer?" Attribution answers "who or what should receive credit for this question or version?"
-
-Suggested model:
-
-- `QuestionContribution`
-- `ContributorIdentity`
-
-`ContributorIdentity` can represent:
-
-- a site user
-- an external person
-- an organisation, such as the Royal College of Anaesthetists
-- an external source or imported question set
-
-`QuestionContribution` should record:
+Suggested `Citation` fields:
 
 - question version
-- contributor identity
-- role, such as original_author, original_source, editor, reviewer, fork_author, importer, or citation_verifier
-- contribution summary
-- whether the contribution is learner-visible or admin/reviewer-only
-- materiality, such as minor_edit, material_revision, original_import, review, or fork
-- ordering for display
-- attributed at
-
-Contribution tracking should be internal by default. In v1, it is primarily for audit history, provenance tracking, moderation, and future contributor statistics. Learner-facing attribution can be added later on a per-contribution or per-bank basis.
-
-A future learner-facing display might be:
-
-`Adapted from RCoA sample questions. Updated by Person A. Forked by Person B.`
-
-Reviewer and admin views can show fuller attribution, including reviewers, importers, citation verifiers, and internal audit details.
-
-Question-level attribution should normally be derived by collapsing the contribution events from the relevant `QuestionVersion` lineage. For example, a dashboard could later show how many questions a user submitted, edited, reviewed, or had published by aggregating contribution events.
-
-When a question is reused in another bank, attribution should travel with the shared `QuestionVersion`.
-
-When a question is forked, the new question should preserve lineage back to the source question and source version, while starting its own attribution chain from the fork point.
-
-### QuestionBank
-
-`QuestionBank` is an independently managed collection of questions.
-
-Examples:
-
-- `Primary FRCA Pharmacology`
-- `Final FRCA Revision`
-- `Burns Anaesthesia Revision`
-- `Interesting ICU SBAs`
-
-A bank has owners and members, visibility settings, contribution policies, reuse policies, and either a curriculum-backed or freeform organisation mode.
-
-### QuestionBankEntry
-
-`QuestionBankEntry` is the relationship between a reusable `Question` and a specific `QuestionBank`.
-
-It stores bank-specific publication and workflow state, such as:
-
-- bank
-- question
-- current published version
-- locally selected version awaiting publication
-- status
-- local review notes
-- local curriculum alignment or tags
+- source
+- page, section, or URL anchor, optional
+- citation type: `retrieved`, `manual`, or `imported`
+- support note, optional
+- concise excerpt, optional where permitted
 - added by
-- approved by
-- published at
-- retired at
 
-This name is preferred over `QuestionBankItem` and `QuestionBankMember`.
+The website should not host or share full copyrighted source material in v1. Learners can see clean citation metadata where appropriate, but internal generation details should remain reviewer/admin information.
 
-`QuestionBankItem` is simple but too vague once review, publication, and retirement state are added.
+### Imported Provenance
 
-`QuestionBankMember` should be avoided because "member" is better reserved for users belonging to a bank.
+The website should import enough CLI metadata to understand where a question version came from without modelling the full generation pipeline.
 
-Each `QuestionBankEntry` should have at most one currently published version. Forks can exist as separate questions and therefore separate entries.
+Imported provenance may include:
 
-## Curricula
+- export schema version
+- Minerva CLI version
+- source mode: `generated`, `converted`, `manual_json`, `external_bank`, `mixed`, or `unknown`
+- external question id
+- source question id, optional
+- model, optional
+- prompt version, optional
+- topic, optional
+- exam and curriculum context, optional
+- generated, converted, or exported timestamps, optional
+- token usage or estimated cost, optional
 
-The existing Minerva curriculum node concept should be preserved.
+Generation metadata is not citation support. Citation support should come from `Source` and `Citation` records.
 
-Royal College of Anaesthetists curricula should be represented as canonical, versioned reference data because exam curricula can change over time.
+### Curriculum
+
+V1 should preserve the existing Minerva curriculum node concept.
 
 Suggested model:
 
 - `Curriculum`
 - `CurriculumVersion`
 - `CurriculumNode`
+- `QuestionVersionCurriculumAlignment`
 
-Example versions:
+Curriculum versions should use labels from the source data rather than guessed names.
 
-- `RCoA Primary FRCA`
-- `RCoA Final FRCA`
+For curriculum-backed practice, a published question should have at least one confirmed curriculum alignment. Placeholder curriculum nodes are acceptable during development, but production content should avoid relying on `uncategorised` as a long-term substitute for meaningful alignment.
 
-The exact version labels should be taken from the source data rather than guessed.
+## Roles And Permissions
 
-Curriculum versions can have lifecycle states, such as draft, active, retired, or dev/test. This allows new exams or development fixtures to use a minimal placeholder curriculum before the full canonical structure exists.
+V1 needs simple site roles only.
 
-For example, a draft curriculum for a new exam might initially contain broad nodes such as general, pharmacology, physiology, and uncategorised.
+### Editor
 
-Placeholder nodes are acceptable for development and early scaffolding. Production exam banks should avoid using uncategorised nodes as a long-term substitute for meaningful curriculum alignment.
+Editors can:
 
-### Curriculum-Backed Banks
+- upload Minerva CLI exports
+- validate and import question sets
+- manually author complete text-only SBA questions
+- review question versions
+- approve or reject question versions
+- publish approved questions
+- retire published questions
+- close learner reports
 
-A curriculum-backed question bank has a primary curriculum version.
+### Reviewer
 
-Learners mainly see the bank-relevant curriculum path. For example, a Final FRCA bank should present Final FRCA alignment rather than cluttering the learner view with Primary FRCA or unrelated specialty alignments.
+Reviewers can:
 
-Publication rule: a curriculum-backed bank should require at least one bank-local confirmed curriculum alignment before a question can be published in that bank.
+- view review queues
+- manually author complete text-only SBA questions, if granted
+- review question versions
+- approve or reject question versions, if granted
+- publish approved questions, if granted
+- close learner reports, if granted
 
-### Freeform Banks
+### Learner
 
-Some banks may not have a formal curriculum. These should be allowed.
+Learners can:
 
-For v1, freeform banks should use bank-scoped tags as lightweight organisation:
+- practise published questions
+- submit reports against questions they can access
+- review their own attempt history where implemented
 
-- tags are optional by default
-- bank owners can require at least one tag later if needed
-- category trees should be deferred unless tags prove insufficient
+Initial access can be assigned through Django groups or equivalent site-level roles. Bank-level roles are deferred.
 
-Publication rule: a freeform bank should not require curriculum alignment. It may optionally require at least one bank-scoped tag if the bank owner enables that setting.
+## Content Creation
 
-### Global and Local Alignment
+V1 supports two content creation paths:
 
-Question versions can have global curriculum alignments across multiple curricula.
+- bulk import from a Minerva CLI `QuestionSet` JSON export
+- simple manual authoring of a complete text-only SBA
 
-Each question bank entry can also have a bank-local confirmed alignment.
+Both paths create immutable `QuestionVersion` records with content approval status `unreviewed`, then enter the same review workflow.
 
-Example:
+### CLI Import
 
-One question about suxamethonium hyperkalaemia after burns may be globally aligned to both Primary FRCA pharmacology and Final FRCA burns/perioperative management. In a Final FRCA bank, the learner should mainly see the Final FRCA placement. In a Primary FRCA pharmacology bank, the learner should mainly see the pharmacology placement.
+1. Editor generates or converts questions using the Minerva CLI.
+2. Editor uploads the website-targeted JSON export.
+3. The app validates the export schema version and required question fields.
+4. The app creates an `ImportBatch`.
+5. Existing curriculum node codes are mapped where possible.
+6. The app creates `Question`, `QuestionVersion`, `Source`, `Citation`, and imported provenance records.
+7. Each imported `QuestionVersion` starts as `unreviewed`.
+8. The app creates a `content_review` task for each imported version.
 
-## Roles and Permissions
+Initial imports should not require editor mapping decisions for every question. Duplicate detection can be limited to optional exact warnings if cheap.
 
-Roles should distinguish site-level administration from bank-level permissions.
+### Manual Authoring
 
-### Site-Level Role
+Manual authoring should be deliberately simple in v1. It is a single complete form for creating a text-only SBA, not a draft workflow.
 
-- `SiteAdmin`: manages platform-level concerns, such as users, abuse/moderation, canonical curricula, global source/reference data, system configuration, and support tasks.
+The form should capture:
 
-`SiteAdmin` is not the normal editorial owner of every question bank. Bank-level editorial control should remain with each bank's owners and reviewers unless platform intervention is required.
+- question concept title
+- stem
+- lead-in
+- exactly five options
+- correct option
+- per-option explanations
+- overall explanation
+- option ordering mode
+- curriculum alignment
+- citation metadata, where available
+- internal notes, optional
 
-### Bank-Level Roles
+Saving a manually authored question should:
 
-Initial bank-level roles:
+1. Create a `Question`.
+2. Create an initial immutable `QuestionVersion` with approval status `unreviewed`.
+3. Create source, citation, curriculum alignment, and provenance metadata where provided.
+4. Create a `content_review` task.
 
-- `Owner`: manages the bank, runs AI generation, configures settings, reviews, approves, and publishes.
-- `Reviewer`: reviews submissions, edits, approves, rejects, forks, and publishes if granted by the bank.
-- `Contributor`: writes or imports manual questions and submits them for review.
-- `Learner`: practises published questions and submits reports or suggestions according to bank policy.
-
-Bank-level roles should be assigned through `BankMembership`.
-
-`BankMembership` is the relationship between a user and a question bank. It is separate from `QuestionBankEntry`, which is the relationship between a question and a question bank.
-
-`BankMembership` should record:
-
-- bank
-- user
-- role, such as owner, reviewer, contributor, or learner
-- membership status, such as active, invited, suspended, or left
-- invited by, optional
-- joined at
-
-AI generation should be bank-owner-only in v1. It can be expanded later.
-
-Owners may review their own AI-generated questions, but generated questions must still pass through an explicit human-in-the-loop review/proofing workflow before publication.
-
-## Bank Settings
-
-### Visibility
-
-Banks should have explicit visibility settings, defaulting to private:
-
-- `private`: invited members only
-- `unlisted`: accessible by link
-- `public`: discoverable and viewable by users according to policy
-
-### Contribution Policy
-
-Contribution policy should be bank-configurable:
-
-- who can report issues
-- who can leave free-text suggestions
-- who can submit structured proposed edits
-- who can submit new manual/imported questions
-
-Default v1 policy:
-
-- reports: any logged-in user with access
-- free-text suggestions: any logged-in user with access
-- structured proposed edits: contributors by default, configurable
-- new manual/imported question submissions: contributors
-- AI generation: owner only
-
-### Reuse Policy
-
-Question reuse should also be bank-configurable.
-
-Most published content is expected to be relatively open within the site, so the default posture should favour discoverability and reuse. More restrictive settings exist for private or tightly curated banks.
-
-Discoverability and reuse should be treated as related but separate permissions. A bank may allow its published questions to appear in duplicate/similarity search without allowing other banks to add those questions directly.
-
-Suggested discoverability policies:
-
-- `private`: not visible outside this bank
-- `metadata_visible`: other bank reviewers can see limited metadata in duplicate/similarity search
-- `content_visible`: other bank reviewers can inspect the full published question where access policy allows
-
-Suggested reuse policies:
-
-- `private`: only this bank can reuse its questions
-- `members_only`: bank members can reuse questions into their other banks
-- `site_reusable`: any bank owner or reviewer can reuse published questions
-- `request_required`: other banks can request reuse
-
-The default should be `content_visible` and `site_reusable` for published questions.
-
-Bank visibility controls learner access. Discoverability and reuse policies control reviewer workflows across banks.
-
-Private banks should default to private discoverability and private reuse. A private bank owner can explicitly opt into limited cross-bank discoverability or reuse, such as metadata-only duplicate search or request-required reuse, without making the bank learner-visible.
+Manual authoring should not create long-lived drafts in v1. If the author leaves before submitting the complete form, the system does not need to preserve partial work.
 
 ## Review Workflow
 
-The workflow should separate durable domain decisions from temporary queue state.
+The workflow separates durable decisions from queue state:
 
-Three objects should own different parts of the process:
+- `QuestionVersion` owns content approval.
+- `Question` owns publication into the canonical pool.
+- `ReviewTask` owns operational queue state.
 
-### QuestionVersion Content Approval
+Review should use a shared queue by default. Assignment can be nullable and lightweight.
 
-`QuestionVersion` owns content approval.
+V1 task types:
 
-This answers: is this exact SBA version medically correct, well written, and supported by evidence?
+- `content_review`
+- `import`
 
-This is a global judgement about the immutable version. It should not vary by question bank.
+V1 review filters:
 
-Example fields:
-
-- content approval status, such as unreviewed, approved, rejected, or superseded
-- reviewed by
-- reviewed at
-- proofing checklist
-- citation support judgement, such as citations_support_answer or insufficient_support
-- review notes
-
-### QuestionBankEntry Local Publication
-
-`QuestionBankEntry` owns local publication.
-
-This answers: should this approved question version appear in this specific bank?
-
-This is bank-specific. A question can be content-approved but still not belong in a given bank.
-
-Example fields:
-
-- bank
-- question
-- current published version
-- locally selected version awaiting publication
-- local publication status, such as unpublished, published, or retired
-- local curriculum alignment or tags
-- published by
-- published at
-
-Approval and publication should be separate actions, with an `approve and publish` shortcut.
-
-### ReviewTask Queue State
-
-`ReviewTask` owns reviewer queue state.
-
-This answers: what work currently needs human attention?
-
-It is operational work tracking, not the long-term source of truth. When a review task is resolved, the durable decision should be written back to `QuestionVersion`, `QuestionBankEntry`, a report, or a question draft.
-
-Review should use a shared queue by default in v1. `ReviewTask` may have an optional assignee, but assignment should be lightweight and nullable. Complex workload balancing, SLAs, and mandatory assignment rules are deferred.
-
-`ReviewTask` should be able to point at the relevant object, such as:
-
-- a `QuestionVersion`
-- a `QuestionBankEntry`
-- a report
-- a `QuestionDraft`
-- an import batch
-- a reuse candidate
-
-Review task sources:
-
-- `ai_generated`
-- `manual`
-- `imported`
-- `proposed_edit`
-- `report_fix`
-- `reuse_candidate`
-
-Review task states:
-
-- `submitted`
-- `in_review`
-- `changes_requested`
-- `resolved`
-- `cancelled`
-
-Review queues should be filterable by:
-
-- source
-- status
-- curriculum node or tag
-- report count
+- task type
+- task status
+- curriculum node
 - creator
 - reviewer or assignee
-- generated model, later if useful
 
-For AI-generated questions, review should include a checklist confirming:
+Reviewers should check:
 
 - answer is correct
 - distractors are plausible and homogeneous
 - explanations are accurate
-- citations support the answer
+- citation metadata supports the answer
 - curriculum alignment is appropriate
-- no unsafe or outdated medical guidance is present
+- no unsafe or outdated guidance is present
 
-## Sources and Citations
+Approval and publication should be separate actions, but an `approve and publish` shortcut is acceptable for users with permission to do both.
 
-The website should store citation metadata and review provenance for generated and manually submitted questions.
+## Publication
 
-Citation metadata should travel with the `QuestionVersion` when a question is reused in another bank.
+Publishing makes an approved `QuestionVersion` available through the canonical learner-facing pool.
 
-The site should not host or share full source materials in v1. Citations are references to source material, not copies of the source material. Learner-facing citations should not imply that the learner has access to the cited PDF, book, article, or external resource through the site.
+Rules:
 
-Suggested objects:
+- A question cannot be published without an approved current published version.
+- A question cannot be published for curriculum-backed practice without confirmed curriculum alignment.
+- Retiring a question removes it from learner serving but does not delete historical attempts, reports, versions, citations, provenance, or review records.
+- If a current published version is later rejected, the question becomes ineligible for learner practice until it has a new approved current version or is retired.
 
-- `Source`
-- `Citation`
-- `GenerationRun`
+## Learner Practice
 
-`Source` represents bibliographic or reference metadata, not necessarily a hosted file:
+Learners practise from the canonical pool in v1.
 
-- title
-- source type, such as PDF, book, article, web page, manual, or curriculum
-- author or publisher
-- year
-- URL, DOI, file reference, page, or section where available
+Useful filters:
 
-`Citation` attaches a source reference to a `QuestionVersion`. In v1, citations should store reviewable support metadata and concise supporting notes where appropriate, but not full copyrighted source material:
+- curriculum node
+- unanswered
+- incorrect
+- updated since answered
+- random or newest
+- question count
 
-- source
-- concise excerpt, quote, or supporting note where permitted
-- page, section, or URL anchor
-- added by
-- citation type, such as retrieved, manual, or imported
-- support note, describing how this source supports or contextualises the answer
+`UserQuestionAttempt` should be append-only.
 
-`GenerationRun` stores AI generation metadata:
+Each attempt should store:
 
-- model
-- prompt version
-- topic
-- bank and curriculum context if provided
-- created by
-- created at
-- token usage or cost if available
+- user
+- question
+- exact question version shown
+- practice session or filter context, optional
+- displayed option order
+- selected option identity
+- correct or incorrect result
+- answered at
+- time taken, optional
 
-AI generation should have owner-level and bank-level limits or quotas in v1. Token usage and estimated cost should be recorded where available and visible to bank owners and site admins.
+Progress can roll up by stable `Question`, while still detecting when a newer approved version has been published since the learner last answered.
 
-Learners should see clean citations and source metadata so they know where to read more. They should not see the full prompt chain, critique history, retrieval scores, or internal AI-generation provenance.
-
-Reviewers should see enough evidence and provenance to assess the question, including citation details, concise supporting notes, and permitted excerpts. Full source document hosting and sharing is out of scope for v1.
-
-## Reports and Proposed Edits
+## Reports
 
 Learners should be able to report issues using structured issue types plus free text.
 
@@ -490,186 +361,205 @@ Suggested issue types:
 - `typo_or_formatting`
 - `outdated_guidance`
 - `wrong_curriculum_mapping`
+- `wrong_scope_or_concept`
 - `citation_problem`
 - `other`
 
 Reports should attach to:
 
-- the exact `QuestionVersion` seen
-- the `QuestionBankEntry` context where the report was made
-- the reporter
+- reporter
+- exact `QuestionVersion` seen
+- `Question`
+- practice session or filter context, optional
+- issue type
+- free-text detail
+- status: `open` or `closed`
 
-Reports should have statuses:
+Closing a report records triage notes and an explicit outcome. If the outcome requires content changes, v1 can record `accepted_for_follow_up`; the replacement content can arrive through a later import or another deliberately scoped editing workflow.
 
-- `open`
-- `triaged`
-- `accepted`
+## State Transitions
+
+The goal of the v1 lifecycle rules is to prevent impossible combinations of state while keeping the first implementation small.
+
+Deferred workflows are tracked in `design/future.md`.
+
+### Global Invariants
+
+- `QuestionVersion` is immutable after creation.
+- A `QuestionVersion` approval decision applies only to the exact content of that version.
+- A `Question` has at most one current published version in v1.
+- `Question.current_published_version` must be approved before the question can be served to learners.
+- Learner serving eligibility is derived, not stored as a separate lifecycle state.
+- A resolved `ReviewTask` must first write its durable outcome to its target object.
+- Learner attempts must reference the exact `QuestionVersion` shown, the practice context, the displayed option order, and the selected stable option identity.
+- Reports must reference the exact `QuestionVersion` seen and the practice context where the report was made.
+- Retiring a `Question` must not delete historical attempts, reports, versions, citations, provenance, or review records.
+- Citation, source, provenance, and curriculum alignment records are editable metadata. Editing them does not create a new `QuestionVersion`.
+- If a published version is later rejected, the question becomes ineligible for learner serving until it has a new approved current version or is retired.
+
+### QuestionVersion Approval
+
+`QuestionVersion` stores exact SBA content and its content approval status.
+
+States:
+
+- `unreviewed`
+- `approved`
 - `rejected`
+
+| From | To | Actor | Required side effect |
+|---|---|---|---|
+| `unreviewed` | `approved` | reviewer, editor | record reviewer, reviewed time, proofing checklist, citation support judgement, and review notes |
+| `unreviewed` | `rejected` | reviewer, editor | record reviewer, reviewed time, structured rejection reason, and rejection notes |
+| `rejected` | `approved` | reviewer, editor | allowed only if the rejection was recorded in error; record reversal reason |
+| `approved` | `rejected` | reviewer, editor | allowed only for serious post-approval errors; if this is the question's current published version, make the question ineligible for learner serving until it has a new approved current version or is retired |
+
+Do not use `superseded` as an approval status. A previous approved version may be old without being wrong. Version lineage and publication choice should represent replacement.
+
+Suggested rejection reasons:
+
+- `incorrect_answer`
+- `unsafe_or_outdated`
+- `insufficient_citation_support`
+- `poor_question_quality`
+- `duplicate`
+- `wrong_scope_or_curriculum`
+- `created_in_error`
+- `other`
+
+### Question Publication
+
+`Question` stores publication state for the canonical learner-facing pool.
+
+States:
+
+- `unpublished`
+- `published`
+- `retired`
+
+| From | To | Actor | Required side effect |
+|---|---|---|---|
+| `unpublished` | `published` | editor, permitted reviewer | confirm `current_published_version` is approved; confirm required curriculum alignment; record publisher and published time |
+| `published` | `retired` | editor, permitted reviewer | record retired time and reason; keep historical records intact |
+| `retired` | `published` | editor, permitted reviewer | confirm `current_published_version` is approved; confirm required curriculum alignment; record publisher and published time |
+
+Serving eligibility is true only when:
+
+- `Question.publication_status == published`
+- `Question.current_published_version.approval_status == approved`
+- required curriculum alignment remains satisfied
+
+V1 should not publish multiple current versions of the same `Question`. If two learner-facing variants are needed, that is future fork/reuse work.
+
+### ReviewTask
+
+`ReviewTask` is queue state. It is not the durable source of truth for the final decision.
+
+States:
+
+- `submitted`
+- `in_review`
 - `resolved`
+- `cancelled`
 
-Free-text feedback belongs to reports and suggestions. A structured proposed edit is different: it should represent a draft replacement for a specific immutable `QuestionVersion`.
+| From | To | Actor | Required side effect |
+|---|---|---|---|
+| `submitted` | `in_review` | reviewer, editor | optionally assign reviewer and record review start time |
+| `submitted` | `cancelled` | creator, reviewer, editor | record cancellation reason |
+| `in_review` | `resolved` | reviewer, editor | write durable outcome to the target object before resolving |
+| `submitted` | `resolved` | reviewer, editor | allowed for simple decisions; write durable outcome to the target object before resolving |
+| `in_review` | `cancelled` | reviewer, editor | record cancellation reason |
 
-`QuestionDraft` is the place for editable question drafts. This lets users stage generated, imported, manual, or edited questions over several sessions before submitting them for review, while preserving `QuestionVersion` as the immutable record of submitted, approved, rejected, or published content.
+V1 task types:
 
-Drafts should be flexible. A user should be able to draft a question without a target bank, curriculum node, or tag. A draft can also be associated with a target bank, curriculum node, or tag from the start if the user is working in a specific bank context.
+- `content_review`
+- `import`
 
-Bank-specific requirements should apply when the draft is submitted for review or published, not while the user is still drafting.
+Content review outcomes:
 
-Submission readiness rules:
+- `approved`
+- `rejected`
 
-- unscoped drafts do not require a bank, curriculum node, or tag
-- submitting to a curriculum-backed bank requires a proposed bank-local curriculum alignment
-- publishing in a curriculum-backed bank requires a confirmed bank-local curriculum alignment
-- submitting or publishing in a freeform bank does not require curriculum alignment
-- freeform bank tags are required only if the bank owner has enabled that setting
+Import outcomes:
 
-Suggested model:
+- `import_completed`
+- `import_failed`
 
-- `QuestionDraft`
+Durable outcome examples:
 
-`QuestionDraft` should record:
+- content review writes approval status and review metadata to `QuestionVersion`
+- import creates `Question`, `QuestionVersion`, `Source`, `Citation`, curriculum alignment, and provenance records where supported
 
-- based-on question version
-- proposed stem, lead-in, options, explanations, citations, and option ordering mode
-- submitted by
-- reason or change summary
-- linked report, optional
-- review task
-- state, such as draft, submitted, changes_requested, accepted, rejected, or forked
+### ImportBatch
 
-If accepted, the proposal should create a new immutable `QuestionVersion` and associated `QuestionContribution` records. If the proposed change alters the tested concept materially, reviewers should fork it into a new `Question` instead.
+`ImportBatch` tracks one uploaded Minerva CLI export.
 
-## Reuse and Updates Across Banks
+States:
 
-Reuse should preserve the same shared `Question` and selected `QuestionVersion` by default.
+- `uploaded`
+- `validated`
+- `imported`
+- `failed`
+- `cancelled`
 
-When a bank reuses a question from another bank:
+| From | To | Actor | Required side effect |
+|---|---|---|---|
+| `uploaded` | `validated` | system | validate JSON against the supported Minerva export schema |
+| `uploaded` | `failed` | system | record validation errors |
+| `validated` | `imported` | system | create question/version records and related source, citation, curriculum, and provenance metadata |
+| `validated` | `failed` | system | record import errors |
+| `uploaded` | `cancelled` | editor | record cancellation reason |
+| `validated` | `cancelled` | editor | record cancellation reason |
 
-- content approval travels with the question version
-- citations and citation support metadata travel with the question version
-- the receiving bank still controls whether that approved version fits and should be published locally
-- the receiving bank confirms local curriculum alignment or tags
+`ImportBatch` is operational. It may be pruned after import work is complete if durable provenance has been copied to the created records.
 
-When a report leads to a new approved version, other banks using the affected old version should receive an update notification or review task. They should not be silently updated.
+Whole-file idempotency is not a v1 invariant. Re-uploading the same file can be detected opportunistically while batch records exist.
 
-The receiving bank can choose to:
+### Learner Attempt
 
-- adopt the new version
-- ignore it
-- fork or edit it
-- retire the entry
+`UserQuestionAttempt` is append-only and does not need a mutable lifecycle in v1.
 
-## Duplicate Detection
-
-Reviewers should be shown likely duplicate or similar questions.
-
-This should work within a bank and across banks where reuse is permitted by policy.
-
-Duplicate detection is review support, not a hard uniqueness constraint. Similar questions may be legitimate if they test a different angle, use a different scenario, or are intentional variants.
-
-Suggested model:
-
-- `SimilarityMatch`
-
-`SimilarityMatch` should record:
-
-- candidate question version
-- matched question version
-- scope, such as same_bank, accessible_banks, or site_reusable
-- score
-- reason, such as stem similarity, lead-in similarity, answer similarity, or embedding similarity
-- created at
-- reviewer decision, such as reuse, fork, create_new_anyway, intentional_variant, or reject_duplicate
-
-The review UI should show:
-
-- similar question title or stem preview
-- bank
-- curriculum node or tags
-- current published version
-- similarity score
-- actions such as view, reuse, mark intentional fork, or reject as duplicate
-
-Duplicate detection should warn but not block publication, because intentional forks are valid.
-
-## Import
-
-Importing existing Minerva `QuestionSet` JSON should be part of v1.
-
-Suggested flow:
-
-1. Owner uploads a `QuestionSet` JSON file.
-2. The app validates the file using the existing Minerva schema.
-3. The app creates an import batch and checks each imported question for likely duplicates.
-4. Existing curriculum node codes are mapped where possible.
-5. The owner reviews an import summary with duplicate candidates.
-6. For each imported question, the owner chooses whether to reuse an existing question/version, fork from an existing question, or create a new question.
-7. The app creates or links the appropriate `Question`, `QuestionVersion`, and `QuestionContribution` records.
-8. Imported questions enter the same review workflow as other sources.
-
-This gives the web app a low-risk path to seed content before full web generation is complete.
-
-## Learner Practice
-
-Learners should practise within one bank at a time in v1.
-
-Practice filters should include:
-
-- curriculum node or tag
-- unanswered
-- incorrect
-- updated since answered
-- random or newest
-- question count
-
-Learner attempts should be tracked from v1.
-
-`UserQuestionAttempt` should store:
+Each attempt should store:
 
 - user
-- question bank entry
-- exact question version seen
+- question
+- exact question version shown
+- practice session or filter context, optional
 - displayed option order
 - selected option identity
 - correct or incorrect result
 - answered at
 - time taken, optional
 
-Attempts must refer to the immutable version shown to the learner.
+Attempts must not be deleted or rewritten when a question is edited, retired, rejected after publication, or replaced by a newer published version.
 
-Progress should roll up primarily by stable `Question`, while marking questions as updated if a newer version has been published since the learner last answered.
+### Report Lifecycle
 
-## Option Ordering
+`Report` records learner or reviewer feedback about the exact version seen in a practice context.
 
-Some SBAs require fixed option ordering, such as dose ranges or severity scales.
+States:
 
-`QuestionVersion` should declare an option ordering mode:
+- `open`
+- `closed`
 
-- `fixed`
-- `randomizable`
+| From | To | Actor | Required side effect |
+|---|---|---|---|
+| `open` | `closed` | reviewer, editor | record closure outcome, notes, closer, and closed time |
 
-The default should be `fixed`.
+Closure outcomes:
 
-If reviewers mark a question as randomizable, attempts should still store the displayed option order.
+- `accepted_for_follow_up`
+- `rejected_no_issue`
+- `duplicate_or_already_addressed`
+- `no_change_needed`
+- `other`
 
-## Deferred Features
-
-The following are intentionally deferred:
-
-- difficulty metadata
-- spaced repetition
-- cross-bank learner practice sessions
-- full public request-to-reuse workflow
-- two-person mandatory review
-- full citation formatting system
-- custom per-bank curriculum trees
-- non-SBA question formats beyond image-based SBAs
+Closing a report is triage. If content needs to change, the corrected content should be handled by a later import or a deliberately scoped replacement-version workflow.
 
 ## Implementation Open Questions
 
+- What exact first website export schema version should be supported?
+- Should the first Django implementation live in this repository or in a separate web project that depends on the Minerva package?
 - What exact RCoA curriculum version labels should be attached to the existing curriculum data?
-- What exact status, state, role, and qualifier vocabularies should be used before implementation? This includes contribution roles such as primary_author, original_source, reviewer, editor, importer, citation_verifier, and fork_author.
-- What is the implementation plan for first Django delivery? This should cover the initial model set, permissions matrix, audit/event strategy, import mapping, generation integration, and background job approach.
-- Should bank owners be able to delegate AI generation to reviewers in v1.1?
-- How much source document management should live in the web app versus continuing to use the existing Minerva embedding pipeline?
-- Should the first Django implementation live inside this repository or as a separate web project that depends on the Minerva package?
+- Which roles can publish in v1: editors only, or reviewers with an explicit permission?
+- Should content corrections in v1 happen only through fresh imports, or should there be a small in-website "create replacement version" form?
