@@ -28,7 +28,7 @@ def quiz(
     topic: Annotated[Optional[str], typer.Option(help="Topic: generate questions then quiz")] = None,
     count: Annotated[int, typer.Option("-c", "--count", help="Number of questions to generate", min=1)] = 3,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = DEFAULT_MODEL,
-    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: primary_frca or final_frca; primary/final aliases accepted")] = None,
     node: Annotated[Optional[str], typer.Option(help="Exact curriculum node code e.g. 1_GA_P_6")] = None,
     output: Annotated[Optional[Path], typer.Option("-o", "--output", help="Where to save generated JSON")] = None,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = DEFAULT_DB,

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from minerva.models import Question, QuestionOption
+from minerva.models import Question, QuestionOption, QuestionSet
 from tests.conftest import make_options
 
 
@@ -72,3 +72,15 @@ class TestToMarkdown:
 
     def test_contains_correct_answer_marker(self, sample_question):
         assert "Correct:" in sample_question.to_md()
+
+
+class TestQuestionSetExam:
+    def test_legacy_primary_exam_normalizes_to_canonical_key(self, sample_question):
+        qs = QuestionSet(topic="Topic", exam="primary", model="model", questions=[sample_question])
+
+        assert qs.exam == "primary_frca"
+
+    def test_legacy_final_exam_normalizes_to_canonical_key(self, sample_question):
+        qs = QuestionSet(topic="Topic", exam="final", model="model", questions=[sample_question])
+
+        assert qs.exam == "final_frca"

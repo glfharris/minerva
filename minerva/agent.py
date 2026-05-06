@@ -8,6 +8,7 @@ from pydantic_ai import Agent, RunContext
 from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelRequest, ToolReturnPart
 
 from .console import console
+from .curriculum import normalize_assessment_key
 from .embed import EmbedClient
 from .models import CurriculumNode, QuestionSet
 from .prompts import build_generation_role
@@ -153,7 +154,11 @@ def load_example_messages(
         return []
 
     # Filter by exam; entries with no exam recorded are always included
-    candidates = [e for e in index if not e.get("exam") or e.get("exam") == exam] if exam else index
+    normalized_exam = normalize_assessment_key(exam)
+    candidates = [
+        e for e in index
+        if not e.get("exam") or normalize_assessment_key(e.get("exam")) == normalized_exam
+    ] if normalized_exam else index
 
     if not candidates:
         return []

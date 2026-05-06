@@ -5,7 +5,9 @@ from minerva.curriculum import (
     _build_text,
     flatten,
     l2_to_cosine,
+    load_document,
     lookup_node,
+    normalize_assessment_key,
     node_path,
     resolve_topic,
     search,
@@ -83,8 +85,14 @@ class TestResolveTopic:
 
         assert resolved is not None
         assert resolved.node is None
-        assert resolved.exam == "primary"
+        assert resolved.exam == "primary_frca"
         assert resolved.topic == "Rocuronium"
+
+    def test_canonical_exam_is_preserved(self):
+        resolved = resolve_topic("final_frca", None, "Airway")
+
+        assert resolved is not None
+        assert resolved.exam == "final_frca"
 
     def test_missing_topic_and_node_returns_none(self):
         assert resolve_topic("primary", None, None) is None
@@ -98,7 +106,7 @@ class TestResolveTopic:
         assert result is not None
         node, exam = result
         assert node.code == "1_PBC"
-        assert exam == "primary"
+        assert exam == "primary_frca"
 
     def test_node_without_exam_infers_exam(self):
         resolved = resolve_topic(None, "1_PBC", None)
@@ -106,8 +114,42 @@ class TestResolveTopic:
         assert resolved is not None
         assert resolved.node is not None
         assert resolved.node.code == "1_PBC"
-        assert resolved.exam == "primary"
+        assert resolved.exam == "primary_frca"
         assert resolved.topic == resolved.node.label
+
+
+class TestNormalizeAssessmentKey:
+    def test_accepts_legacy_primary_alias(self):
+        assert normalize_assessment_key("primary") == "primary_frca"
+
+    def test_accepts_legacy_final_alias(self):
+        assert normalize_assessment_key("final") == "final_frca"
+
+    def test_accepts_canonical_keys(self):
+        assert normalize_assessment_key("primary_frca") == "primary_frca"
+        assert normalize_assessment_key("final_frca") == "final_frca"
+
+    def test_unknown_returns_none(self):
+        assert normalize_assessment_key("unknown") is None
+
+
+class TestLoadDocument:
+    def test_loads_primary_curriculum_metadata(self):
+        document = load_document("primary")
+
+        assert document is not None
+        assert document.key == "rcoa_primary_frca"
+        assert document.owner_key == "rcoa"
+        assert document.assessment_key == "primary_frca"
+        assert document.version.label == "2.2"
+        assert document.version.released_at == "2026-01-19"
+        assert document.root.code == "root"
+
+    def test_loads_primary_curriculum_by_canonical_key(self):
+        document = load_document("primary_frca")
+
+        assert document is not None
+        assert document.assessment_key == "primary_frca"
 
 
 class TestBuildMaps:

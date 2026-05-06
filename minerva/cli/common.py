@@ -11,7 +11,7 @@ from pydantic_ai.usage import RunUsage
 
 from minerva.console import console
 from minerva.critique import apply_critique_result
-from minerva.curriculum import _MATCH_THRESHOLD, EMBED_MODEL, resolve_topic
+from minerva.curriculum import AssessmentKey, _MATCH_THRESHOLD, EMBED_MODEL, normalize_assessment_key, resolve_topic
 from minerva.generation import GenerationPlanItem, plan_from_candidates, subtree_generation_plan
 from minerva.models import CurriculumNode, QuestionSet
 from minerva.output import save_json, save_markdown
@@ -19,7 +19,9 @@ from minerva.output import save_json, save_markdown
 
 class Exam(StrEnum):
     primary = "primary"
+    primary_frca = "primary_frca"
     final = "final"
+    final_frca = "final_frca"
 
 
 class Source(StrEnum):
@@ -116,7 +118,7 @@ def resolve_topic_or_exit(
     node: str | None,
     topic: str | None,
     missing_msg: str = "[red]Provide a topic or --node.[/red]",
-) -> tuple[CurriculumNode | None, Exam | None, str]:
+) -> tuple[CurriculumNode | None, AssessmentKey | None, str]:
     resolved = resolve_topic(exam, node, topic)
     if resolved is None:
         if node:
@@ -125,6 +127,14 @@ def resolve_topic_or_exit(
             console.print(missing_msg)
         raise typer.Exit(1)
     return resolved.node, resolved.exam, resolved.topic
+
+
+def normalize_exam_or_exit(exam: Exam | str | None) -> AssessmentKey | None:
+    normalized = normalize_assessment_key(exam)
+    if exam is not None and normalized is None:
+        console.print(f"[red]Unknown exam '{exam}'. Use primary_frca or final_frca.[/red]")
+        raise typer.Exit(1)
+    return normalized
 
 
 def validate_count(count: int) -> None:

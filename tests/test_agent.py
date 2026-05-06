@@ -49,3 +49,25 @@ class TestLoadExampleMessages:
     def test_malformed_json_skipped_silently(self, tmp_path):
         (tmp_path / "bad.json").write_text("not valid json")
         assert load_example_messages(tmp_path) == []
+
+    def test_exam_filter_matches_legacy_aliases(self, tmp_path, monkeypatch):
+        import json
+
+        (tmp_path / "index.json").write_text(json.dumps([
+            {"file": "primary.json", "topic": "Rocuronium", "exam": "primary"},
+            {"file": "final.json", "topic": "Airway", "exam": "final"},
+        ]))
+        (tmp_path / "primary.json").write_text("not valid messages")
+        (tmp_path / "final.json").write_text("not valid messages")
+
+        loaded = []
+
+        def fake_validate_json(data):
+            loaded.append(data)
+            return []
+
+        monkeypatch.setattr("minerva.agent.ModelMessagesTypeAdapter.validate_json", fake_validate_json)
+
+        load_example_messages(tmp_path, exam="primary_frca")
+
+        assert loaded == [b"not valid messages"]

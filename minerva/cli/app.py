@@ -20,7 +20,6 @@ from minerva.cli.commands.convert import convert
 from minerva.cli.commands.create import create
 from minerva.cli.commands.critique import critique
 from minerva.cli.commands.embed import embed
-from minerva.cli.commands.history import make_history
 from minerva.cli.commands.match import match
 from minerva.cli.commands.quiz import quiz
 from minerva.cli.commands.validate import validate
@@ -33,5 +32,4 @@ app.command()(embed)
 app.command()(quiz)
 app.command()(critique)
 app.command()(convert)
-app.command("make-history")(make_history)
 app.command()(validate)

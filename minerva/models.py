@@ -2,16 +2,47 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 
 
 OPTION_LETTERS = "ABCDE"
 
 
 class CurriculumNode(BaseModel):
-    code: str
+    key: str = Field(validation_alias=AliasChoices("key", "code"))
     label: str
-    children: list[CurriculumNode] = []
+    source_identifier: str | None = None
+    children: list[CurriculumNode] = Field(default_factory=list)
+
+    @property
+    def code(self) -> str:
+        """Compatibility alias for older CLI code and existing QuestionSet exports."""
+        return self.key
+
+
+class CurriculumVersionMetadata(BaseModel):
+    label: str
+    effective_from: str | None = None
+    effective_to: str | None = None
+    source_url: str | None = None
+    source_file_name: str | None = None
+    released_at: str | None = None
+
+
+class CurriculumDocument(BaseModel):
+    schema_version: str
+    key: str
+    title: str
+    owner_name: str | None = None
+    owner_key: str | None = None
+    owner_type: str = "unknown"
+    domain_name: str | None = None
+    domain_key: str | None = None
+    assessment_name: str | None = None
+    assessment_key: str | None = None
+    is_internal: bool = False
+    version: CurriculumVersionMetadata
+    root: CurriculumNode
 
 
 class QuestionOption(BaseModel):
@@ -79,6 +110,18 @@ class QuestionSet(BaseModel):
     model: str
     generated_at: datetime = Field(default_factory=datetime.now)
     questions: list[Question]
+
+    @field_validator("exam", mode="before")
+    @classmethod
+    def normalize_exam(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return {
+            "primary": "primary_frca",
+            "primary_frca": "primary_frca",
+            "final": "final_frca",
+            "final_frca": "final_frca",
+        }.get(str(value), str(value))
 
 
 class CritiquedQuestion(BaseModel):

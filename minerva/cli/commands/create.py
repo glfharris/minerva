@@ -34,7 +34,7 @@ def create(
     topic: Annotated[Optional[str], typer.Argument(help="Question topic (omit to derive from --node label)")] = None,
     count: Annotated[int, typer.Option("-c", "--count", help="Number of questions", min=1)] = 1,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = DEFAULT_MODEL,
-    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: 'primary' or 'final'")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Curriculum exam: primary_frca or final_frca; primary/final aliases accepted")] = None,
     node: Annotated[Optional[str], typer.Option(help="Exact curriculum node code e.g. 1_GA_P_6")] = None,
     output: Annotated[Path, typer.Option("-o", "--output", help="Output directory for JSON + markdown")] = Path("./output"),
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = DEFAULT_DB,

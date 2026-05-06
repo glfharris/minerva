@@ -5,7 +5,7 @@ from typing import Annotated, Optional
 
 import typer
 
-from minerva.cli.common import DEFAULT_DB, DEFAULT_MODEL, Exam, format_usage, run_async, save_outputs
+from minerva.cli.common import DEFAULT_DB, DEFAULT_MODEL, Exam, format_usage, normalize_exam_or_exit, run_async, save_outputs
 from minerva.console import console
 from minerva.conversion import convert_questions
 from minerva.curriculum import _make_embedder, rematch_questions
@@ -17,7 +17,7 @@ def convert(
     input_file: Annotated[Optional[Path], typer.Argument(help="Text, Markdown, or PDF file containing SBA questions")] = None,
     text: Annotated[Optional[str], typer.Option("--text", help="Inline question text to convert")] = None,
     topic: Annotated[Optional[str], typer.Option("--topic", help="Topic label for the output QuestionSet")] = None,
-    exam: Annotated[Optional[Exam], typer.Option(help="Exam type: 'primary' or 'final'")] = None,
+    exam: Annotated[Optional[Exam], typer.Option(help="Exam type: primary_frca or final_frca; primary/final aliases accepted")] = None,
     model: Annotated[str, typer.Option("-m", "--model", help="LLM model string (provider:name)")] = DEFAULT_MODEL,
     output: Annotated[Path, typer.Option("-o", "--output")] = Path("./output"),
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = DEFAULT_DB,
@@ -46,12 +46,13 @@ def convert(
     with console.status("Converting questions…"):
         qs, usage = run_async(convert_questions(raw, derived_topic, model))
 
-    if exam:
-        qs.exam = exam
+    normalized_exam = normalize_exam_or_exit(exam)
+    if normalized_exam:
+        qs.exam = normalized_exam
     with console.status("Loading embedding model…") as status:
         _make_embedder()
         status.update("Matching curriculum nodes…")
-        rematch_questions(qs.questions, exam, db)
+        rematch_questions(qs.questions, normalized_exam, db)
 
     if verbose:
         console.print(f"[dim]{format_usage(usage, label='Convert')}[/dim]")

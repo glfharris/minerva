@@ -25,6 +25,12 @@ lancedb/
 
 # Local docs
 docs/*
+!docs/design/
+docs/design/*
+!docs/design/*.md
+!docs/sources/
+docs/sources/*
+!docs/sources/source-manifest.json
 
 # Output
 output/

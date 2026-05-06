@@ -1,0 +1,60 @@
+{
+  "schema_version": "1",
+  "sources": [
+    {
+      "source_id": "anatomy_for_the_frca_bowness",
+      "path": "anatomy-for-the-frca.pdf",
+      "title": "Anatomy for the FRCA",
+      "source_type": "book",
+      "author_or_publisher": "James Bowness; Alastair Taylor",
+      "file_name": "anatomy-for-the-frca.pdf"
+    },
+    {
+      "source_id": "basic_physiology_for_anaesthetists_chambers",
+      "path": "basic-physiology-for-anaesthetists.pdf",
+      "title": "Basic Physiology for Anaesthetists",
+      "source_type": "book",
+      "author_or_publisher": "David Chambers",
+      "file_name": "basic-physiology-for-anaesthetists.pdf"
+    },
+    {
+      "source_id": "equipment_in_anaesthesia_al_shaikh_stacey",
+      "path": "essentials-of-equipment-in-anaesthesia-critical-care-and-perioperative-medicine.epub",
+      "title": "Essentials of Equipment in Anaesthesia, Critical Care and Perioperative Medicine",
+      "source_type": "book",
+      "author_or_publisher": "Baha Al-Shaikh; Simon G. Stacey",
+      "file_name": "essentials-of-equipment-in-anaesthesia-critical-care-and-perioperative-medicine.epub"
+    },
+    {
+      "source_id": "pharmacology_for_anaesthesia_and_intensive_care_peck",
+      "path": "pharmacology-for-anaesthesia-and-intensive-care.pdf",
+      "title": "Pharmacology for Anaesthesia and Intensive Care",
+      "source_type": "book",
+      "author_or_publisher": "Tom Peck",
+      "file_name": "pharmacology-for-anaesthesia-and-intensive-care.pdf"
+    },
+    {
+      "source_id": "physics_in_anaesthesia",
+      "path": "physics-in-anaesthesia.epub",
+      "title": "Physics in Anaesthesia",
+      "source_type": "book",
+      "file_name": "physics-in-anaesthesia.epub"
+    },
+    {
+      "source_id": "primary_frca_structured_oral_examination_mccombe_wijayasiri",
+      "path": "the-primary-frca-structured-oral-examination.pdf",
+      "title": "The Primary FRCA Structured Oral Examination",
+      "source_type": "book",
+      "author_or_publisher": "Kate McCombe; Lara Wijayasiri",
+      "file_name": "the-primary-frca-structured-oral-examination.pdf"
+    },
+    {
+      "source_id": "resuscitation_council_uk_als_manual",
+      "path": "advanced-life-support-manual.pdf",
+      "title": "Advanced Life Support Manual",
+      "source_type": "manual",
+      "author_or_publisher": "Resuscitation Council UK",
+      "file_name": "advanced-life-support-manual.pdf"
+    }
+  ]
+}

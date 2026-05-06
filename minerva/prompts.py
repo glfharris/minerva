@@ -60,8 +60,7 @@ content where possible. If retrieval returns nothing useful, rely on your knowle
 but flag uncertainty in the explanation.
 """
 
-EXAM_CONTEXTS: dict[str, str] = {
-    "primary": """\
+PRIMARY_FRCA_CONTEXT = """\
 ## Exam context: Primary FRCA
 
 Set questions at the standard appropriate for a doctor who has completed foundation
@@ -74,8 +73,9 @@ should test understanding and application of principles, not clinical decision-m
 - Options are frequently terse: a single drug name, a pharmacokinetic parameter,
   a physiological variable, or a brief mechanism. Do not inflate them.
 - Distractors should be plausible to a doctor with limited anaesthetic exposure.
-""",
-    "final": """\
+"""
+
+FINAL_FRCA_CONTEXT = """\
 ## Exam context: Final FRCA
 
 Set questions at the standard appropriate for a senior anaesthetic trainee approaching
@@ -89,7 +89,13 @@ Questions should require integration of knowledge and sound clinical judgement.
 - Questions may draw on landmark studies, NAP reports, and current college guidelines.
 - Distractors must be plausible to an experienced trainee — superficially reasonable
   but identifiably wrong to a candidate with genuine subspecialty knowledge.
-""",
+"""
+
+EXAM_CONTEXTS: dict[str, str] = {
+    "primary_frca": PRIMARY_FRCA_CONTEXT,
+    "primary": PRIMARY_FRCA_CONTEXT,
+    "final_frca": FINAL_FRCA_CONTEXT,
+    "final": FINAL_FRCA_CONTEXT,
 }
 
 

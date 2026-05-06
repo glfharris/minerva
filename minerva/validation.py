@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from .curriculum import _build_maps, load
+from .curriculum import _ASSESSMENT_SEARCH_ORDER, _build_maps, load, normalize_assessment_key
 from .models import QuestionSet
 
 
@@ -28,10 +28,11 @@ class ValidationResult:
 
 
 def _known_curriculum_codes(exam: str | None) -> set[str]:
-    exams = (exam,) if exam in {"primary", "final"} else ("primary", "final")
+    normalized = normalize_assessment_key(exam)
+    exams = (normalized,) if normalized else _ASSESSMENT_SEARCH_ORDER
     codes: set[str] = set()
     for ex in exams:
-        node_map, _ = _build_maps(load(ex))  # type: ignore[arg-type]
+        node_map, _ = _build_maps(load(ex))
         codes.update(code for code in node_map if code != "root")
     return codes
 
@@ -39,8 +40,8 @@ def _known_curriculum_codes(exam: str | None) -> set[str]:
 def validate_questionset(qs: QuestionSet) -> list[ValidationFinding]:
     findings: list[ValidationFinding] = []
 
-    if qs.exam not in {None, "primary", "final"}:
-        findings.append(ValidationFinding("error", "exam", "exam must be 'primary', 'final', or null"))
+    if qs.exam is not None and normalize_assessment_key(qs.exam) is None:
+        findings.append(ValidationFinding("error", "exam", "exam must be 'primary_frca', 'final_frca', or null"))
 
     if not qs.topic.strip():
         findings.append(ValidationFinding("error", "topic", "topic must not be empty"))

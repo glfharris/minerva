@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from .models import CurriculumNode
+from .models import CurriculumDocument, CurriculumNode
 
 if TYPE_CHECKING:
     from .models import Question
@@ -15,12 +15,42 @@ _DATA_DIR = Path(__file__).parent.parent / "data"
 EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
 _MATCH_THRESHOLD = 0.4  # cosine similarity; below this = no confident match
 
+AssessmentKey = Literal["primary_frca", "final_frca"]
+CurriculumStem = Literal["primary", "final"]
+
+ASSESSMENT_ALIASES: dict[str, AssessmentKey] = {
+    "primary": "primary_frca",
+    "primary_frca": "primary_frca",
+    "final": "final_frca",
+    "final_frca": "final_frca",
+}
+CURRICULUM_STEM_BY_ASSESSMENT: dict[AssessmentKey, CurriculumStem] = {
+    "primary_frca": "primary",
+    "final_frca": "final",
+}
+ASSESSMENT_BY_CURRICULUM_STEM: dict[CurriculumStem, AssessmentKey] = {
+    "primary": "primary_frca",
+    "final": "final_frca",
+}
+_ASSESSMENT_SEARCH_ORDER: tuple[AssessmentKey, AssessmentKey] = ("primary_frca", "final_frca")
+
 
 @dataclass(frozen=True)
 class ResolvedTopic:
     node: CurriculumNode | None
-    exam: str | None
+    exam: AssessmentKey | None
     topic: str
+
+
+def normalize_assessment_key(exam: str | None) -> AssessmentKey | None:
+    if exam is None:
+        return None
+    return ASSESSMENT_ALIASES.get(str(exam))
+
+
+def curriculum_stem(exam: str) -> CurriculumStem | None:
+    assessment = normalize_assessment_key(exam)
+    return CURRICULUM_STEM_BY_ASSESSMENT.get(assessment) if assessment else None
 
 
 def l2_to_cosine(d: float) -> float:
@@ -29,11 +59,30 @@ def l2_to_cosine(d: float) -> float:
 
 
 @lru_cache(maxsize=None)
-def load(exam: Literal["primary", "final"]) -> CurriculumNode:
-    """Load a curriculum tree from JSON. Returns the root node."""
-    path = _DATA_DIR / f"{exam}_frca.json"
+def load_document(exam: str) -> CurriculumDocument | None:
+    """Load curriculum metadata and tree from JSON, when using the wrapped schema."""
+    stem = curriculum_stem(exam)
+    if stem is None:
+        raise ValueError(f"Unknown exam: {exam!r}")
+    path = _DATA_DIR / f"{stem}_frca.json"
     with open(path) as f:
         data = json.load(f)
+    if "root" not in data:
+        return None
+    return CurriculumDocument.model_validate(data)
+
+
+@lru_cache(maxsize=None)
+def load(exam: str) -> CurriculumNode:
+    """Load a curriculum tree from JSON. Returns the root node."""
+    stem = curriculum_stem(exam)
+    if stem is None:
+        raise ValueError(f"Unknown exam: {exam!r}")
+    path = _DATA_DIR / f"{stem}_frca.json"
+    with open(path) as f:
+        data = json.load(f)
+    if "root" in data:
+        return CurriculumDocument.model_validate(data).root
     return CurriculumNode.model_validate(data)
 
 
@@ -77,11 +126,10 @@ def node_path(root: CurriculumNode, code: str) -> list[CurriculumNode]:
 
 def lookup_node(exam: str | None, code: str) -> tuple[CurriculumNode, str] | None:
     """Look up a curriculum node by exact code, inferring exam when omitted."""
-    exams_to_search = (exam,) if exam else ("primary", "final")
+    normalized = normalize_assessment_key(exam)
+    exams_to_search = (normalized,) if normalized else _ASSESSMENT_SEARCH_ORDER
     for ex in exams_to_search:
-        if ex not in {"primary", "final"}:
-            continue
-        path = node_path(load(ex), code)  # type: ignore[arg-type]
+        path = node_path(load(ex), code)
         if path:
             return path[-1], ex
     return None
@@ -89,6 +137,7 @@ def lookup_node(exam: str | None, code: str) -> tuple[CurriculumNode, str] | Non
 
 def resolve_topic(exam: str | None, node_code: str | None, topic: str | None) -> ResolvedTopic | None:
     """Resolve optional node code and topic into generation context."""
+    exam = normalize_assessment_key(exam)
     curriculum_node: CurriculumNode | None = None
     if node_code:
         result = lookup_node(exam, node_code)
@@ -148,11 +197,14 @@ def _make_node_model(embedder):
     return CurriculumNodeRecord
 
 
-def _get_table(db, exam: Literal["primary", "final"]):
+def _get_table(db, exam: str):
     """Return the curriculum LanceDB table, building it if it doesn't exist."""
     from .console import console
 
-    table_name = f"curriculum_{exam}"
+    stem = curriculum_stem(exam)
+    if stem is None:
+        raise ValueError(f"Unknown exam: {exam!r}")
+    table_name = f"curriculum_{stem}"
     embedder = _make_embedder()
     Model = _make_node_model(embedder)
 
@@ -163,7 +215,7 @@ def _get_table(db, exam: Literal["primary", "final"]):
     nodes = flatten(root)
     node_map, parent_map = _build_maps(root)
 
-    console.print(f"Building curriculum embeddings for {exam} FRCA (one-time)…")
+    console.print(f"Building curriculum embeddings for {stem} FRCA (one-time)…")
     records = [
         {
             "code": n.code,
@@ -180,7 +232,7 @@ def _get_table(db, exam: Literal["primary", "final"]):
     return table, Model
 
 
-def _open_table(exam: Literal["primary", "final"], db_path: str | Path):
+def _open_table(exam: str, db_path: str | Path):
     import lancedb
     db = lancedb.connect(str(db_path))
     return _get_table(db, exam)
@@ -188,7 +240,7 @@ def _open_table(exam: Literal["primary", "final"], db_path: str | Path):
 
 def search_table(
     topic: str,
-    exam: Literal["primary", "final"],
+    exam: str,
     db_path: str | Path = "./lancedb",
     n: int = 5,
 ):
@@ -208,7 +260,7 @@ def search_table(
 
 def match_question_nodes(
     question: Question,
-    exam: Literal["primary", "final"] | None,
+    exam: str | None,
     db_path: str | Path = "./lancedb",
     n: int = 5,
     threshold: float = _MATCH_THRESHOLD,
@@ -227,7 +279,8 @@ def match_question_nodes(
         question.correct_option.explanation,
         question.explanation,
     ])
-    exams: tuple[Literal["primary", "final"], ...] = (exam,) if exam else ("primary", "final")
+    normalized = normalize_assessment_key(exam)
+    exams = (normalized,) if normalized else _ASSESSMENT_SEARCH_ORDER
     merged: list[tuple[float, CurriculumNode]] = []
     failures: list[str] = []
     for ex in exams:

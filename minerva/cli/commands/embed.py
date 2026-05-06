@@ -8,6 +8,7 @@ import typer
 from minerva.cli.common import DEFAULT_DB, DEFAULT_EMBED
 from minerva.console import console
 from minerva.embed import EmbedClient
+from minerva.source_manifest import SourceManifest, discover_source_manifest
 
 
 def embed(
@@ -15,6 +16,7 @@ def embed(
     reset: Annotated[bool, typer.Option(help="Drop existing embeddings first")] = False,
     model: Annotated[str, typer.Option(help="Embedding model string")] = DEFAULT_EMBED,
     db: Annotated[Path, typer.Option(help="LanceDB path", envvar="LANCEDB_DIR")] = DEFAULT_DB,
+    manifest: Annotated[Path | None, typer.Option(help="Source manifest JSON path")] = None,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Show per-file chunk counts")] = False,
 ) -> None:
     """Embed documents (PDF/EPUB) into the vector store."""
@@ -22,8 +24,18 @@ def embed(
         console.print(f"[dim]Embedding model: {model}[/dim]")
         console.print(f"[dim]DB:              {db}[/dim]")
 
+    manifest_path = manifest or discover_source_manifest(path)
+    source_manifest = SourceManifest.load(manifest_path) if manifest_path else None
+    if verbose and manifest_path:
+        console.print(f"[dim]Source manifest: {manifest_path}[/dim]")
+
     with console.status("Loading embedding model…"):
-        client = EmbedClient(db_path=db, embedding_model=model, verbose=verbose)
+        client = EmbedClient(
+            db_path=db,
+            embedding_model=model,
+            source_manifest=source_manifest,
+            verbose=verbose,
+        )
 
     if reset:
         client.reset()

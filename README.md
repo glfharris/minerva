@@ -193,13 +193,7 @@ Per-option explanations are generated where missing. Questions referencing image
 ./mincli.py validate output/*.json
 ```
 
-**7. Build few-shot examples** from converted question sets:
-
-```bash
-./mincli.py make-history output/primary_frca_2026-05-02.json
-```
-
-**8. Test retrieval** (useful for debugging):
+**7. Test retrieval** (useful for debugging):
 
 ```bash
 # Check curriculum node matching for a topic
@@ -211,6 +205,12 @@ Per-option explanations are generated where missing. Questions referencing image
 
 # Check what reference material would be retrieved
 ./mincli.py match "Rocuronium" --source docs
+```
+
+**Maintenance: build few-shot examples** from converted question sets:
+
+```bash
+uv run python scripts/make_history.py output/primary_frca_2026-05-02.json
 ```
 
 ## Curriculum-aware generation

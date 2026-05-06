@@ -42,6 +42,21 @@ class TestValidateQuestionSet:
 
         assert any(f.location == "questions[1].curriculum_node_codes" and f.severity == "error" for f in findings)
 
+    def test_canonical_exam_is_valid(self, sample_question_set):
+        question = sample_question_set.questions[0].model_copy(update={"title": "Induction agent choice"})
+        qs = sample_question_set.model_copy(update={"exam": "primary_frca", "questions": [question]})
+
+        findings = validate_questionset(qs)
+
+        assert not any(f.location == "exam" for f in findings)
+
+    def test_unknown_exam_is_error(self, sample_question_set):
+        qs = sample_question_set.model_copy(update={"exam": "unknown"})
+
+        findings = validate_questionset(qs)
+
+        assert any(f.location == "exam" and f.severity == "error" for f in findings)
+
     def test_empty_question_set_is_error(self, sample_question_set):
         qs = sample_question_set.model_copy(update={"questions": []})
 

@@ -113,7 +113,8 @@ def match(
         for _, row in results.iterrows():
             d = float(row["_distance"])
             score = l2_to_cosine(d)
-            source_name = str(row["source"]) if verbose else Path(row["source"]).name
+            source_title = _row_value(row, "source_title")
+            source_name = str(row["source"]) if verbose else (source_title or Path(row["source"]).name)
             snippet = row["text"][:snippet_len].replace("\n", " ")
             colour = "green" if score >= 0.4 else "yellow"
             table.add_row(
@@ -124,3 +125,11 @@ def match(
             )
 
         console.print(table)
+
+
+def _row_value(row, key: str):
+    try:
+        value = row[key]
+    except KeyError:
+        return None
+    return None if value != value else value

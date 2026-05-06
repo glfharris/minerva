@@ -3,10 +3,15 @@ from minerva.prompts import build_generation_role
 
 class TestBuildGenerationRole:
     def test_includes_primary_exam_context(self):
-        prompt = build_generation_role("primary")
+        prompt = build_generation_role("primary_frca")
 
         assert "Primary FRCA" in prompt
         assert "basic sciences" in prompt
+
+    def test_legacy_primary_alias_still_works(self):
+        prompt = build_generation_role("primary")
+
+        assert "Primary FRCA" in prompt
 
     def test_unknown_exam_uses_shared_base_only(self):
         prompt = build_generation_role("unknown")

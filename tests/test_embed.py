@@ -1,5 +1,6 @@
-from minerva.embed import _chunk_text, _clean_text
+from minerva.embed import _chunk_text, _clean_text, _records_from_sections, _without_source_metadata
 from minerva.inputs import _extract_epub_chapters, _table_to_markdown
+from minerva.source_manifest import SourceMetadata
 
 _CHUNK_SIZE = 300
 _CHUNK_OVERLAP = 50
@@ -51,6 +52,67 @@ class TestChunkText:
     def test_exactly_chunk_size_returns_single_chunk(self):
         text = " ".join(f"w{i}" for i in range(_CHUNK_SIZE))
         assert len(_chunk_text(text)) == 1
+
+
+class TestRecordsFromSections:
+    def test_records_include_source_metadata(self):
+        metadata = SourceMetadata(
+            source_id="peck_pharmacology",
+            title="Pharmacology for Anaesthesia",
+            source_type="book",
+            author_or_publisher="Tom Peck",
+            year="2021",
+            url="https://example.com",
+            doi="10.example/test",
+            file_name="pharmacology.pdf",
+        )
+
+        records, table_count = _records_from_sections(
+            [(0, "Some source text.", ["| Table |"])],
+            "/docs/pharmacology.pdf",
+            metadata,
+        )
+
+        assert table_count == 1
+        assert len(records) == 2
+        for record in records:
+            assert record["source"] == "/docs/pharmacology.pdf"
+            assert record["source_id"] == "peck_pharmacology"
+            assert record["source_title"] == "Pharmacology for Anaesthesia"
+            assert record["source_type"] == "book"
+            assert record["source_author_or_publisher"] == "Tom Peck"
+            assert record["source_year"] == "2021"
+            assert record["source_url"] == "https://example.com"
+            assert record["source_doi"] == "10.example/test"
+            assert record["source_file_name"] == "pharmacology.pdf"
+
+    def test_records_fall_back_to_file_metadata(self):
+        records, _ = _records_from_sections(
+            [(0, "Some source text.", [])],
+            "/docs/Useful Book.pdf",
+        )
+
+        assert records[0]["source_id"] == "useful_book"
+        assert records[0]["source_title"] == "Useful Book"
+        assert records[0]["source_type"] == "pdf"
+
+    def test_can_strip_source_metadata_for_legacy_tables(self):
+        record = {
+            "text": "Some source text.",
+            "source": "/docs/source.pdf",
+            "page": 0,
+            "source_id": "source",
+            "source_title": "Source",
+            "source_type": "pdf",
+        }
+
+        stripped = _without_source_metadata(record)
+
+        assert stripped == {
+            "text": "Some source text.",
+            "source": "/docs/source.pdf",
+            "page": 0,
+        }
 
 
 class TestTableToMarkdown:

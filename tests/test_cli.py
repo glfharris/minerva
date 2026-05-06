@@ -16,6 +16,12 @@ class TestCliApp:
         assert result.exit_code == 0
         assert "validate" in result.output
 
+    def test_help_does_not_list_history_maintenance_script(self):
+        result = runner.invoke(app, ["--help"])
+
+        assert result.exit_code == 0
+        assert "make-history" not in result.output
+
     def test_validate_accepts_valid_file_with_warnings(self, tmp_path, sample_question_set):
         path = tmp_path / "questions.json"
         path.write_text(sample_question_set.model_dump_json())

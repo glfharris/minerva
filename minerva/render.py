@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from .curriculum import _ASSESSMENT_SEARCH_ORDER, _build_maps, load
 from .models import OPTION_LETTERS, CurriculumNode, Question
 
 
@@ -20,11 +21,9 @@ def show_question(question: Question, verbose: bool = False) -> None:
     console.print(f"\n{question.explanation}")
     if question.curriculum_node_codes:
         if verbose:
-            from .curriculum import _build_maps, load
-
             node_map: dict[str, CurriculumNode] = {}
-            for exam in ("primary", "final"):
-                nm, _ = _build_maps(load(exam))  # type: ignore[arg-type]
+            for exam in _ASSESSMENT_SEARCH_ORDER:
+                nm, _ = _build_maps(load(exam))
                 node_map.update(nm)
             scores = dict(zip(question.curriculum_node_codes, question.curriculum_node_scores))
             lines = []
