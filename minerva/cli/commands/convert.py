@@ -5,12 +5,15 @@ from typing import Annotated, Optional
 
 import typer
 
-from minerva.cli.common import DEFAULT_DB, DEFAULT_MODEL, Exam, format_usage, normalize_exam_or_exit, run_async, save_outputs
+from minerva.cli.common import DEFAULT_DB, DEFAULT_MODEL, Exam, format_usage, save_outputs
 from minerva.console import console
-from minerva.conversion import convert_questions
-from minerva.curriculum import _make_embedder, rematch_questions
 from minerva.inputs import read_input_file
 from minerva.render import show_question
+from minerva.workflows import (
+    ConvertQuestionSetRequest,
+    WorkflowInputError,
+    convert_question_set,
+)
 
 
 def convert(
@@ -43,20 +46,24 @@ def convert(
         console.print(f"[dim]DB:              {db}[/dim]")
         console.print(f"[dim]Input:           {len(raw):,} chars[/dim]")
 
-    with console.status("Converting questions…"):
-        qs, usage = run_async(convert_questions(raw, derived_topic, model))
-
-    normalized_exam = normalize_exam_or_exit(exam)
-    if normalized_exam:
-        qs.exam = normalized_exam
-    with console.status("Loading embedding model…") as status:
-        _make_embedder()
-        status.update("Matching curriculum nodes…")
-        rematch_questions(qs.questions, normalized_exam, db)
+    try:
+        result = convert_question_set(
+            ConvertQuestionSetRequest(
+                text=raw,
+                topic=derived_topic,
+                model=model,
+                exam=exam,
+                db_path=db,
+            )
+        )
+    except WorkflowInputError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
 
     if verbose:
-        console.print(f"[dim]{format_usage(usage, label='Convert')}[/dim]")
+        console.print(f"[dim]{format_usage(result.usage, label='Convert')}[/dim]")
 
+    qs = result.question_set
     console.print(f"[green]Parsed {len(qs.questions)} question(s)[/green]")
     for q in qs.questions:
         show_question(q, verbose=verbose)

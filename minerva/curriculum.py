@@ -42,6 +42,53 @@ class ResolvedTopic:
     topic: str
 
 
+@dataclass(frozen=True)
+class QuestionCurriculumAlignment:
+    node_code: str
+    score: float
+
+
+@dataclass(frozen=True)
+class QuestionCurriculumAlignmentResult:
+    alignments: list[QuestionCurriculumAlignment]
+
+    @classmethod
+    def from_node_matches(
+        cls,
+        matches: list[tuple[str, float]],
+    ) -> QuestionCurriculumAlignmentResult:
+        return cls([
+            QuestionCurriculumAlignment(node_code=code, score=score)
+            for code, score in matches
+        ])
+
+    @classmethod
+    def from_question(
+        cls,
+        question: Question,
+    ) -> QuestionCurriculumAlignmentResult:
+        return cls([
+            QuestionCurriculumAlignment(node_code=code, score=score)
+            for code, score in zip(
+                question.curriculum_node_codes,
+                question.curriculum_node_scores,
+                strict=True,
+            )
+        ])
+
+    @property
+    def node_codes(self) -> list[str]:
+        return [alignment.node_code for alignment in self.alignments]
+
+    @property
+    def scores(self) -> list[float]:
+        return [alignment.score for alignment in self.alignments]
+
+    def apply_to(self, question: Question) -> None:
+        question.curriculum_node_codes = self.node_codes
+        question.curriculum_node_scores = self.scores
+
+
 def normalize_assessment_key(exam: str | None) -> AssessmentKey | None:
     if exam is None:
         return None
@@ -298,9 +345,26 @@ def match_question_nodes(
     return [(node.code, score) for score, node in merged if score >= threshold][:n]
 
 
+def match_question_curriculum(
+    question: Question,
+    exam: str | None,
+    db_path: str | Path = "./lancedb",
+    n: int = 5,
+    threshold: float = _MATCH_THRESHOLD,
+) -> QuestionCurriculumAlignmentResult:
+    """Return curriculum alignment matches for a question."""
+    return QuestionCurriculumAlignmentResult.from_node_matches(
+        match_question_nodes(
+            question,
+            exam,
+            db_path=db_path,
+            n=n,
+            threshold=threshold,
+        )
+    )
+
+
 def rematch_questions(questions: list[Question], exam: str | None, db_path: str | Path) -> None:
     """Replace each question's curriculum node codes and scores with semantic matches."""
     for q in questions:
-        matches = match_question_nodes(q, exam, db_path=db_path)
-        q.curriculum_node_codes = [code for code, _ in matches]
-        q.curriculum_node_scores = [score for _, score in matches]
+        match_question_curriculum(q, exam, db_path=db_path).apply_to(q)

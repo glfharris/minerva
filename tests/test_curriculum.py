@@ -1,6 +1,7 @@
 import math
 
 from minerva.curriculum import (
+    QuestionCurriculumAlignmentResult,
     _build_maps,
     _build_text,
     flatten,
@@ -9,6 +10,7 @@ from minerva.curriculum import (
     lookup_node,
     normalize_assessment_key,
     node_path,
+    rematch_questions,
     resolve_topic,
     search,
 )
@@ -180,3 +182,49 @@ class TestBuildText:
     def test_unknown_code_returns_empty(self, curriculum_tree):
         node_map, parent_map = _build_maps(curriculum_tree)
         assert _build_text("ZZZZ", node_map, parent_map) == ""
+
+
+class TestQuestionCurriculumAlignmentResult:
+    def test_creates_parallel_legacy_fields_from_matches(self):
+        result = QuestionCurriculumAlignmentResult.from_node_matches([
+            ("A1a", 0.91),
+            ("B1a", 0.72),
+        ])
+
+        assert result.node_codes == ["A1a", "B1a"]
+        assert result.scores == [0.91, 0.72]
+
+    def test_round_trips_question_legacy_fields(self, sample_question):
+        sample_question.curriculum_node_codes = ["A1a", "B1a"]
+        sample_question.curriculum_node_scores = [0.91, 0.72]
+
+        result = QuestionCurriculumAlignmentResult.from_question(sample_question)
+
+        assert [a.node_code for a in result.alignments] == ["A1a", "B1a"]
+        assert [a.score for a in result.alignments] == [0.91, 0.72]
+
+    def test_apply_to_replaces_question_legacy_fields(self, sample_question):
+        result = QuestionCurriculumAlignmentResult.from_node_matches([
+            ("A1a", 0.91),
+            ("B1a", 0.72),
+        ])
+
+        result.apply_to(sample_question)
+
+        assert sample_question.curriculum_node_codes == ["A1a", "B1a"]
+        assert sample_question.curriculum_node_scores == [0.91, 0.72]
+
+    def test_rematch_questions_applies_alignment_result(self, monkeypatch, sample_question):
+        result = QuestionCurriculumAlignmentResult.from_node_matches([
+            ("A1a", 0.91),
+        ])
+
+        monkeypatch.setattr(
+            "minerva.curriculum.match_question_curriculum",
+            lambda question, exam, db_path: result,
+        )
+
+        rematch_questions([sample_question], "primary", "lancedb")
+
+        assert sample_question.curriculum_node_codes == ["A1a"]
+        assert sample_question.curriculum_node_scores == [0.91]
