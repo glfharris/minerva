@@ -1,4 +1,4 @@
-from minerva.embed import _chunk_text, _clean_text, _records_from_sections, _without_source_metadata
+from minerva.embed import RetrievedChunk, format_chunks, _chunk_text, _clean_text, _records_from_sections, _without_source_metadata
 from minerva.inputs import _extract_epub_chapters, _table_to_markdown
 from minerva.source_manifest import SourceMetadata
 
@@ -202,3 +202,36 @@ class TestExtractEpubChapters:
         for _, prose, tables in chapters:
             assert prose.strip() or tables
         assert any("Has content." in prose for _, prose, _ in chapters)
+
+
+class TestFormatChunks:
+    def test_empty_list_returns_empty_string(self):
+        assert format_chunks([]) == ""
+
+    def test_single_chunk_formats_with_source_label_and_page(self):
+        chunk = RetrievedChunk(
+            text="Rocuronium blocks the NMJ.",
+            source="/docs/pharmacology.pdf",
+            page=4,
+            similarity=0.85,
+            source_id="peck_pharmacology",
+            source_title="Pharmacology for Anaesthesia",
+        )
+        result = format_chunks([chunk])
+        assert "[peck_pharmacology: Pharmacology for Anaesthesia, p.5]" in result
+        assert "Rocuronium blocks the NMJ." in result
+
+    def test_multiple_chunks_joined_with_separator(self):
+        chunks = [
+            RetrievedChunk(text="chunk one", source="/a.pdf", page=0, similarity=0.9),
+            RetrievedChunk(text="chunk two", source="/b.pdf", page=1, similarity=0.8),
+        ]
+        result = format_chunks(chunks)
+        assert "---" in result
+        assert "chunk one" in result
+        assert "chunk two" in result
+
+    def test_falls_back_to_filename_when_no_source_id_or_title(self):
+        chunk = RetrievedChunk(text="text", source="/docs/my_book.pdf", page=0, similarity=0.7)
+        result = format_chunks([chunk])
+        assert "my_book.pdf" in result

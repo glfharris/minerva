@@ -12,6 +12,7 @@ from .models import Question, QuestionSet
 
 
 EXPORT_SCHEMA_VERSION = "1"
+CONTENT_FINGERPRINT_HASH_ALGORITHM = "sha256-minerva-normalised-v1"
 
 SourceMode = Literal["generated", "converted", "manual_json", "external_bank", "mixed", "unknown"]
 OriginType = SourceMode
@@ -128,7 +129,7 @@ class WebsiteCurriculumMetadataV1(BaseModel):
 
 
 class WebsiteContentFingerprintsV1(BaseModel):
-    hash_algorithm: str = "sha256-minerva-normalised-v1"
+    hash_algorithm: str = CONTENT_FINGERPRINT_HASH_ALGORITHM
     content_hash: str
     stem_hash: str
     lead_hash: str

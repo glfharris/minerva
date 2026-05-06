@@ -10,15 +10,17 @@ from pydantic_ai.usage import RunUsage
 from .critique import critique_questions
 from .conversion import convert_questions
 from .curriculum import (
-    _MATCH_THRESHOLD,
-    _make_embedder,
     AssessmentKey,
     ResolvedTopic,
     normalize_assessment_key,
-    rematch_questions,
     resolve_topic,
+)
+from .curriculum_match import (
+    _MATCH_THRESHOLD,
+    rematch_questions,
     search_table,
 )
+from .embed import RetrievedChunk, _make_embedder
 from .embed import EmbedClient
 from .generation import (
     GenerationPlanItem,
@@ -61,6 +63,7 @@ class CreateQuestionSetResult:
     generation_plan: list[GenerationPlanItem]
     generation_usages: list[RunUsage] = field(default_factory=list)
     critique_usage: RunUsage | None = None
+    retrieved_chunks: list[RetrievedChunk] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -111,11 +114,12 @@ def create_question_set(
 
     all_questions: list[Question] = []
     all_usages: list[RunUsage] = []
+    all_chunks: list[RetrievedChunk] = []
     messages: list = []
     prior_stems: list[str] = []
 
     for plan_item in generation_plan:
-        qs_i, msgs_i, usage_i = run_async(
+        qs_i, msgs_i, usage_i, chunks_i = run_async(
             generate_questions(
                 topic=topic,
                 count=plan_item.count,
@@ -130,6 +134,7 @@ def create_question_set(
         prior_stems.extend(q.stem for q in qs_i.questions)
         all_questions.extend(qs_i.questions)
         all_usages.append(usage_i)
+        all_chunks.extend(chunks_i)
         messages = msgs_i
 
     if not all_questions:
@@ -158,6 +163,7 @@ def create_question_set(
         generation_plan=generation_plan,
         generation_usages=all_usages,
         critique_usage=critique_usage,
+        retrieved_chunks=all_chunks,
     )
 
 

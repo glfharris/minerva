@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from pydantic_ai.usage import RunUsage
 
 from .agent import Deps, load_example_messages, make_agent
-from .curriculum import _MATCH_THRESHOLD, _make_embedder, flatten, load, node_path
+from .curriculum import flatten, load, node_path
+from .curriculum_match import _MATCH_THRESHOLD
+from .embed import RetrievedChunk, _make_embedder
 from .embed import EmbedClient
 from .models import CurriculumNode, QuestionSet
 from .similarity import rank_by_similarity
@@ -92,7 +94,7 @@ async def generate_questions(
     retriever: EmbedClient,
     verbose: bool = False,
     prior_stems: list[str] | None = None,
-) -> tuple[QuestionSet, list, RunUsage]:
+) -> tuple[QuestionSet, list, RunUsage, list[RetrievedChunk]]:
     curriculum_path = (
         node_path(load(exam), node.code)  # type: ignore[arg-type]
         if (node and exam)
@@ -133,4 +135,4 @@ async def generate_questions(
     if node:
         qs.curriculum_node_code = node.code
     qs.questions = [q.with_sorted_options() for q in qs.questions]
-    return qs, result.all_messages(), result.usage()
+    return qs, result.all_messages(), result.usage(), deps.retrieved_chunks

@@ -9,14 +9,15 @@ from rich.table import Table
 from minerva.cli.common import DEFAULT_DB, DEFAULT_EMBED, Exam, Source
 from minerva.console import console
 from minerva.curriculum import (
-    _MATCH_THRESHOLD,
-    _make_embedder,
-    l2_to_cosine,
     load,
     lookup_node,
     node_path,
+)
+from minerva.curriculum_match import (
+    _MATCH_THRESHOLD,
     search_table,
 )
+from minerva.embed import _make_embedder, l2_to_cosine
 from minerva.embed import EmbedClient
 from minerva.similarity import rank_by_similarity
 

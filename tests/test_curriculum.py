@@ -5,15 +5,15 @@ from minerva.curriculum import (
     _build_maps,
     _build_text,
     flatten,
-    l2_to_cosine,
     load_document,
     lookup_node,
     normalize_assessment_key,
     node_path,
-    rematch_questions,
     resolve_topic,
     search,
 )
+from minerva.curriculum_match import rematch_questions
+from minerva.embed import l2_to_cosine
 
 
 class TestL2ToCosine:
@@ -220,7 +220,7 @@ class TestQuestionCurriculumAlignmentResult:
         ])
 
         monkeypatch.setattr(
-            "minerva.curriculum.match_question_curriculum",
+            "minerva.curriculum_match.match_question_curriculum",
             lambda question, exam, db_path: result,
         )
 

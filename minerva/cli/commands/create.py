@@ -13,9 +13,8 @@ from minerva.cli.common import (
     Exam,
     format_usage,
     save_outputs,
-    show_generation_plan,
-    show_critique,
 )
+from minerva.cli.display import show_critique, show_generation_plan
 from minerva.console import console
 from minerva.paths import slugify
 from minerva.render import show_question

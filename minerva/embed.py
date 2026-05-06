@@ -1,21 +1,58 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass as _dataclass
 from functools import lru_cache
 from pathlib import Path
 
 from .console import console
-from .curriculum import l2_to_cosine
 from .source_manifest import SourceManifest, SourceMetadata
 
 _TABLE_NAME = "documents"
+EMBED_MODEL = "NeuML/pubmedbert-base-embeddings"
 _CHUNK_SIZE = 300      # words per chunk — safely within PubMedBERT's 512 token limit
 _CHUNK_OVERLAP = 50    # word overlap between consecutive chunks
 _EMBED_BATCH_SIZE = 32 # aligns with sentence-transformers' internal batch size
 
 
+def l2_to_cosine(d: float) -> float:
+    """Convert LanceDB L2 distance to cosine similarity for normalised vectors."""
+    return 1 - (d ** 2 / 2)
+
+
+@_dataclass(frozen=True)
+class RetrievedChunk:
+    text: str
+    source: str
+    page: int
+    similarity: float
+    source_id: str | None = None
+    source_title: str | None = None
+    source_type: str | None = None
+    author_or_publisher: str | None = None
+    year: str | None = None
+    url: str | None = None
+    doi: str | None = None
+    file_name: str | None = None
+
+
+def _label_for_chunk(chunk: RetrievedChunk) -> str:
+    source_name = chunk.source_title or Path(chunk.source).name
+    return f"{chunk.source_id}: {source_name}" if chunk.source_id else source_name
+
+
+def format_chunks(chunks: list[RetrievedChunk]) -> str:
+    if not chunks:
+        return ""
+    parts = [
+        f"[{_label_for_chunk(chunk)}, p.{chunk.page + 1}]\n{chunk.text}"
+        for chunk in chunks
+    ]
+    return "\n\n---\n\n".join(parts)
+
+
 @lru_cache(maxsize=None)
-def _make_embedder(model_string: str):
+def _make_embedder(model_string: str = f"sentence-transformers:{EMBED_MODEL}"):
     """Parse 'provider:model_name' and return a LanceDB embedding function. Cached per model string."""
     import transformers
     transformers.logging.set_verbosity_error()
@@ -108,7 +145,7 @@ class EmbedClient:
     def __init__(
         self,
         db_path: str | Path = "./lancedb",
-        embedding_model: str = "sentence-transformers:NeuML/pubmedbert-base-embeddings",
+        embedding_model: str = f"sentence-transformers:{EMBED_MODEL}",
         source_manifest: SourceManifest | None = None,
         verbose: bool = False,
     ) -> None:
@@ -208,27 +245,36 @@ class EmbedClient:
             total_chunks += self.add_document(doc, source_manifest=source_manifest)
         console.log(f"[green]Done[/green] — {total_chunks} chunk(s) added across {len(docs)} file(s)")
 
-    def _source_label(self, row) -> str:
-        title = _row_value(row, "source_title")
-        source_id = _row_value(row, "source_id")
-        source_name = title or Path(row["source"]).name
-        return f"{source_id}: {source_name}" if source_id else source_name
-
-    def query(self, text: str, n: int = 5, threshold: float = 0.0) -> str:
+    def query_chunks(self, text: str, n: int = 5, threshold: float = 0.0) -> list[RetrievedChunk]:
         results = self._table.search(text).limit(n).to_pandas()
         if results.empty:
-            return ""
+            return []
         if threshold > 0.0:
             results = results[results["_distance"].apply(
                 lambda d: l2_to_cosine(d) >= threshold
             )]
         if results.empty:
-            return ""
-        chunks = [
-            f"[{self._source_label(row)}, p.{row['page'] + 1}]\n{row['text']}"
+            return []
+        return [
+            RetrievedChunk(
+                text=row["text"],
+                source=row["source"],
+                page=int(row["page"]),
+                similarity=l2_to_cosine(float(row["_distance"])),
+                source_id=_row_value(row, "source_id"),
+                source_title=_row_value(row, "source_title"),
+                source_type=_row_value(row, "source_type"),
+                author_or_publisher=_row_value(row, "source_author_or_publisher"),
+                year=_row_value(row, "source_year"),
+                url=_row_value(row, "source_url"),
+                doi=_row_value(row, "source_doi"),
+                file_name=_row_value(row, "source_file_name"),
+            )
             for _, row in results.iterrows()
         ]
-        return "\n\n---\n\n".join(chunks)
+
+    def query(self, text: str, n: int = 5, threshold: float = 0.0) -> str:
+        return format_chunks(self.query_chunks(text, n=n, threshold=threshold))
 
     def search_docs(self, text: str, n: int = 5):
         """Return raw search results as a pandas DataFrame (for display in match command)."""

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from .models import QuestionSet
 from .paths import slugify
+from .website_export import WebsiteQuestionSetV1
 
 
 def load_questionset(path: Path) -> QuestionSet:
@@ -32,6 +33,14 @@ def _resolve_path(qs: QuestionSet, path: Path, suffix: str) -> Path:
 def save_json(qs: QuestionSet, path: Path) -> Path:
     path = _resolve_path(qs, path, ".json")
     path.write_text(qs.model_dump_json(indent=2))
+    return path
+
+
+def save_website_export(web_qs: WebsiteQuestionSetV1, path: Path) -> Path:
+    """Save a website export JSON file."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(web_qs.model_dump_json(indent=2))
     return path
 
 

@@ -2,14 +2,20 @@ from datetime import datetime
 
 import pytest
 from pydantic import ValidationError
+from typer.testing import CliRunner
 
+from minerva.cli.app import app
 from minerva.models import Question, QuestionOption
 from minerva.website_export import (
+    CONTENT_FINGERPRINT_HASH_ALGORITHM,
     WebsiteQuestionOptionV1,
+    WebsiteQuestionSetV1,
     WebsiteQuestionV1,
     content_fingerprints,
     website_questionset_from_questionset,
 )
+
+runner = CliRunner()
 
 
 class TestWebsiteQuestionSetFromQuestionSet:
@@ -114,6 +120,33 @@ class TestWebsiteQuestionSetFromQuestionSet:
         assert loaded == web_export
 
 
+class TestContentFingerprints:
+    def test_pins_documented_normalisation_and_hashes(self):
+        question = Question(
+            title="  Title  ",
+            stem="  A   STEM\nWith   Spaces ",
+            lead="What is the BEST answer?",
+            options=[
+                QuestionOption(text="Beta  option", is_correct=False, explanation="Wrong"),
+                QuestionOption(text="alpha OPTION", is_correct=True, explanation="Correct"),
+                QuestionOption(text="Gamma option", is_correct=False, explanation="Wrong"),
+                QuestionOption(text="Delta option", is_correct=False, explanation="Wrong"),
+                QuestionOption(text="Epsilon option", is_correct=False, explanation="Wrong"),
+            ],
+            explanation=" Overall   Explanation ",
+        )
+
+        fingerprints = content_fingerprints(question)
+
+        assert fingerprints.hash_algorithm == CONTENT_FINGERPRINT_HASH_ALGORITHM
+        assert fingerprints.hash_algorithm == "sha256-minerva-normalised-v1"
+        assert fingerprints.content_hash == "a2956337ed4e5de0966f56049a3df9162dd2e9ce968724969bd2e8aa8274185e"
+        assert fingerprints.stem_hash == "01a45f342f139f7a82bf76eb61c5ad3cd4b4e4739c145afd15da974fc4c50bbc"
+        assert fingerprints.lead_hash == "625e136758c6b6454f6cac87db8427538d3716bce034238fa7c6f994f897698b"
+        assert fingerprints.option_set_hash == "cb34b876472261133687ed72c7c28c417b9be60cd92a28da93c8b223e804238a"
+        assert fingerprints.answer_hash == "cc53cce85e9e01469ac5463721941cd98d99c388337b453b2e80e3fd2815cea9"
+
+
 class TestWebsiteQuestionValidation:
     def test_rejects_mismatched_correct_option_id(self):
         options = [
@@ -166,3 +199,59 @@ class TestWebsiteQuestionValidation:
                     ], explanation="Overall")
                 ),
             )
+
+
+class TestWebsiteExportCommand:
+    def test_exports_valid_website_json(self, tmp_path, sample_question_set):
+        input_path = tmp_path / "questions.json"
+        input_path.write_text(sample_question_set.model_dump_json())
+
+        result = runner.invoke(app, ["website-export", str(input_path)])
+
+        assert result.exit_code == 0, result.output
+        out_path = tmp_path / "questions_website.json"
+        assert out_path.exists()
+        web_qs = WebsiteQuestionSetV1.model_validate_json(out_path.read_text())
+        assert len(web_qs.questions) == 1
+        assert "Exported 1 question" in result.output
+
+    def test_respects_output_flag(self, tmp_path, sample_question_set):
+        input_path = tmp_path / "questions.json"
+        input_path.write_text(sample_question_set.model_dump_json())
+        out_path = tmp_path / "custom_output.json"
+
+        result = runner.invoke(app, ["website-export", str(input_path), "-o", str(out_path)])
+
+        assert result.exit_code == 0, result.output
+        assert out_path.exists()
+        WebsiteQuestionSetV1.model_validate_json(out_path.read_text())
+
+    def test_respects_source_mode(self, tmp_path, sample_question_set):
+        input_path = tmp_path / "questions.json"
+        input_path.write_text(sample_question_set.model_dump_json())
+
+        result = runner.invoke(app, ["website-export", str(input_path), "--source-mode", "generated"])
+
+        assert result.exit_code == 0, result.output
+        out_path = tmp_path / "questions_website.json"
+        web_qs = WebsiteQuestionSetV1.model_validate_json(out_path.read_text())
+        assert web_qs.source_mode == "generated"
+
+    def test_exits_with_error_on_invalid_file(self, tmp_path):
+        bad_path = tmp_path / "missing.json"
+
+        result = runner.invoke(app, ["website-export", str(bad_path)])
+
+        assert result.exit_code == 1
+        assert "Could not load" in result.output
+
+    def test_output_directory_creates_file_inside(self, tmp_path, sample_question_set):
+        input_path = tmp_path / "questions.json"
+        input_path.write_text(sample_question_set.model_dump_json())
+        out_dir = tmp_path / "exports"
+
+        result = runner.invoke(app, ["website-export", str(input_path), "-o", str(out_dir)])
+
+        assert result.exit_code == 0, result.output
+        expected = out_dir / "questions_website.json"
+        assert expected.exists()

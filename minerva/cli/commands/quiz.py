@@ -16,7 +16,7 @@ from minerva.cli.common import (
     validate_count,
 )
 from minerva.console import console
-from minerva.curriculum import rematch_questions
+from minerva.curriculum_match import rematch_questions
 from minerva.embed import EmbedClient
 from minerva.generation import generate_questions
 from minerva.output import load_questionset, save_json

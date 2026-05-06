@@ -39,7 +39,7 @@ class TestCreateQuestionSetWorkflow:
 
         async def fake_generate_questions(**kwargs):
             calls.append(kwargs)
-            return sample_question_set.model_copy(deep=True), ["messages"], RunUsage()
+            return sample_question_set.model_copy(deep=True), ["messages"], RunUsage(), []
 
         def fake_rematch_questions(questions, exam, db_path):
             rematches.append((questions, exam, db_path))
@@ -63,6 +63,7 @@ class TestCreateQuestionSetWorkflow:
         assert result.question_set.topic == sample_question_set.topic
         assert result.messages == ["messages"]
         assert result.generation_plan[0].node == matched_node
+        assert result.retrieved_chunks == []
         assert calls[0]["topic"] == "Rocuronium"
         assert calls[0]["exam"] == "primary_frca"
         assert calls[0]["node"] == matched_node
@@ -81,7 +82,7 @@ class TestCreateQuestionSetWorkflow:
                 pass
 
         async def fake_generate_questions(**kwargs):
-            return sample_question_set.model_copy(deep=True), [], RunUsage()
+            return sample_question_set.model_copy(deep=True), [], RunUsage(), []
 
         async def fake_critique_questions(qs, model):
             return CritiqueResult(

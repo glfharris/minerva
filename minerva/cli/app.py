@@ -23,6 +23,7 @@ from minerva.cli.commands.embed import embed
 from minerva.cli.commands.match import match
 from minerva.cli.commands.quiz import quiz
 from minerva.cli.commands.validate import validate
+from minerva.cli.commands.website_export import website_export
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -33,3 +34,4 @@ app.command()(quiz)
 app.command()(critique)
 app.command()(convert)
 app.command()(validate)
+app.command(name="website-export")(website_export)

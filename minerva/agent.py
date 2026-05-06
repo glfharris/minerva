@@ -9,7 +9,7 @@ from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelRequest, ToolRet
 
 from .console import console
 from .curriculum import normalize_assessment_key
-from .embed import EmbedClient
+from .embed import EmbedClient, RetrievedChunk, format_chunks
 from .models import CurriculumNode, QuestionSet
 from .prompts import build_generation_role
 
@@ -22,6 +22,7 @@ class Deps:
     curriculum_path: list[CurriculumNode] = field(default_factory=list)
     exam: str | None = None
     verbose: bool = False
+    retrieved_chunks: list[RetrievedChunk] = field(default_factory=list)
 
 
 def make_agent(model: str) -> Agent[Deps, QuestionSet]:
@@ -64,14 +65,14 @@ def make_agent(model: str) -> Agent[Deps, QuestionSet]:
         Call this before writing each question to ground factual claims in source
         material.
         """
-        result = ctx.deps.retriever.query(query, threshold=_RAG_THRESHOLD)
+        chunks = ctx.deps.retriever.query_chunks(query, threshold=_RAG_THRESHOLD)
+        ctx.deps.retrieved_chunks.extend(chunks)
         if ctx.deps.verbose:
-            if not result:
+            if not chunks:
                 console.print(f"[yellow]No relevant chunks found for query: {query!r}[/yellow]")
             else:
-                chunk_count = result.count("---") + 1
-                console.print(f"[dim]Retrieved {chunk_count} chunk(s) for query: {query!r}[/dim]")
-        return result
+                console.print(f"[dim]Retrieved {len(chunks)} chunk(s) for query: {query!r}[/dim]")
+        return format_chunks(chunks)
 
     return ag
 
@@ -99,7 +100,7 @@ def _strip_tool_results(messages: list) -> list:
 
 def _select_by_similarity(candidates: list[dict], topic: str, n: int) -> list[dict]:
     """Return top-n candidates ranked by cosine similarity to topic."""
-    from .curriculum import _make_embedder
+    from .embed import _make_embedder
     from .similarity import rank_by_similarity
 
     embedder = _make_embedder()

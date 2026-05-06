@@ -5,7 +5,8 @@ from typing import Annotated, Optional
 
 import typer
 
-from minerva.cli.common import DEFAULT_MODEL, format_usage, run_async, show_critique
+from minerva.cli.common import DEFAULT_MODEL, format_usage, run_async
+from minerva.cli.display import show_critique
 from minerva.console import console
 from minerva.critique import critique_questions
 from minerva.output import load_questionset, save_json
